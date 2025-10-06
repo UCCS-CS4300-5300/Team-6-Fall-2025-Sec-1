@@ -29,6 +29,18 @@ ALLOWED_HOSTS = [
     "app-cruzcs4300-19.devedu.io",
     "editor-roshea-19.devedu.io",
     'app-gwilli17-19.devedu.io',
+    'localhost',
+    "http://0.0.0.0:3000/",
+]
+
+
+ALLOWED_HOSTS = [
+    "app-cruzcs4300-19.devedu.io",
+    "editor-roshea-19.devedu.io",
+    "app-gwilli17-19.devedu.io",
+    "app-jgfuze-19.devedu.io",
+    "localhost",
+    "http://0.0.0.0:3000/",
 ]
 
 # Application definition
