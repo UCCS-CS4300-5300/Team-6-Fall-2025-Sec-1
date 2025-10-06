@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "app-cruzcs4300-19.devedu.io",
-    "editor-roshea-19.devedu.io"
+    "editor-roshea-19.devedu.io",
+    'app-gwilli17-19.devedu.io',
 ]
 
 # Application definition
