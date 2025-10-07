@@ -25,14 +25,6 @@ SECRET_KEY = 'django-insecure-x83bv6v$r4!x&+hl#%ij+l_4f+7i)t-kai51#pgl&lk_t6!vuv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "app-cruzcs4300-19.devedu.io",
-    "editor-roshea-19.devedu.io",
-    'app-gwilli17-19.devedu.io',
-    'localhost',
-    "http://0.0.0.0:3000/",
-]
-
 
 ALLOWED_HOSTS = [
     "app-cruzcs4300-19.devedu.io",
@@ -53,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
+    'django_bootstrap5'
 ]
 
 MIDDLEWARE = [
