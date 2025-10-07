@@ -1,0 +1,31 @@
+Riley O’Shea:
+I was able to learn quite a bit from the project setup and sprint 0, I was able to learn more on how to create and 
+format issues in github and create projects. I ran into some issues when it came to adding the “app” host to the 
+django application but once I passed that getting the css and html sheets to work together was very smooth. Overall, 
+I learned quite a bit about creating test cases, github use, and deploying a django application.
+
+
+
+Avalee Cruz:
+My main takeaway from this initial project setup was the troubleshooting aspect, attempting to get the initial project 
+to run with DevEdu. During class, I had done the initial project setup by creating the Django project, home application, 
+and the template and stylesheet for the home page. When trying to run the app, I ran into issues revolving around allowed 
+hosts and loading the page which I attempted to fix by myself. However, once I explained the issue to my teammates, 
+Gabe had already run into the issue and told me where to add my host. While the initial struggle is important to experience, 
+communication eventually led to the solution. Additionally, it was good to experience how errors were displayed when running 
+the app so that solutions would be easier to find in the future.
+
+
+Gabe Williams:
+Through sprints 0-3, I focused on designing some of the landing page for our application. This was super insightful for my 
+introduction to using Bootstrap for web development. I had really only used vanilla HTML for designing crappy looking pages, 
+this being one of the first times I created something that didn't look like a 6-year-old made it. This implementation of Bootstrap 
+made it easy to create something that looks nice and is responsive. There is definitely a lot to learn from using Bootstrap, 
+though, so I will need to work more with it to memorize some of the names and specific styles. 
+
+
+
+Jonah Gallagher:
+From working on Sprint 03, I learned a great deal about how integrating HTML with Bootstrap helps create a modular and efficient 
+front-end setup. While adding a user button, I explored how Bootstrap’s classes can be applied to build and customize seamless 
+navigation menus. Overall, this section helped me better understand front-end integration using HTML and Bootstrap.
