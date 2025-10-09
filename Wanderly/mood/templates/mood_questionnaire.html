@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Wanderly AI Mood Questionnaire</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+      
+        <!-- Bootstrap first -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+      
+        <!-- Your overrides -->
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        
+        <!-- Add this style block -->
+        <style>
+          /* Radio button styling */
+          .likert-scale {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+          }
+      
+          .likert-scale .form-check {
+            flex: 0 0 auto;
+          }
+      
+          .likert-scale .form-check-input {
+            cursor: pointer;
+          }
+      
+          .likert-scale .form-check-label {
+            cursor: pointer;
+            margin-left: 0.25rem;
+          }
+      
+          /* Scale labels */
+          .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+          }
+      
+          .info-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+          }
+      
+          .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+          }
+      
+          .btn-primary:hover {
+            opacity: 0.9;
+            background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+          }
+        </style>
+      </head>
+
+  <body>
+    <!-- Hero / info band -->
+    <header class="info-section">
+      <div class="container py-5">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-6 text-center text-lg-start">
+            <h1 class="display-5 fw-extrabold mb-3">Wanderly AI Mood Questionnaire</h1>
+            <p class="lead mb-4">
+              Wanderly uses AI to match your mood and interests to nearby activities.
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Questionnaire -->
+    <section class="questionnaire">
+      <div class="container py-5">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+
+            <h2 class="h3 mb-3">Mood Questionnaire</h2>
+            <p class="mb-4">Fill out the questionnaire below to help Wanderly understand your mood and interests.</p>
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+
+              <!-- Adventurous Question -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">How adventurous are you feeling?</label>
+                <div class="likert-scale">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_1" value="1">
+                    <label class="form-check-label" for="adventurous_1">1</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_2" value="2">
+                    <label class="form-check-label" for="adventurous_2">2</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_3" value="3">
+                    <label class="form-check-label" for="adventurous_3">3</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_4" value="4">
+                    <label class="form-check-label" for="adventurous_4">4</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_5" value="5">
+                    <label class="form-check-label" for="adventurous_5">5</label>
+                  </div>
+                </div>
+                <div class="scale-labels">
+                  <span>Not at all</span>
+                  <span>Very adventurous</span>
+                </div>
+              </div>
+
+              <!-- Energy Question -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">What is your energy level?</label>
+                <div class="likert-scale">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="energy" id="energy_1" value="1">
+                    <label class="form-check-label" for="energy_1">1</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="energy" id="energy_2" value="2">
+                    <label class="form-check-label" for="energy_2">2</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="energy" id="energy_3" value="3">
+                    <label class="form-check-label" for="energy_3">3</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="energy" id="energy_4" value="4">
+                    <label class="form-check-label" for="energy_4">4</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="energy" id="energy_5" value="5">
+                    <label class="form-check-label" for="energy_5">5</label>
+                  </div>
+                </div>
+                <div class="scale-labels">
+                  <span>Low energy</span>
+                  <span>High energy</span>
+                </div>
+              </div>
+
+              <!-- Text Area Question -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold" for="what_do_you_enjoy">What kinds of things do you enjoy doing?</label>
+                <textarea 
+                  class="form-control" 
+                  id="what_do_you_enjoy" 
+                  name="what_do_you_enjoy" 
+                  rows="3" 
+                  placeholder="Enter some things you are interested in separated by commas and Wanderly will search for nearby activities"
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bg-white border-top py-4 mt-5">
+      <div class="container">
+        <div class="row align-items-center gy-3">
+          <div class="col-md-6 text-center text-md-start">
+            <span class="text-muted">&copy; 2025 Wanderly. All rights reserved.</span>
+          </div>
+          <div class="col-md-6">
+            <ul class="nav justify-content-center justify-content-md-end">
+              <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">About</a></li>
+              <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
