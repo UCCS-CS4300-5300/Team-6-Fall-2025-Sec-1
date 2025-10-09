@@ -3,5 +3,5 @@ from .views import mood_questionnaire
 
 app_name = "mood"
 urlpatterns = [
-    path("", mood_questionnaire, name="questionnaire"),
+    path("", mood_questionnaire, name="mood_questionnaire"),
 ]
