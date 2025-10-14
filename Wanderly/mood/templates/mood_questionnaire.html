@@ -44,6 +44,27 @@
             margin-top: 0.25rem;
             margin-bottom: 1rem;
           }
+
+          /* Checkbox styling */
+          .interest-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+          }
+
+          .interest-checkboxes .form-check {
+            margin-bottom: 0;
+          }
+
+          .interest-checkboxes .form-check-input {
+            cursor: pointer;
+          }
+
+          .interest-checkboxes .form-check-label {
+            cursor: pointer;
+            margin-left: 0.5rem;
+          }
       
           .info-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -153,17 +174,39 @@
                 </div>
               </div>
 
-              <!-- Text Area Question -->
+              <!-- Multiple Choice Question -->
               <div class="mb-4">
-                <label class="form-label fw-semibold" for="what_do_you_enjoy">What kinds of things do you enjoy doing?</label>
-                <textarea 
-                  class="form-control" 
-                  id="what_do_you_enjoy" 
-                  name="what_do_you_enjoy" 
-                  rows="3" 
-                  placeholder="Enter some things you are interested in separated by commas and Wanderly will search for nearby activities"
-                  required
-                ></textarea>
+                <label class="form-label fw-semibold">Select from the following some things you are interested in</label>
+                <div class="interest-checkboxes">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_hiking" value="hiking">
+                    <label class="form-check-label" for="interest_hiking">Hiking</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_water" value="water_adventures">
+                    <label class="form-check-label" for="interest_water">Water adventures</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_sightseeing" value="sight_seeing">
+                    <label class="form-check-label" for="interest_sightseeing">Sight seeing</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_museums" value="museums">
+                    <label class="form-check-label" for="interest_museums">Museums</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_foods" value="try_new_foods">
+                    <label class="form-check-label" for="interest_foods">Try new foods</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_events" value="concert_sporting">
+                    <label class="form-check-label" for="interest_events">Attend a concert/sporting event</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_market" value="local_market">
+                    <label class="form-check-label" for="interest_market">Visit a local market</label>
+                  </div>
+                </div>
               </div>
 
               <button type="submit" class="btn btn-primary">Submit</button>
