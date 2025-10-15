@@ -1,0 +1,14 @@
+asgiref==3.10.0
+Django==5.2.7
+django-bootstrap5==25.2
+gyp-next==0.20.4
+iniconfig==2.1.0
+numpy==2.3.3
+packaging==25.0
+pluggy==1.6.0
+Pygments==2.19.2
+pytest==8.4.2
+pytz==2025.2
+setuptools==80.9.0
+six==1.17.0
+sqlparse==0.5.3
