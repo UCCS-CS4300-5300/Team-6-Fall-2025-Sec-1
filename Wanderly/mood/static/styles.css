@@ -1,0 +1,30 @@
+/* Radio button styling */
+.likert-scale {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  
+  .likert-scale .form-check {
+    flex: 0 0 auto;
+  }
+  
+  .likert-scale .form-check-input {
+    cursor: pointer;
+  }
+  
+  .likert-scale .form-check-label {
+    cursor: pointer;
+    margin-left: 0.25rem;
+  }
+  
+  /* Scale labels */
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }

@@ -28,11 +28,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "app-cruzcs4300-19.devedu.io",
-    "editor-roshea-19.devedu.io",
+    "app-roshea-19.devedu.io",
     "app-gwilli17-19.devedu.io",
     "app-jgfuze-19.devedu.io",
     "localhost",
     "http://0.0.0.0:3000/",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://app-roshea-19.devedu.io',
 ]
 
 # Application definition
@@ -45,7 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
-    'django_bootstrap5'
+    'django_bootstrap5',
+    'mood',
 ]
 
 MIDDLEWARE = [
