@@ -1,3 +1,7 @@
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
 .venv/
 *.pyc
 .env
@@ -9,3 +13,5 @@ staticfiles/
 media/
 *.log
 .DS_Store
+
+.env
