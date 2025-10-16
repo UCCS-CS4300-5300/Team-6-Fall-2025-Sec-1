@@ -35,3 +35,12 @@ sqlparse==0.5.3
 tzdata==2025.2
 uritemplate==4.2.0
 urllib3==2.5.0
+click==8.3.0
+dj-database-url==3.0.1
+gunicorn==23.0.0
+h11==0.16.0
+psycopg2-binary==2.9.10
+python-decouple==3.8
+uvicorn==0.37.0
+whitenoise==6.11.0
+
