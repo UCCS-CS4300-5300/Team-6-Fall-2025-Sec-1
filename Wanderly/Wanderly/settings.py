@@ -138,6 +138,8 @@ if ENVIRONMENT == 'production':
     
     # Trusted origins for CSRF
     CSRF_TRUSTED_ORIGINS = [
-        f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}",
-        'https://wanderly-m0s3.onrender.com',
+    f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}",
+    'https://wanderly-m0s3.onrender.com',
+    'https://wanderly.social',
+    'https://www.wanderly.social',
     ]
