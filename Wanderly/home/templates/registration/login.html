@@ -15,28 +15,25 @@
             <div class="container py-5">
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
-                        {% if request.user.is_authenticated or request.session.user_data %}
+                        {% if request.user.is_authenticated %}
                             <!-- ===== Authenticated State ===== -->
                             <div class="card card-hover border-0 rounded-4 p-4 p-md-5 text-center shadow">
                                 <div class="mb-4">
-                                    {% if request.user.is_authenticated %}
-                                        <h1 class="h3 fw-bold text-dark mb-2">Welcome back, {{ request.user.first_name|default:request.user.username }}</h1>
-                                        <p class="text-secondary mb-0">You're signed in with {{ request.user.email|default:request.user.username }}</p>
-                                    {% else %}
-                                        <h1 class="h3 fw-bold text-dark mb-2">Welcome back, {{ request.session.user_data.given_name }}</h1>
-                                        <p class="text-secondary mb-0">You're signed in with {{ request.session.user_data.email }}</p>
-                                    {% endif %}
+                                    <h1 class="h3 fw-bold text-dark mb-2">Welcome back, {{ request.user.first_name|default:request.user.username }}</h1>
+                                    <p class="text-secondary mb-0">You're signed in with {{ request.user.email|default:request.user.username }}</p>
                                 </div>
-                                {% if request.session.user_data.picture %}
+                                {% with request.session.google_profile_picture as google_picture %}
+                                    {% if google_picture %}
                                     <img
-                                        src="{{ request.session.user_data.picture }}"
+                                        src="{{ google_picture }}"
                                         alt="Profile photo"
                                         class="rounded-circle mb-4 border border-3 border-light shadow-sm"
                                         width="96"
                                         height="96"
                                     >
-                                {% endif %}
-                                <a class="btn btn-outline-secondary btn-lg w-100" href="/sign-out">Sign out</a>
+                                    {% endif %}
+                                {% endwith %}
+                                <a class="btn btn-outline-secondary btn-lg w-100" href="{% url 'sign_out' %}">Sign out</a>
                             </div>
                         {% else %}
                             <!-- ===== Login Card ===== -->
