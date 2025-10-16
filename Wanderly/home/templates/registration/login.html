@@ -1,91 +1,135 @@
-!doctype html>
+{% load static %}
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Login Page</title>
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-      }
- 
-      .container {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
- 
-      img {
-        border-radius: 50%;
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        margin-top: 10px;
-      }
- 
-      p {
-        color: #333;
-        margin: 10px 0;
-      }
- 
-      a {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: bold;
-      }
- 
-      a:hover {
-        text-decoration: underline;
-      }
- 
-      .g_id_signin {
-        margin-top: 20px;
-      }
-    </style>
-  </head>
- 
-  <body>
-    <div class="container">
-      {% if request.session.user_data %}
-      <div>
-        <p>Hi {{ request.session.user_data.given_name }} 🙂</p>
-        <p>Your email is {{ request.session.user_data.email }}</p>
-        <img src="{{ request.session.user_data.picture }}" alt="User picture" />
-        <p>Click here to <a href="/sign-out">Sign out</a></p>
-      </div>
-      {% else %}
-      <div>
-        <p>Hi there 🙂</p>
-        <p>Click below to sign in with Google</p>
-
-        <!--            Paste the generated HTML code for Google sign in button goes here-->
-        <div id="g_id_onload"
-            data-client_id="1034792818071-tf4jhf1fjsmn3khfpsrhnsur29d5v8fo.apps.googleusercontent.com"
-            data-context="signin"
-            data-ux_mode="popup"
-            data-login_uri="https://app-jgfuze-19.devedu.io/auth-receiver"
-            data-itp_support="true">
-        </div>
-
-        <div class="g_id_signin"
-            data-type="standard"
-            data-shape="pill"
-            data-theme="filled_black"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left">
-        </div>
-
-      </div>
-      {% endif %}
-    </div>
-  </body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Login | Wanderly</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <script src="https://accounts.google.com/gsi/client" async></script>
+    </head>
+    <body class="bg-light">
+        <!-- ===== Hero-style Wrapper (matches homepage gradient) ===== -->
+        <section class="info-section min-vh-100 d-flex align-items-center">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        {% if request.user.is_authenticated or request.session.user_data %}
+                            <!-- ===== Authenticated State ===== -->
+                            <div class="card card-hover border-0 rounded-4 p-4 p-md-5 text-center shadow">
+                                <div class="mb-4">
+                                    {% if request.user.is_authenticated %}
+                                        <h1 class="h3 fw-bold text-dark mb-2">Welcome back, {{ request.user.first_name|default:request.user.username }}</h1>
+                                        <p class="text-secondary mb-0">You're signed in with {{ request.user.email|default:request.user.username }}</p>
+                                    {% else %}
+                                        <h1 class="h3 fw-bold text-dark mb-2">Welcome back, {{ request.session.user_data.given_name }}</h1>
+                                        <p class="text-secondary mb-0">You're signed in with {{ request.session.user_data.email }}</p>
+                                    {% endif %}
+                                </div>
+                                {% if request.session.user_data.picture %}
+                                    <img
+                                        src="{{ request.session.user_data.picture }}"
+                                        alt="Profile photo"
+                                        class="rounded-circle mb-4 border border-3 border-light shadow-sm"
+                                        width="96"
+                                        height="96"
+                                    >
+                                {% endif %}
+                                <a class="btn btn-outline-secondary btn-lg w-100" href="/sign-out">Sign out</a>
+                            </div>
+                        {% else %}
+                            <!-- ===== Login Card ===== -->
+                            <div class="card card-hover border-0 rounded-4 p-4 p-md-5 shadow">
+                                <div class="text-center mb-4">
+                                    <h1 class="display-6 fw-bold text-dark mb-2">Welcome Back</h1>
+                                    <p class="text-secondary mb-0">Log in to continue planning your perfect trip.</p>
+                                </div>
+                                <!-- Credentials Form -->
+                                <form method="post" class="mb-4">
+                                    {% csrf_token %}
+                                    {% if form.non_field_errors %}
+                                        <div class="alert alert-danger mb-3">
+                                            {% for error in form.non_field_errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mb-3">
+                                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">Email</label>
+                                        <input
+                                            type="email"
+                                            class="form-control form-control-lg{% if form.username.errors %} is-invalid{% endif %}"
+                                            id="{{ form.username.id_for_label }}"
+                                            name="{{ form.username.html_name }}"
+                                            placeholder="name@example.com"
+                                            value="{{ form.username.value|default_if_none:'' }}"
+                                            autocomplete="email"
+                                            required
+                                        >
+                                        {% if form.username.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.username.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold mb-0">Password</label>
+                                            <a class="small text-decoration-none" href="{% url 'forgot_password' %}">Forgot password?</a>
+                                        </div>
+                                        <input
+                                            type="password"
+                                            class="form-control form-control-lg{% if form.password.errors %} is-invalid{% endif %}"
+                                            id="{{ form.password.id_for_label }}"
+                                            name="{{ form.password.html_name }}"
+                                            placeholder="Enter your password"
+                                            autocomplete="current-password"
+                                            required
+                                        >
+                                        {% if form.password.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.password.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-secondary btn-lg w-100">Log In</button>
+                                </form>
+                                
+                                <!-- Google Sign-in -->
+                                <div class="text-center text-secondary mb-3">
+                                    <span>Or continue with</span>
+                                </div>
+                                <div class="d-flex flex-column align-items-center gap-3">
+                                    <div
+                                        id="g_id_onload"
+                                        data-client_id="1034792818071-tf4jhf1fjsmn3khfpsrhnsur29d5v8fo.apps.googleusercontent.com"
+                                        data-context="signin"
+                                        data-ux_mode="popup"
+                                        data-login_uri="https://app-jgfuze-19.devedu.io/auth-receiver"
+                                        data-itp_support="true"
+                                    ></div>
+                                    <div
+                                        class="g_id_signin"
+                                        data-type="standard"
+                                        data-shape="pill"
+                                        data-theme="filled_black"
+                                        data-text="signin_with"
+                                        data-size="large"
+                                        data-logo_alignment="left"
+                                    ></div>
+                                </div>
+                                <!-- Registration Link -->
+                                <div class="text-center mt-4">
+                                    <span class="text-secondary">New to Wanderly?</span>
+                                    <a class="text-decoration-none fw-semibold ms-1" href="{% url 'register' %}">Create an account</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>
