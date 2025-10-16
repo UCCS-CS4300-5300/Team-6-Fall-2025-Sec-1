@@ -83,11 +83,14 @@ def sign_out(request):
     # Send sign out message
     messages.success(request, "You have been signed out.")
 
-    return redirect('sign_in')
+    return redirect('index')
 
 
 @csrf_exempt
 def forgot_password(request):
+
+    # Not implemented
+
     return render(request, 'registration/forgotPass.html')
  
 

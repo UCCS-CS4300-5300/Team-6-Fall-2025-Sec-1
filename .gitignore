@@ -1,0 +1,12 @@
+Wanderly/home/__pycache__/__init__.cpython-313.pyc
+Wanderly/home/__pycache__/admin.cpython-313.pyc
+Wanderly/home/__pycache__/apps.cpython-313.pyc
+Wanderly/home/__pycache__/models.cpython-313.pyc
+Wanderly/home/migrations/__pycache__/__init__.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/__init__.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/forms.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/settings.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/urls.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/views.cpython-313.pyc
+Wanderly/Wanderly/__pycache__/wsgi.cpython-313.pyc
+*.pyc

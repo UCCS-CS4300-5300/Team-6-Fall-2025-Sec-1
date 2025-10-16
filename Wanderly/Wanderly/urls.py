@@ -7,13 +7,14 @@ urlpatterns = [
     path('', index, name='index'),
     path('admin/', admin.site.urls),
 
+    # Mood app urls
     path('mood/', include("mood.urls", "mood")),
 
+    # Auth urls
     path('sign-in/', sign_in, name='sign_in'),
     path('sign-out/', sign_out, name='sign_out'),
     path('register/', register, name='register'),
     path('forgot-password/', forgot_password, name='forgot_password'),
-
     path('auth-receiver/', auth_receiver, name='auth_receiver'), 
 
 ]
