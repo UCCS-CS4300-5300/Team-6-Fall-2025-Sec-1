@@ -22,7 +22,9 @@ if ENVIRONMENT == 'production':
     ALLOWED_HOSTS = [
         os.environ.get('RENDER_EXTERNAL_HOSTNAME', ''),
         'wanderly-m0s3.onrender.com',
-        '.onrender.com',  # Allow all Render subdomains
+        'wanderly.social',
+        'www.wanderly.social',
+        '.onrender.com',
     ]
 else:
     ALLOWED_HOSTS = [
