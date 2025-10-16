@@ -165,4 +165,3 @@ def auth_receiver(request):
 
     messages.success(request, "Welcome to Wanderly!")
     return redirect('index')
-
