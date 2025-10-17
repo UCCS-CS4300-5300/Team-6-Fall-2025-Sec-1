@@ -17,4 +17,6 @@ urlpatterns = [
     path('forgot-password/', forgot_password, name='forgot_password'),
     path('auth-receiver/', auth_receiver, name='auth_receiver'), 
 
+    # urls for the google routing
+    path('routing/', include('google_routing.urls')),
 ]
