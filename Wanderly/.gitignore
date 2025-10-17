@@ -3,15 +3,7 @@
 *.pyd
 __pycache__/
 .venv/
-*.pyc
-.env
-*.pyc
-__pycache__/
 db.sqlite3
-.env
-staticfiles/
-media/
 *.log
 .DS_Store
-
-.env
+*.cpython-312.pyc
