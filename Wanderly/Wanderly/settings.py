@@ -53,9 +53,11 @@ if ENVIRONMENT == 'production':
 else:
     ALLOWED_HOSTS = [
         'app-roshea-19.devedu.io',
+        'app-jgfuze-19.devedu.io/',
         'localhost',
         '127.0.0.1',
     ]
+    
 
 # Application definition
 INSTALLED_APPS = [
@@ -166,4 +168,10 @@ if ENVIRONMENT == 'production':
     'https://wanderly-m0s3.onrender.com',
     'https://wanderly.social',
     'https://www.wanderly.social',
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'http://app-roshea-19.devedu.io',
+        'http://app-jgfuze-19.devedu.io',
+        'http://localhost',
     ]
