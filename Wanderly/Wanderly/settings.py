@@ -55,6 +55,7 @@ else:
         'app-roshea-19.devedu.io',
         'localhost',
         '127.0.0.1',
+        'app-gwilli17-19.devedu.io', 
     ]
 
 # Application definition
