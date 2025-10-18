@@ -86,6 +86,22 @@ class RegistrationTests(TestCase):
         self.assertFalse(User.objects.filter(email=payload["email"]).exists())
         self.assertTrue(response.context["form"].errors)
 
+    # When authenticate returns None, the user should be created but redirected to sign-in.
+    @patch("Wanderly.views.authenticate")
+    def test_register_prompts_sign_in_if_authenticate_fails(self, mock_authenticate):
+        mock_authenticate.return_value = None
+        payload = {
+            "first_name": "Casey",
+            "last_name": "River",
+            "email": "casey@example.com",
+            "password1": "StrongPass123!",
+            "password2": "StrongPass123!",
+        }
+        response = self.client.post(self.url, payload, follow=True)
+        self.assertRedirects(response, reverse("sign_in"))
+        self.assertTrue(User.objects.filter(email=payload["email"]).exists())
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
 
 # Confirm sign-out clears authentication and redirects appropriately.
 class SignOutTests(TestCase):
@@ -99,9 +115,16 @@ class SignOutTests(TestCase):
 
     # Signing out should remove the session and redirect home.
     def test_sign_out_logs_user_out(self):
+        session = self.client.session
+        session["google_profile_picture"] = "https://example.com/avatar.png"
+        session["google_sub"] = "sub-789"
+        session.save()
+
         response = self.client.get(reverse("sign_out"), follow=True)
         self.assertRedirects(response, reverse("index"))
         self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertNotIn("google_profile_picture", self.client.session)
+        self.assertNotIn("google_sub", self.client.session)
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("signed out" in str(message).lower() for message in messages))
 
@@ -130,6 +153,18 @@ class AuthReceiverTests(TestCase):
     # Missing credential payloads should return a bad request.
     def test_missing_credential_returns_bad_request(self):
         response = self.client.post(self.url, data={})
+        self.assertEqual(response.status_code, 400)
+
+    # Responses lacking an email should yield a bad request status.
+    @patch("Wanderly.views.id_token.verify_oauth2_token")
+    def test_missing_email_returns_bad_request(self, mock_verify):
+        mock_verify.return_value = {
+            "given_name": "Nameless",
+            "family_name": "User",
+            "sub": "google-sub-000",
+            "picture": "https://example.com/avatar.png",
+        }
+        response = self.client.post(self.url, data={"credential": "fake-token"})
         self.assertEqual(response.status_code, 400)
 
     # Valid credential payload should create a new user when needed.
