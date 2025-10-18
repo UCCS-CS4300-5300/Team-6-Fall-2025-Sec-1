@@ -120,7 +120,7 @@ def auth_receiver(request):
     first_name = user_data.get("given_name", "")
     last_name = user_data.get("family_name", "")
     google_sub = user_data.get("sub")
-    picture = user_data.get("picture")
+    picture = user_data.get("picture", "")
 
     if not email:
         return HttpResponse(status=400)

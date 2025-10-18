@@ -1,21 +1,26 @@
 import os
+import sys
 from pathlib import Path
+
 import dj_database_url
 from dotenv import load_dotenv
-
-load_dotenv()
-import os
-from dotenv import load_dotenv
-from pathlib import Path
  
 # ----------------------------- Google Auth ---------------------------------
 
 # Load environment variables from a .env file
 load_dotenv()
  
-# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set
+# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
-if not GOOGLE_OAUTH_CLIENT_ID:
+running_tests = (
+    'test' in sys.argv
+    or 'pytest' in sys.argv[0]
+    or os.environ.get('PYTEST_CURRENT_TEST')
+)
+
+if running_tests:
+    GOOGLE_OAUTH_CLIENT_ID = GOOGLE_OAUTH_CLIENT_ID or 'test-google-client-id'
+elif not GOOGLE_OAUTH_CLIENT_ID:
     raise ValueError(
         'GOOGLE_OAUTH_CLIENT_ID is missing.'
         'Have you put it in a file at core/.env ?'
