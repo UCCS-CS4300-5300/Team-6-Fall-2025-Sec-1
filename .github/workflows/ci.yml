@@ -65,7 +65,7 @@ jobs:
       - name: Install OpenAI client
         run: |
           python -m pip install --upgrade pip
-          pip install openai
+          pip install openai requests
 
       - name: Run AI pull-request review
         env:
