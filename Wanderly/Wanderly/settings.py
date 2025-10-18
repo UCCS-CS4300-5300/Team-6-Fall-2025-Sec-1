@@ -12,7 +12,13 @@ load_dotenv()
  
 # Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
-if 'test' in sys.argv:
+running_tests = (
+    'test' in sys.argv
+    or 'pytest' in sys.argv[0]
+    or os.environ.get('PYTEST_CURRENT_TEST')
+)
+
+if running_tests:
     GOOGLE_OAUTH_CLIENT_ID = GOOGLE_OAUTH_CLIENT_ID or 'test-google-client-id'
 elif not GOOGLE_OAUTH_CLIENT_ID:
     raise ValueError(
