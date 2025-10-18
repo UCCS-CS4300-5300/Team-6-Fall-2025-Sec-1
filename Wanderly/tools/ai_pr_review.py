@@ -103,8 +103,8 @@ def main():
         "\"Based on the changes ... I'd give this code X out of 10\" "
         "where X is an integer rating between 1 and 10, and briefly justify the rating.\n"
         "2. Add a blank line.\n"
-        "3. Provide 3-5 numbered sections, each on its own line, in the format "
-        "\"1) Title Case Heading: detail(under the heading on a new line)\". Use Title Case for the heading, "
+        "3. Provide as many short sections as needed, each on its own line, in the format "
+        "\"1) Title Case Heading\ndetail(under the heading on a new line)\". Use Title Case for the heading, "
         "keep the detail concise, and leave a blank line between sections.\n"
         "4. Avoid Markdown headers (no # symbols) and keep the response easy to scan."
     )
