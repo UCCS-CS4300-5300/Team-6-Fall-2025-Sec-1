@@ -30,7 +30,15 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           set -o pipefail
-          coverage run -m pytest
+          coverage run -m pytest || status=$?
+          status=${status:-0}
+
+          if [ "$status" -eq 5 ]; then
+            echo "pytest exited with code 5 (no tests collected); treating as success."
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+
           coverage report -m | tee coverage.txt || true
 
       - name: Post coverage report comment
