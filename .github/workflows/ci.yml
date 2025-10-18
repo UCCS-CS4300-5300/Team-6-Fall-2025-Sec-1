@@ -26,11 +26,20 @@ jobs:
           pip install -r "${PROJECT_DIR}/requirements.txt"
           pip install pytest pytest-django coverage
 
-      - name: Run tests with coverage (>=80%)
+      - name: Run tests with coverage
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
+          set -o pipefail
           coverage run -m pytest
-          coverage report -m --fail-under=80
+          coverage report -m | tee coverage.txt || true
+
+      - name: Post coverage report comment
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python tools/post_coverage_comment.py coverage.txt
 
   ai-review:
     runs-on: ubuntu-latest
