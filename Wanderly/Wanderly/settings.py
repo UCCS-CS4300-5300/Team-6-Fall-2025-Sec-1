@@ -52,10 +52,12 @@ if ENVIRONMENT == 'production':
     ]
 else:
     ALLOWED_HOSTS = [
-        'app-roshea-19.devedu.io',
-        'app-jgfuze-19.devedu.io/',
-        'localhost',
-        '127.0.0.1',
+        "app-cruzcs4300-19.devedu.io",
+        "app-roshea-19.devedu.io",
+        "app-gwilli17-19.devedu.io",
+        "app-jgfuze-19.devedu.io",
+        "localhost",
+        "http://0.0.0.0:3000/",
     ]
     
 
@@ -173,5 +175,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         'http://app-roshea-19.devedu.io',
         'http://app-jgfuze-19.devedu.io',
+        "http://app-cruzcs4300-19.devedu.io",
+        "http://app-gwilli17-19.devedu.io",
         'http://localhost',
     ]
