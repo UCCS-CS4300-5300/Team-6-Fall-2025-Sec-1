@@ -98,9 +98,15 @@ def main():
     client = openai.OpenAI(api_key=api_key)
     prompt = (
         "You are reviewing a pull request for a Django project. "
-        "Identify potential defects, security risks, missing tests, "
-        "and note anything that may break existing behavior. "
-        "Keep the response concise and actionable."
+        "Produce feedback in the following format:\n"
+        "1. Begin with a single paragraph that starts with "
+        "\"Based on the changes ... I'd give this code X out of 10\" "
+        "where X is an integer rating between 1 and 10, and briefly justify the rating.\n"
+        "2. Add a blank line.\n"
+        "3. Provide as many short sections as needed, each with a concise heading ending with a colon "
+        "(e.g., \"Consistency in Commenting:\"), followed by a sentence or short paragraph "
+        "explaining the suggestion. Keep the tone constructive and specific to the diff.\n"
+        "Avoid markdown headers (no # symbols) and keep the response within a few paragraphs."
     )
 
     try:
@@ -139,25 +145,7 @@ def format_comment(event: dict, pr_details: dict, review_text: str) -> str:
     deletions = pr_details.get("deletions")
     changed_files = pr_details.get("changed_files")
 
-    comment_lines = [
-        f"**{title} #{number}**",
-        "",
-        f"{state}",
-        f"{user} wants to merge {commits or '?'} commit(s) into `{base_branch}` from `{head_branch}`",
-    ]
-
-    if additions is not None and deletions is not None:
-        comment_lines.append(f"+{additions} / -{deletions}")
-    if changed_files is not None:
-        comment_lines.append(f"Files changed: {changed_files}")
-
-    comment_lines.extend([
-        "",
-        "### AI Code Review",
-        review_text,
-    ])
-
-    return "\n".join(comment_lines)
+    return review_text
 
 
 def post_comment(repo_full_name: str, pr_number: int, body: str) -> None:
