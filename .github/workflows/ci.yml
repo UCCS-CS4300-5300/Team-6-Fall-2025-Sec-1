@@ -44,7 +44,7 @@ jobs:
           coverage report -m | tee coverage.txt || true
 
       - name: Post coverage report comment
-        if: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request'
         working-directory: ${{ env.PROJECT_DIR }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
