@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -118,6 +119,8 @@ class ForgotPasswordTests(TestCase):
 class AuthReceiverTests(TestCase):
     def setUp(self):
         self.url = reverse("auth_receiver")
+        # Ensure a value for GOOGLE_OAUTH_CLIENT_ID is present during the tests
+        os.environ.setdefault("GOOGLE_OAUTH_CLIENT_ID", "test-google-client-id")
 
     # Only POST requests should be accepted by the endpoint.
     def test_get_request_returns_method_not_allowed(self):
@@ -165,3 +168,4 @@ class AuthReceiverTests(TestCase):
         self.assertRedirects(response, reverse("index"))
         self.assertEqual(User.objects.filter(email="existing@example.com").count(), 1)
         self.assertEqual(int(self.client.session["_auth_user_id"]), existing.id)
+
