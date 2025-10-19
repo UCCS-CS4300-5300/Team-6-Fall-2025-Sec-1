@@ -5,10 +5,16 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
  
+
+ # Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 # ----------------------------- Google Auth ---------------------------------
 
-# Load environment variables from a .env file
-load_dotenv()
+# Load the nested .env (inside Wanderly/Wanderly)
+nested_env = BASE_DIR / "Wanderly" / ".env"
+if nested_env.exists():
+    load_dotenv(nested_env, override=True)
  
 # Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
@@ -33,9 +39,16 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 # --------------------------------------------------------------
 
+# --------------------- Google Routes API Keys -----------------
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Load the root .env first (same directory as manage.py)
+local_env = BASE_DIR / ".env"
+if local_env.exists():
+    load_dotenv(local_env)
+GOOGLE_MAPS_BROWSER_KEY = os.getenv("GOOGLE_MAPS_BROWSER_KEY", "")
+GOOGLE_ROUTES_SERVER_KEY = os.getenv("GOOGLE_ROUTES_SERVER_KEY", "")
+# --------------------------------------------------------------
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-this-in-production')
