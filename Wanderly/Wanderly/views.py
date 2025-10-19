@@ -23,8 +23,7 @@ from .forms import RegistrationForm
 def index(request):
     return render(request, 'index.html')
 
-
-@csrf_exempt
+# Sign in an existing user
 def sign_in(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -37,7 +36,7 @@ def sign_in(request):
     # Render the login form html and add form to context
     return render(request, 'registration/login.html', {'form': form})
 
-@csrf_exempt
+# Register a new user
 def register(request):
     # Get registration form
     form = RegistrationForm(request.POST or None)
@@ -86,11 +85,11 @@ def sign_out(request):
     return redirect('index')
 
 
-@csrf_exempt
+# Forgot password page
 def forgot_password(request):
-
     # Not implemented
 
+    # render the forgot password page
     return render(request, 'registration/forgotPass.html')
  
 
@@ -121,7 +120,7 @@ def auth_receiver(request):
     first_name = user_data.get("given_name", "")
     last_name = user_data.get("family_name", "")
     google_sub = user_data.get("sub")
-    picture = user_data.get("picture")
+    picture = user_data.get("picture", "")
 
     if not email:
         return HttpResponse(status=400)
@@ -147,24 +146,12 @@ def auth_receiver(request):
         )
         user.set_unusable_password()
         user.save()
-    else:
-        # Optionally update missing name fields from Google data
-        updated_fields = []
-        if first_name and not user.first_name:
-            user.first_name = first_name
-            updated_fields.append("first_name")
-        if last_name and not user.last_name:
-            user.last_name = last_name
-            updated_fields.append("last_name")
-        if updated_fields:
-            user.save(update_fields=updated_fields)
 
     # Log the user in via Django's session framework
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-    # Store Google-specific details for display convenience
-    request.session['google_profile_picture'] = picture or request.session.get('google_profile_picture')
-    request.session['google_sub'] = google_sub or request.session.get('google_sub')
-
+    # Send welcome message
     messages.success(request, "Welcome to Wanderly!")
+
+    # Redirect to homepage
     return redirect('index')
