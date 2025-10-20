@@ -15,13 +15,16 @@ def location_based_discovery(request):
 @require_http_methods(["POST"])
 def text_search(request):
     try:
-        # Manually add "tourist attractions" to the location to get nearby attractions
         data = json.loads(request.body)
-        text_query = data.get('textQuery', '') + " tourist attractions"
         
+        text_query = data.get('textQuery', '')
         if not text_query:
             return JsonResponse({'error': 'textQuery is required'}, status=400)
-        
+
+        # Manually add "tourist attractions" to the location to get nearby attractions
+        # Make sure to do this after checking if the text query is empty
+        text_query = text_query + " tourist attractions"
+                
         # New Places API endpoint
         url = 'https://places.googleapis.com/v1/places:searchText'
         
@@ -34,7 +37,7 @@ def text_search(request):
         headers = {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
-            'X-Goog-FieldMask': data.get('fieldMask', 'places.displayName,places.formattedAddress,places.websiteUri')
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.websiteUri',
         }
         
         # Send POST request and check for success response

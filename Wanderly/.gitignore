@@ -9,4 +9,3 @@ db.sqlite3
 credentials/
 *.json
 client_secret*.json
-.env
