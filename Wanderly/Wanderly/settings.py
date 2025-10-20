@@ -195,6 +195,6 @@ else:
         'http://app-roshea-19.devedu.io',
         'http://app-jgfuze-19.devedu.io',
         "http://app-cruzcs4300-19.devedu.io",
-        "http://app-gwilli17-19.devedu.io",
+        "https://app-gwilli17-19.devedu.io",
         'http://localhost',
     ]

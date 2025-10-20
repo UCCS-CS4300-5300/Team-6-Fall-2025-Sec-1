@@ -18,5 +18,5 @@ urlpatterns = [
     path('auth-receiver/', auth_receiver, name='auth_receiver'), 
 
     # urls for the google routing
-    path('routing/', include('google_routing.urls')),
+    path('google_routing/', include('google_routing.urls')),
 ]
