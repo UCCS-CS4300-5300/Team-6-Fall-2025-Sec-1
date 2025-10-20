@@ -2,8 +2,11 @@
 *.py[cod]
 
 .venv/
-
 db.sqlite3
 *.log
 .DS_Store
 *.cpython-312.pyc
+credentials/
+*.json
+client_secret*.json
+.env
