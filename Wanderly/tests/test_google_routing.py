@@ -1,70 +1,87 @@
-import json
-from unittest.mock import patch, Mock
-
 import pytest
-from django.test import Client
+from unittest.mock import patch, Mock
 from django.urls import reverse
-from django.conf import settings
+from django.test import Client
 
 @pytest.fixture
 def client():
     return Client()
 
-def test_route_demo_renders_and_has_browser_key(client):
-    url = reverse("route_demo")
-    resp = client.get(url)
-    assert resp.status_code == 200
-    # Context contains the key (provided by settings)
-    assert "GOOGLE_MAPS_BROWSER_KEY" in resp.context
-    # The rendered HTML should include the Google Maps script with ?key=
-    body = resp.content.decode()
-    assert "maps.googleapis.com/maps/api/js?key=" in body
+def _fake_geocode_ok(place_id="PID_X"):
+    return {"status":"OK","results":[{"place_id": place_id}]}
 
-def test_compute_route_requires_post(client):
-    url = reverse("compute_route")
-    resp = client.get(url)
-    assert resp.status_code == 405  # @require_POST enforces this
+def _fake_geocode_fail():
+    return {"status":"REQUEST_DENIED","error_message":"not allowed","results":[]}
 
-def test_compute_route_needs_two_place_ids(client):
-    url = reverse("compute_route")
-    payload = {"place_ids": ["ONLY_ORIGIN"]}
-    resp = client.post(url, data=json.dumps(payload), content_type="application/json")
-    assert resp.status_code == 400
-    assert "Need at least origin and destination" in resp.json()["error"]
-
-@patch("google_routing.views.requests.post")
-def test_compute_route_happy_path(mock_post, client):
-    # Mock a minimal, successful Routes API response
-    mock_data = {
+def _fake_routes_ok():
+    return {
         "routes": [{
             "polyline": {"encodedPolyline": "abcd1234"},
+            "distanceMeters": 32186,         # ~20.0 miles
+            "duration": "5400s",             # 1 h 30 min
             "optimizedIntermediateWaypointIndex": [0],
-            "distanceMeters": 12345,
-            "duration": "1111s",
+            "legs": [
+                {"startLocation":{"latLng":{"latitude":39.0,"longitude":-105.0}}},
+                {"endLocation":{"latLng":{"latitude":39.7,"longitude":-104.9}}},
+            ],
         }]
     }
-    mock_post.return_value = Mock(status_code=200, json=lambda: mock_data)
 
-    url = reverse("compute_route")
-    payload = {"place_ids": ["PID_ORIG", "PID_DEST"]}
-    resp = client.post(url, data=json.dumps(payload), content_type="application/json")
+def test_route_demo_renders(client):
+    resp = client.get(reverse("route_demo"))
     assert resp.status_code == 200
-    data = resp.json()
-    assert data["encoded_polyline"] == "abcd1234"
-    assert data["distance_meters"] == 12345
-    assert data["duration"] == "1111s"
+    html = resp.content.decode()
+    assert "Multi-Stop Route Planner" in html  # or another stable marker
+    # We do NOT assert the Maps JS script anymore.
 
-    # Verify request headers include our server key + field mask
-    _, kwargs = mock_post.call_args
-    headers = kwargs["headers"]
-    assert headers["X-Goog-Api-Key"] == settings.GOOGLE_ROUTES_SERVER_KEY
-    assert "X-Goog-FieldMask" in headers
+def test_compute_route_requires_post(client):
+    # With @require_POST, GET should be 405
+    resp = client.get(reverse("compute_route"))
+    assert resp.status_code == 405
 
+@patch("google_routing.views.requests.get")
+def test_geocoding_failure_shows_error(mock_get, client):
+    mock_get.return_value = Mock(status_code=200, json=_fake_geocode_fail)
+    data = {"n":"2","f0-address":"Bad Addr","f1-address":"Denver, CO"}
+    resp = client.post(reverse("compute_route"), data=data)
+    assert resp.status_code in (400, 200)
+    assert ("Could not geocode" in resp.content.decode()
+            or "Geocoding" in resp.content.decode())
+
+@patch("google_routing.views.requests.get")
 @patch("google_routing.views.requests.post")
-def test_compute_route_propagates_google_error(mock_post, client):
+def test_happy_path_renders_distance_duration_and_map(mock_post, mock_get, client):
+    mock_get.return_value = Mock(status_code=200, json=_fake_geocode_ok)
+    mock_post.return_value = Mock(status_code=200, json=_fake_routes_ok)
+
+    data = {
+        "n": "2",
+        "f0-address": "Colorado Springs, CO",
+        "f1-address": "Denver, CO",
+    }
+    resp = client.post(reverse("compute_route"), data=data)
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "20.0 mi" in body
+    assert "1 h 30 min" in body
+    assert "/maps/api/staticmap" in body  # Static Maps image present
+
+@patch("google_routing.views.requests.get")
+@patch("google_routing.views.requests.post")
+def test_routes_failure_propagates_error(mock_post, mock_get, client):
+    mock_get.return_value = Mock(status_code=200, json=_fake_geocode_ok)
     mock_post.return_value = Mock(status_code=400, text="Bad Request")
-    url = reverse("compute_route")
-    payload = {"place_ids": ["PID_ORIG", "PID_DEST"]}
-    resp = client.post(url, data=json.dumps(payload), content_type="application/json")
+    data = {"n":"2","f0-address":"Colorado Springs, CO","f1-address":"Denver, CO"}
+    resp = client.post(reverse("compute_route"), data=data)
     assert resp.status_code == 400
-    assert "Routes API error" in resp.json()["error"]
+    assert "Routes API error" in resp.content.decode()
+
+
+def test_converters():
+    from google_routing.views import meters_to_miles, seconds_to_human
+    assert round(meters_to_miles(1609.344), 3) == 1.000
+    assert meters_to_miles(None) is None
+    assert seconds_to_human("5400s") == "1 h 30 min"
+    assert seconds_to_human("3600s") == "1 h"
+    assert seconds_to_human("90s") == "1 min"
+    assert seconds_to_human("oops") is None

@@ -1,115 +1,196 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Routing Demo</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        >
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
-        <style>
-            #map { height: 520px; width: 100%; border-radius: var(--bs-border-radius); }
-        </style>
-    </head>
-    <body class="bg-light">
-        <nav class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(135deg, #F1BF98 0%, #F1BF98 100%);">
-            <div class="container">
-                <a class="navbar-brand fw-bold text-black" href="/">Wanderly</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link text-black" href="/mood/">Mood Questionnaire</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-black" href="{% url 'index' %}">Back Home</a>
-                        </li>
-                    </ul>
-                </div>
-                {% if request.user.is_authenticated %}
-                    <div class="dropdown ms-3">
-                        <button
-                            class="btn btn-outline-light px-3 py-2 fw-semibold text-black"
-                            type="button"
-                            id="userMenuButton"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                        >
-                            Hello, {{ request.user.first_name|default:request.user.username }}{% if request.user.last_name %} {{ request.user.last_name|slice:":1" }}.{% endif %}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
-                            <li><a class="dropdown-item" href="#">My Portfolios</a></li>
-                            <li><a class="dropdown-item" href="{% url 'sign_out' %}">Sign Out</a></li>
-                        </ul>
-                    </div>
-                {% else %}
-                    <a class="btn btn-outline-light ms-3" href="{% url 'sign_in' %}">Log In</a>
-                {% endif %}
-            </div>
-        </nav>
+<head>
+  <meta charset="UTF-8" />
+  <title>Route Planner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
 
-        <main class="container my-4">
-            <div class="card card-hover shadow-sm p-4">
-              <h1 class="h4 mb-3">Multi-stop Route Planner</h1>
-        
-              {% if error %}
-                <div class="alert alert-danger">{{ error }}</div>
-              {% endif %}
-        
-              <form method="post" action="{% url 'compute_route' %}" class="mb-3">
-                {% csrf_token %}
-                <input type="hidden" name="n" value="{{ forms_list|length }}">
-                <div id="stopsContainer">
-                  {% for f in forms_list %}
-                    <div class="mb-2">
-                      {{ f.address.label_tag }} {{ f.address }}
-                    </div>
-                  {% endfor %}
-                </div>
-        
-                <div class="d-flex gap-2">
-                  <a class="btn btn-outline-primary"
-                     href="{% url 'route_demo' %}?n={{ forms_list|length|add:'1' }}">
-                    + Add stop
-                  </a>
-                  <button type="submit" class="btn btn-success">Compute route</button>
-                </div>
-              </form>
-        
-              {% if result %}
-                <div class="border-top pt-3">
-                  <p class="text-muted mb-2">
-                    <strong>Distance:</strong>
-                    {% if result.distance_m %} {{ result.distance_m|floatformat:-2 }} m {% else %}—{% endif %}
-                    &nbsp;•&nbsp;
-                    <strong>Duration:</strong> {{ result.duration|default:"—" }}
-                  </p>
-        
-                  {% if result.optimized_idx %}
-                    <div class="card mb-3">
-                      <div class="card-body">
-                        <h6 class="mb-2">Optimized stop order (intermediates)</h6>
-                        <p class="mb-0 small text-muted">
-                          Indices relative to the stops between origin and destination:
-                          {{ result.optimized_idx }}
-                        </p>
-                      </div>
-                    </div>
-                  {% endif %}
-        
-                  {% if result.static_map_src %}
-                    <img id="map-img" class="shadow-sm" src="{{ result.static_map_src }}" alt="Route Map">
-                  {% endif %}
-                </div>
-              {% endif %}
+  <style>
+    /* Reuse your gradient + button theme */
+    .info-section { background: linear-gradient(135deg, #da3068 0%, #3e149f 100%); color: #fff; }
+    .btn-primary {
+      background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+      border: none; padding: .75rem 2rem; font-weight: 500;
+    }
+    .btn-outline-primary:hover { 
+      background: linear-gradient(135deg, #da3068 0%, #3e149f 100%); 
+      color:#fff; 
+    }
+    .rounded-xxl { 
+      background: transparent; 
+      border: 0; 
+      border-radius: 30px; 
+      overflow: hidden; 
+    }
+    .rounded-xxl .card-body.gradient { 
+      background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%); 
+      border-radius: inherit; 
+      background-clip: padding-box;
+    }
+    .stop-row .form-control { 
+      height: 50px; 
+      border-radius: 30px; 
+      padding-left: 16px; 
+    }
+    #map-img { 
+      max-width:100%; 
+      border-radius: 16px; 
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-black" href="/">Wanderly</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-black" href="/mood/">Mood Questionnaire</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-black" href="/location-discovery/">Location Discovery</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-black" href="{% url 'index' %}">Back Home</a>
+                </li>
+            </ul>
+        </div>
+        {% if request.user.is_authenticated %}
+            <div class="dropdown ms-3">
+                <button
+                    class="btn btn-outline-light px-3 py-2 fw-semibold text-black"
+                    type="button"
+                    id="userMenuButton"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
+                    Hello, {{ request.user.first_name|default:request.user.username }}{% if request.user.last_name %} {{ request.user.last_name|slice:":1" }}.{% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
+                    <li><a class="dropdown-item" href="#">My Portfolios</a></li>
+                    <li><a class="dropdown-item" href="{% url 'sign_out' %}">Sign Out</a></li>
+                </ul>
             </div>
-          </main>
-        
-          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+        {% else %}
+            <a class="btn btn-outline-light ms-3" href="{% url 'sign_in' %}">Log In</a>
+        {% endif %}
+    </div>
+  </nav>
+  <!-- Header -->
+  <header class="info-section">
+    <div class="container py-5">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-8">
+          <h1 class="display-5 fw-bold mb-3">Multi-Stop Route Planner</h1>
+          <p class="lead mb-0">Enter an origin and destination, add stops, and we’ll compute the best route.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Planner -->
+  <section class="container py-5">
+    <div class="card shadow-sm rounded-xxl">
+      <div class="card-body gradient rounded-xxl p-4">
+
+        {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'compute_route' %}" id="routeForm" class="mb-3">
+          {% csrf_token %}
+          <input type="hidden" name="n" id="nCount" value="{{ forms_list|length }}">
+
+          <div id="stopsContainer" class="mb-3">
+            {% for f in forms_list %}
+              <div class="row align-items-center g-2 mb-2 stop-row">
+                <div class="col-12 col-md-9">
+                  <label class="form-label small mb-1">
+                    {% if forloop.first %}Origin{% elif forloop.last %}Destination{% else %}Stop {{ forloop.counter0 }}{% endif %}
+                  </label>
+                  {{ f.address }}
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                  {% if not forloop.first and not forloop.last %}
+                    <button type="button" class="btn btn-outline-danger w-100 remove-stop">Remove</button>
+                  {% else %}
+                    <button type="button" class="btn btn-outline-secondary w-100" disabled>Required</button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary"
+               href="{% url 'route_demo' %}?n={{ forms_list|length|add:'1' }}">
+              + Add stop
+            </a>
+            <button type="submit" class="btn btn-primary">Compute route</button>
+            <a href="{% url 'route_demo' %}" class="btn btn-outline-secondary">Start over</a>
+          </div>
+        </form>
+
+        {% if result %}
+          <div class="border-top pt-3">
+            <p class="mb-2">
+              <strong>Distance:</strong>
+              {% if result.distance_m %} {{ result.distance_m|floatformat:1 }} mi {% else %}—{% endif %}
+              &nbsp;•&nbsp;
+              <strong>Duration:</strong> {{ result.duration|default:"—" }}
+            </p>
+
+            <!-- This is for printing optimized order, not workign great at the moment to taken out for demo
+            {% if result.optimized_idx %}
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6 class="mb-2">Optimized stop order (intermediates)</h6>
+                  <p class="mb-0 small text-muted">
+                    Indices relative to the stops between origin and destination:
+                    {{ result.optimized_idx }}
+                  </p>
+                </div>
+              </div>
+            {% endif %}
+            -->
+
+            {% if result.static_map_src %}
+              <img id="map-img" class="shadow-sm" src="{{ result.static_map_src }}" alt="Route Map">
+            {% endif %}
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-white border-top py-4 mt-5">
+    <div class="container d-flex justify-content-between flex-wrap">
+      <span class="text-muted">&copy; 2025 Wanderly. All rights reserved.</span>
+      <ul class="nav">
+        <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">About</a></li>
+        <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Tiny JS for “Remove stop” (min 2 rows kept) + keeping hidden n in sync -->
+  <script>
+    document.addEventListener('click', function(e){
+      if (!e.target.classList.contains('remove-stop')) return;
+      const rows = document.querySelectorAll('.stop-row');
+      if (rows.length <= 2) return; // keep at least origin + destination
+      e.target.closest('.stop-row')?.remove();
+      document.getElementById('nCount').value = document.querySelectorAll('.stop-row').length;
+    });
+  </script>
+</body>
 </html>

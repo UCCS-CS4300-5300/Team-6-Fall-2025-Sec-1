@@ -4,6 +4,8 @@ import requests
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django import forms
 
 from .forms import AddressForm
@@ -11,6 +13,33 @@ from .forms import AddressForm
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
 ROUTES_ENDPOINT = "https://routes.googleapis.com/directions/v2:computeRoutes"
 STATIC_MAPS_URL = "https://maps.googleapis.com/maps/api/staticmap"
+
+# Function to quickly convert meters to miles becuase google returns meters
+def meters_to_miles(meters: float | int | None) -> float | int | None:
+    if meters is None:
+        return None
+    return meters / 1609.344
+
+# Function to convert googles seconds string: '1234s' to 
+# Hours, minutes
+def seconds_to_human(seconds_str: str | None) -> str | None:
+    """
+    Routes API returns duration in seconds, we want hours, minutes, seconds
+    """
+    if not seconds_str or not seconds_str.endswith("s"):
+        return None
+    try:
+        total = int(seconds_str[:-1])
+    except ValueError:
+        return None
+    hours, rem = divmod(total, 3600)
+    mins, _ = divmod(rem, 60)
+    if hours and mins:
+        return f"{hours} h {mins} min"
+    if hours:
+        return f"{hours} h"
+    return f"{mins} min"
+
 
 def _geocode_place_id(address, key):
     """Return place_id for a free-form address using Geocoding API."""
@@ -65,6 +94,8 @@ def route_demo(request):
         },
     )
 
+@require_POST
+@csrf_exempt
 def compute_route(request):
     """
     Handles the plain HTML form POST (no JS).
@@ -74,8 +105,6 @@ def compute_route(request):
     - Calls Routes API
     - Renders a static map image with the route
     """
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST only")
 
     try:
         n = int(request.POST.get("n", "2"))
@@ -189,6 +218,9 @@ def compute_route(request):
 
     static_map_src = _build_static_map_url(encoded, [m for m in markers if all(m)])
 
+    miles = meters_to_miles(distance_m)
+    human_readable_duration = seconds_to_human(duration)
+    print(f"{miles}: miles. {human_readable_duration}: duration")
     # Re-render page with results
     return render(
         request,
@@ -196,8 +228,8 @@ def compute_route(request):
         {
             "forms_list": forms_list,
             "result": {
-                "distance_m": distance_m,
-                "duration": duration,
+                "distance_m": miles,
+                "duration": human_readable_duration,
                 "optimized_idx": optimized_idx,
                 "static_map_src": static_map_src,
             },
