@@ -52,6 +52,14 @@
             padding: 0.75rem 2rem;
             font-weight: 500;
         }
+
+        .card-body {
+            background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);
+        }
+
+        .website-button:hover {
+            background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+        }
     </style>
 </head>
 
@@ -92,6 +100,7 @@
             </div>
 
             <!-- Results Container, Populated by the Script Below -->
+             <br>
             <div class="row justify-content-center">
                 <div id="results"></div>
             </div>
@@ -157,16 +166,30 @@
                     return;
                 }
 
-                // Display each place as its own card in the results container
+                // Display multiple places in a row in the results container
+                let rowContainer = results.querySelector('.row');
+                if (!rowContainer) {
+                    rowContainer = document.createElement("div");
+                    rowContainer.classList.add("row", "g-3");
+                    results.appendChild(rowContainer);
+                }
+
+                // Display each place as its own card in the row container
                 data.places.forEach(place => {
+                    const colDiv = document.createElement("div");
+                    colDiv.classList.add("col-md-6", "col-lg-4"); // 2 cards on medium screens, 3 on large
+
                     const placeCard = document.createElement("div");
-                    placeCard.classList.add("card", "my-3", "p-3", "shadow-sm");
+                    placeCard.classList.add("card", "h-100", "shadow-sm", "rounded");
                     placeCard.innerHTML = `
-                        <h5>${place.displayName?.text || "Unnamed Place"}</h5>
-                        <p>${place.formattedAddress || "No address available"}</p>
-                        ${place.websiteUri ? `<a href="${place.websiteUri}" target="_blank" class="btn btn-sm btn-outline-primary">Visit Website</a>` : ""}
+                        <div class="card-body rounded">
+                        <h5 class="card-title">${place.displayName?.text || "Unnamed Place"}</h5>
+                        <p class="card-text">${place.formattedAddress || "No address available"}</p>
+                        ${place.websiteUri ? `<a href="${place.websiteUri}" class="website-button btn btn-outline-primary">Visit Website</a>` : ""}
+                        </div>
                     `;
-                    results.appendChild(placeCard);
+                    colDiv.appendChild(placeCard);
+                    rowContainer.appendChild(colDiv);
                 });
 
             // Account for more error responses
