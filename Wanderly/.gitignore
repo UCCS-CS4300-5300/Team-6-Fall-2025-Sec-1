@@ -1,11 +1,13 @@
 **/__pycache__/
 *.py[cod]
 
+.env
 .venv/
 db.sqlite3
 *.log
 .DS_Store
 *.cpython-312.pyc
+.coverage
 credentials/
 *.json
 client_secret*.json
