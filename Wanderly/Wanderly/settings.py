@@ -28,7 +28,7 @@ if nested_env.exists():
     load_dotenv(nested_env, override=True)
  
 # Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
-GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
 
