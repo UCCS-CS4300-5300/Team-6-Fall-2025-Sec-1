@@ -1,13 +1,24 @@
+# python files that should not be included
 **/__pycache__/
 *.py[cod]
 
+# env vars and secrets
 .env
-.venv/
-db.sqlite3
-*.log
-.DS_Store
-*.cpython-312.pyc
-.coverage
 credentials/
 *.json
 client_secret*.json
+
+# virtual environments
+# Add whatever name you are using here for venv
+.venv/
+
+# databases
+db.sqlite3
+
+# Logs
+*.log
+
+# OS files and coverage
+.DS_Store
+.coverage
+

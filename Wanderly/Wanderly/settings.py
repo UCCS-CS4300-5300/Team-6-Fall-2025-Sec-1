@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------------- Google Auth ---------------------------------
 
 # Load the nested .env (inside Wanderly/Wanderly)
-nested_env = BASE_DIR / "Wanderly" / ".env"
+nested_env = BASE_DIR / ".env"
 if nested_env.exists():
     load_dotenv(nested_env, override=True)
  
