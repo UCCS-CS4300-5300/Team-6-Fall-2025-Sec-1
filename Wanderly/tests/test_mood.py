@@ -5,32 +5,6 @@ from mood.models import MoodResponse
 from mood.forms import MoodForm
 from unittest.mock import patch, MagicMock
 
-class TestIntegration:
-    @patch('mood.views.OpenAI')  # Adjust the import path based on your code
-    def test_complete_user_flow(self, mock_openai, client):
-        """Test complete user flow from form to database"""
-        # Mock the OpenAI API response
-        mock_client = MagicMock()
-        mock_openai.return_value = mock_client
-        mock_client.chat.completions.create.return_value = MagicMock(
-            choices=[MagicMock(
-                message=MagicMock(
-                    content='{"activity": "hiking", "reason": "Based on your preferences..."}'
-                )
-            )]
-        )
-        
-        response = client.get(reverse('mood:mood_questionnaire'))
-        assert response.status_code == 200
-        
-        form_data = {
-            'adventurous': '4',
-            'energy': '5',
-            'what_do_you_enjoy': ['hiking', 'try_new_foods', 'museums']
-        }
-        
-        response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
-        assert response.status_code == 302
 
 @pytest.mark.django_db
 class TestMoodResponse:
@@ -201,10 +175,28 @@ class TestIntegration:
     def client(self):
         return Client()
     
-    def test_complete_user_flow(self, client):
+    @patch('mood.views.OpenAI')  # Mock OpenAI in the views module
+    def test_complete_user_flow(self, mock_openai, client):
         """Test complete user flow from form to database"""
+        # Set up the mock OpenAI client
+        mock_client_instance = MagicMock()
+        mock_openai.return_value = mock_client_instance
+        
+        # Mock the response chain
+        mock_response = MagicMock()
+        mock_message = MagicMock()
+        mock_message.content = '{"activity": "hiking", "reason": "Based on your preferences..."}'
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response.choices = [mock_choice]
+        
+        mock_client_instance.chat.completions.create.return_value = mock_response
+        
+        # Test GET request
         response = client.get(reverse('mood:mood_questionnaire'))
         assert response.status_code == 200
+        
+        # Test POST request
         form_data = {
             'adventurous': '4',
             'energy': '5',
