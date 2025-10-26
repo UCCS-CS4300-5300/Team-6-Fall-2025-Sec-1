@@ -3,7 +3,34 @@ from django.urls import reverse
 from django.test import Client
 from mood.models import MoodResponse
 from mood.forms import MoodForm
+from unittest.mock import patch, MagicMock
 
+class TestIntegration:
+    @patch('mood.views.OpenAI')  # Adjust the import path based on your code
+    def test_complete_user_flow(self, mock_openai, client):
+        """Test complete user flow from form to database"""
+        # Mock the OpenAI API response
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_client.chat.completions.create.return_value = MagicMock(
+            choices=[MagicMock(
+                message=MagicMock(
+                    content='{"activity": "hiking", "reason": "Based on your preferences..."}'
+                )
+            )]
+        )
+        
+        response = client.get(reverse('mood:mood_questionnaire'))
+        assert response.status_code == 200
+        
+        form_data = {
+            'adventurous': '4',
+            'energy': '5',
+            'what_do_you_enjoy': ['hiking', 'try_new_foods', 'museums']
+        }
+        
+        response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
+        assert response.status_code == 302
 
 @pytest.mark.django_db
 class TestMoodResponse:
