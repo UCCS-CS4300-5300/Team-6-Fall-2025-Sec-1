@@ -22,12 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------------- Google Auth ---------------------------------
 
-# Load the nested .env (inside Wanderly/Wanderly)
-nested_env = BASE_DIR / ".env"
-if nested_env.exists():
-    load_dotenv(nested_env, override=True)
- 
+# Load the root .env first (same directory as manage.py)
+root_env = BASE_DIR / ".env"
+if root_env.exists():
+    load_dotenv(root_env, override=True)
+
 # Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
+GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
@@ -61,12 +62,10 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 # --------------------- Google Routes API Keys -----------------
 
-# Load the root .env first (same directory as manage.py)
-local_env = BASE_DIR / ".env"
-if local_env.exists():
-    load_dotenv(local_env)
+# Set API keys (already loaded from .env above)
 GOOGLE_MAPS_BROWSER_KEY = os.getenv("GOOGLE_MAPS_BROWSER_KEY", "")
 GOOGLE_ROUTES_SERVER_KEY = os.getenv("GOOGLE_ROUTES_SERVER_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # --------------------------------------------------------------
 
 
@@ -213,7 +212,7 @@ if ENVIRONMENT == 'production':
     ]
 else:
     CSRF_TRUSTED_ORIGINS = [
-        'http://app-roshea-19.devedu.io',
+        'https://app-roshea-19.devedu.io',
         'http://app-jgfuze-19.devedu.io',
         "http://app-cruzcs4300-19.devedu.io",
         "https://app-gwilli17-19.devedu.io",

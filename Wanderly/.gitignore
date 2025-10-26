@@ -2,7 +2,7 @@
 **/__pycache__/
 *.py[cod]
 
-# env vars and secrets
+*# env vars and secrets
 .env
 credentials/
 *.json
