@@ -203,6 +203,16 @@ class TestIntegration:
             'what_do_you_enjoy': ['hiking', 'try_new_foods', 'museums']
         }
         response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
+        
+        # DEBUG: Print response details if not redirecting
+        if response.status_code != 302:
+            print("\n=== DEBUG INFO ===")
+            print(f"Status Code: {response.status_code}")
+            if 'form' in response.context:
+                print(f"Form Errors: {response.context['form'].errors}")
+                print(f"Form Data: {response.context['form'].data}")
+            print("==================\n")
+        
         assert response.status_code == 302
         
         # check database
