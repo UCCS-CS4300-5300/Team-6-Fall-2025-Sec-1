@@ -176,15 +176,14 @@ class TestIntegration:
     def client(self):
         return Client()
     
-    @patch('mood.views.client')  # Patch the global client if that's how it's used
     @patch('mood.views.OpenAI')  # Mock the OpenAI class
-    def test_complete_user_flow(self, mock_openai_class, mock_client, client):
+    def test_complete_user_flow(self, mock_openai_class, client):
         """Test complete user flow from form to database"""
-        
+
         # Create a proper mock for the OpenAI response
         mock_openai_instance = MagicMock()
         mock_openai_class.return_value = mock_openai_instance
-        
+
         # Create a mock response with the proper structure
         mock_completion = MagicMock()
         mock_message = MagicMock()
@@ -193,17 +192,14 @@ class TestIntegration:
             "activity": "hiking",
             "reason": "Based on your adventurous spirit and high energy level, hiking would be perfect!"
         })
-        
+
         mock_choice = MagicMock()
         mock_choice.message = mock_message
-        
+
         mock_completion.choices = [mock_choice]
-        
+
         # Set up the mock to return our completion
         mock_openai_instance.chat.completions.create.return_value = mock_completion
-        
-        # Also set up the global client mock if it exists
-        mock_client.chat.completions.create.return_value = mock_completion
         
         # Test GET request
         response = client.get(reverse('mood:mood_questionnaire'))
