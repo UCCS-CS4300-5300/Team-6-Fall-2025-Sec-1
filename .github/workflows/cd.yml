@@ -1,7 +1,7 @@
 name: CD-Pipeline
 
 on:
-  pull_request:
+  push:
 
 env:
   PYTHON_VERSION: "3.12"
@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
-    environment:
-      name: production
       
     steps:
       - name: Trigger Render deploy via Deploy Hook
