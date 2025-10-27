@@ -4,6 +4,7 @@ from django.test import Client
 from mood.models import MoodResponse
 from mood.forms import MoodForm
 from unittest.mock import patch, MagicMock
+import json
 
 
 @pytest.mark.django_db
@@ -175,22 +176,34 @@ class TestIntegration:
     def client(self):
         return Client()
     
-    @patch('mood.views.OpenAI')  # Mock OpenAI in the views module
-    def test_complete_user_flow(self, mock_openai, client):
+    @patch('mood.views.client')  # Patch the global client if that's how it's used
+    @patch('mood.views.OpenAI')  # Mock the OpenAI class
+    def test_complete_user_flow(self, mock_openai_class, mock_client, client):
         """Test complete user flow from form to database"""
-        # Set up the mock OpenAI client
-        mock_client_instance = MagicMock()
-        mock_openai.return_value = mock_client_instance
         
-        # Mock the response chain
-        mock_response = MagicMock()
+        # Create a proper mock for the OpenAI response
+        mock_openai_instance = MagicMock()
+        mock_openai_class.return_value = mock_openai_instance
+        
+        # Create a mock response with the proper structure
+        mock_completion = MagicMock()
         mock_message = MagicMock()
-        mock_message.content = '{"activity": "hiking", "reason": "Based on your preferences..."}'
+        # Make sure content is a string that can be parsed as JSON
+        mock_message.content = json.dumps({
+            "activity": "hiking",
+            "reason": "Based on your adventurous spirit and high energy level, hiking would be perfect!"
+        })
+        
         mock_choice = MagicMock()
         mock_choice.message = mock_message
-        mock_response.choices = [mock_choice]
         
-        mock_client_instance.chat.completions.create.return_value = mock_response
+        mock_completion.choices = [mock_choice]
+        
+        # Set up the mock to return our completion
+        mock_openai_instance.chat.completions.create.return_value = mock_completion
+        
+        # Also set up the global client mock if it exists
+        mock_client.chat.completions.create.return_value = mock_completion
         
         # Test GET request
         response = client.get(reverse('mood:mood_questionnaire'))
@@ -202,18 +215,28 @@ class TestIntegration:
             'energy': '5',
             'what_do_you_enjoy': ['hiking', 'try_new_foods', 'museums']
         }
+        
         response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
         
-        # DEBUG: Print response details if not redirecting
+        # Enhanced debugging
         if response.status_code != 302:
-            print("\n=== DEBUG INFO ===")
+            print("\n=== ENHANCED DEBUG INFO ===")
             print(f"Status Code: {response.status_code}")
-            if 'form' in response.context:
-                print(f"Form Errors: {response.context['form'].errors}")
-                print(f"Form Data: {response.context['form'].data}")
-            print("==================\n")
+            print(f"Response has context: {hasattr(response, 'context')}")
+            
+            if hasattr(response, 'context') and response.context:
+                print(f"Context keys: {response.context.keys() if response.context else 'No context'}")
+                if 'form' in response.context:
+                    form = response.context['form']
+                    print(f"Form is_valid: {form.is_valid() if hasattr(form, 'is_valid') else 'N/A'}")
+                    print(f"Form errors: {form.errors if hasattr(form, 'errors') else 'N/A'}")
+                if 'error' in response.context:
+                    print(f"Error in context: {response.context['error']}")
+            
+            print(f"Response content (first 500 chars): {response.content.decode('utf-8')[:500]}")
+            print("===========================\n")
         
-        assert response.status_code == 302
+        assert response.status_code == 302, f"Expected 302 redirect, got {response.status_code}"
         
         # check database
         assert MoodResponse.objects.count() == 1
