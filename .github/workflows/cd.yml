@@ -1,7 +1,12 @@
 name: CD-Pipeline
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed   # triggers when PR is closed (merged OR just closed)
+    branches:
+      - main
+
 
 env:
   PYTHON_VERSION: "3.12"
