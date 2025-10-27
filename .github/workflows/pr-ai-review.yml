@@ -1,0 +1,35 @@
+name: PR AI Review
+
+on:
+  pull_request:
+
+env:
+  PYTHON_VERSION: "3.12"
+  PROJECT_DIR: Wanderly
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install OpenAI client
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai requests
+
+      - name: Run AI pull-request review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          python tools/ai_pr_review.py
