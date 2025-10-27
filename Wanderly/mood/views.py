@@ -27,7 +27,7 @@ def mood_questionnaire(request):
             try:
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-                # Format the form data for the prompt
+                #formats data to send in openai prompt
                 user_message = f"""
 User mood questionnaire responses:
 - Adventurousness level: {form.cleaned_data['adventurous']}/5
@@ -38,23 +38,21 @@ Consider these responses to a mood questionnaire and suggest 5 activities nearby
 """
 
                 response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-5-mini",
                     messages=[
                         {"role": "user", "content": user_message}
                     ]
                 )
 
-                # Extract the response content
                 ai_response = response.choices[0].message.content
                 logger.info(f"OpenAI response: {ai_response}")
 
-                # Try to parse the JSON response
+                # parse the json for easy printing
                 try:
                     activities = json.loads(ai_response)
                     if not isinstance(activities, list):
                         activities = [activities]
                 except json.JSONDecodeError as e:
-                    # If JSON parsing fails, try to extract JSON from the response
                     logger.warning(f"Failed to parse JSON response: {str(e)}")
                     logger.warning(f"OpenAI response text: {ai_response}")
                     import re
@@ -79,7 +77,7 @@ Consider these responses to a mood questionnaire and suggest 5 activities nearby
                 error_message = f"Error getting recommendations: {str(e)}"
                 activities = []
 
-            # Prepare context for the results page
+            # formats in a way that can be displayed on the results page
             context = {
                 'adventurous': form.cleaned_data['adventurous'],
                 'energy': form.cleaned_data['energy'],

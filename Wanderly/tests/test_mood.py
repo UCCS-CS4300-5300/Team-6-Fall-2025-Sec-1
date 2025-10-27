@@ -176,18 +176,18 @@ class TestIntegration:
     def client(self):
         return Client()
     
-    @patch('mood.views.OpenAI')  # Mock the OpenAI class
+    @patch('mood.views.OpenAI')  # mocks the openai class
     def test_complete_user_flow(self, mock_openai_class, client):
         """Test complete user flow from form to database"""
 
-        # Create a proper mock for the OpenAI response
+        # create a mock for openai class
         mock_openai_instance = MagicMock()
         mock_openai_class.return_value = mock_openai_instance
 
-        # Create a mock response with the proper structure
+        #creates a mock response with correct structure
         mock_completion = MagicMock()
         mock_message = MagicMock()
-        # Make sure content is a string that can be parsed as JSON
+        #make sure response can be parsed as  json
         mock_message.content = json.dumps({
             "activity": "hiking",
             "reason": "Based on your adventurous spirit and high energy level, hiking would be perfect!"
@@ -198,14 +198,13 @@ class TestIntegration:
 
         mock_completion.choices = [mock_choice]
 
-        # Set up the mock to return our completion
+        # mock return
         mock_openai_instance.chat.completions.create.return_value = mock_completion
         
-        # Test GET request
         response = client.get(reverse('mood:mood_questionnaire'))
         assert response.status_code == 200
         
-        # Test POST request
+        #post
         form_data = {
             'adventurous': '4',
             'energy': '5',
@@ -214,7 +213,6 @@ class TestIntegration:
         
         response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
 
-        # The view renders a template instead of redirecting, so we expect 200
         assert response.status_code == 200
         
         # check database
