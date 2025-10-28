@@ -237,7 +237,7 @@ def main():
     # Call OpenAI API to generate the review
     try:
         response = client.chat.completions.create(
-            model="gpt-5",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": diff},
