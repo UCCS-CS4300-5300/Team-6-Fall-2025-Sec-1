@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.test import Client
 from mood.models import MoodResponse
 from mood.forms import MoodForm
+from unittest.mock import patch, MagicMock
+import json
 
 
 @pytest.mark.django_db
@@ -174,17 +176,44 @@ class TestIntegration:
     def client(self):
         return Client()
     
-    def test_complete_user_flow(self, client):
+    @patch('mood.views.OpenAI')  # mocks the openai class
+    def test_complete_user_flow(self, mock_openai_class, client):
         """Test complete user flow from form to database"""
+
+        # create a mock for openai class
+        mock_openai_instance = MagicMock()
+        mock_openai_class.return_value = mock_openai_instance
+
+        #creates a mock response with correct structure
+        mock_completion = MagicMock()
+        mock_message = MagicMock()
+        #make sure response can be parsed as  json
+        mock_message.content = json.dumps({
+            "activity": "hiking",
+            "reason": "Based on your adventurous spirit and high energy level, hiking would be perfect!"
+        })
+
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+
+        mock_completion.choices = [mock_choice]
+
+        # mock return
+        mock_openai_instance.chat.completions.create.return_value = mock_completion
+        
         response = client.get(reverse('mood:mood_questionnaire'))
         assert response.status_code == 200
+        
+        #post
         form_data = {
             'adventurous': '4',
             'energy': '5',
             'what_do_you_enjoy': ['hiking', 'try_new_foods', 'museums']
         }
+        
         response = client.post(reverse('mood:mood_questionnaire'), data=form_data)
-        assert response.status_code == 302
+
+        assert response.status_code == 200
         
         # check database
         assert MoodResponse.objects.count() == 1

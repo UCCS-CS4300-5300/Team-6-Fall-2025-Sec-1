@@ -24,3 +24,22 @@ Form responses are stored in the `MoodResponse` model with the following fields:
 1. **Create a superuser:**
 ```bash
    python manage.py createsuperuser
+```
+
+# ChatGPT OpenAI API Integration
+When a user submits the mood questionnaire on the backend the system
+1. Validates the data from the form
+2. saves the mood response to the MoodResponse model in the database
+3. creates a prompt in the views.py file to return in json format so it can be parsed and display for the users
+
+## Response extraction
+in views.py the json response is parsed for the following structure
+```
+{
+  "title": "Activity Name",
+  "description": "What the activity is and what you'll do",
+  "why_recommended": "Why this activity suits your mood and interests",
+  "duration": "30 minutes to 1 hour",
+  "type": "Category (e.g., Adventure, Cultural, Relaxation)"
+}
+```

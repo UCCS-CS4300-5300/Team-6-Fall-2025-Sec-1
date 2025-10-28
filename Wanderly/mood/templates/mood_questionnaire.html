@@ -12,6 +12,7 @@
       
         <!-- Your overrides -->
         <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'navbar.css' %}">
         
         <!-- Add this style block -->
         <style>
@@ -95,10 +96,7 @@
   <body>
     <!-- Hero / info band -->
     <header class="info-section">
-      <a class="back-button nav-link text-white" href="#" onclick="history.back();">
-        <i class="bi bi-arrow-left"></i>
-        Back
-      </a>
+      {% include "partials/navbar.html" %}
       <div class="container py-5">
         <div class="row align-items-center g-5">
           <div class="col-lg-6 text-center text-lg-start">
