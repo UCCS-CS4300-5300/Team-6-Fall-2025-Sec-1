@@ -10,52 +10,13 @@
         rel="stylesheet"
         >
         <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'navbar.css' %}">
     </head>
     <body class="bg-light">
-        <!-- Navigation Bar -->
-        <nav class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(135deg, #F1BF98 0%, #F1BF98 100%);">
-            <div class="container">
-                <a class="navbar-brand fw-bold text-black" href="/">Wanderly</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link text-black" href="/#features">Features</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-black" href="/mood/">Mood Questionnaire</a>
-                        </li>
-                        <li>
-                            <a class="nav-link text-black" href="/google_routing/">Google Routing Demo</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-black" href="/location-discovery/">Location Based Discovery</a>
-                        </li>
-                    </ul>
-                </div>
-                {% if request.user.is_authenticated %}
-                    <div class="dropdown ms-3">
-                        <button
-                            class="btn btn-outline-light px-3 py-2 fw-semibold text-black"
-                            type="button"
-                            id="userMenuButton"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                        >
-                            Hello, {{ request.user.first_name|default:request.user.username }}{% if request.user.last_name %} {{ request.user.last_name|slice:":1" }}.{% endif %}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
-                            <li><a class="dropdown-item" href="#">My Portfolios</a></li>
-                            <li><a class="dropdown-item" href="{% url 'sign_out' %}">Sign Out</a></li>
-                        </ul>
-                    </div>
-                {% else %}
-                    <a class="btn btn-outline-light ms-3" href="{% url 'sign_in' %}">Log In</a>
-                {% endif %}
-            </div>
+        <nav>
+            {% include "navbar.html" %}
         </nav>
+        
 
         <header class="info-section">
             <div class="container py-5">

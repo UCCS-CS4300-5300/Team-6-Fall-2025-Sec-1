@@ -1,106 +1,46 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Wanderly AI Mood Questionnaire</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-      
-        <!-- Bootstrap first -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-      
-        <!-- Your overrides -->
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
-        <link rel="stylesheet" href="{% static 'navbar.css' %}">
-        
-        <!-- Add this style block -->
-        <style>
-          /* Radio button styling */
-          .likert-scale {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
-          }
-      
-          .likert-scale .form-check {
-            flex: 0 0 auto;
-          }
-      
-          .likert-scale .form-check-input {
-            cursor: pointer;
-          }
-      
-          .likert-scale .form-check-label {
-            cursor: pointer;
-            margin-left: 0.25rem;
-          }
-      
-          /* Scale labels */
-          .scale-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            color: #6c757d;
-            margin-top: 0.25rem;
-            margin-bottom: 1rem;
-          }
+  <head>
+    <meta charset="UTF-8">
+    <title>Wanderly AI Mood Questionnaire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-          /* Checkbox styling */
-          .interest-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-          }
+    <!-- bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-          .interest-checkboxes .form-check {
-            margin-bottom: 0;
-          }
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
 
-          .interest-checkboxes .form-check-input {
-            cursor: pointer;
-          }
-
-          .interest-checkboxes .form-check-label {
-            cursor: pointer;
-            margin-left: 0.5rem;
-          }
-      
-          .info-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-          }
-      
-          .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 0.75rem 2rem;
-            font-weight: 500;
-          }
-      
-          .btn-primary:hover {
-            opacity: 0.9;
-            background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
-          }
-
-          .back-button {
-              padding: 1rem;
-              color: white;
-              font-size: 1.25rem;
-          }
-        </style>
-      </head>
+    <style>
+      .likert-scale{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
+      .likert-scale .form-check{flex:0 0 auto}
+      .likert-scale .form-check-input,.likert-scale .form-check-label{cursor:pointer}
+      .likert-scale .form-check-label{margin-left:.25rem}
+      .scale-labels{display:flex;justify-content:space-between;font-size:.875rem;color:#6c757d;margin-top:.25rem;margin-bottom:1rem}
+      .interest-checkboxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.75rem;margin-top:.5rem}
+      .interest-checkboxes .form-check{margin-bottom:0}
+      .interest-checkboxes .form-check-input,.interest-checkboxes .form-check-label{cursor:pointer}
+      .interest-checkboxes .form-check-label{margin-left:.5rem}
+      .info-section{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+      .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;padding:.75rem 2rem;font-weight:500}
+      .btn-primary:hover{opacity:.9;background:linear-gradient(135deg,#5568d3 0%,#65408b 100%)}
+      .back-button{padding:1rem;color:#fff;font-size:1.25rem}
+    </style>
+    
+  </head>
 
   <body>
+    <!-- Navbar -->
+    {% include "navbar.html" %}
+
     <!-- Hero / info band -->
     <header class="info-section">
-      {% include "partials/navbar.html" %}
       <div class="container py-5">
         <div class="row align-items-center g-5">
           <div class="col-lg-6 text-center text-lg-start">
-            <h1 class="display-5 fw-extrabold mb-3">Wanderly AI Mood Questionnaire</h1>
+            <h1 class="display-5 fw-bold mb-3">Wanderly AI Mood Questionnaire</h1>
             <p class="lead mb-4">
               Wanderly uses AI to match your mood and interests to nearby activities.
             </p>
@@ -125,28 +65,14 @@
               <div class="mb-4">
                 <label class="form-label fw-semibold">How adventurous are you feeling?</label>
                 <div class="likert-scale">
+                  {% for i in "12345" %}
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_1" value="1">
-                    <label class="form-check-label" for="adventurous_1">1</label>
+                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_{{ i }}" value="{{ i }}" required>
+                    <label class="form-check-label" for="adventurous_{{ i }}">{{ i }}</label>
                   </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_2" value="2">
-                    <label class="form-check-label" for="adventurous_2">2</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_3" value="3">
-                    <label class="form-check-label" for="adventurous_3">3</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_4" value="4">
-                    <label class="form-check-label" for="adventurous_4">4</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_5" value="5">
-                    <label class="form-check-label" for="adventurous_5">5</label>
-                  </div>
+                  {% endfor %}
                 </div>
-                <div class="scale-labels">
+                <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
                   <span>Not at all</span>
                   <span>Very adventurous</span>
                 </div>
@@ -156,28 +82,14 @@
               <div class="mb-4">
                 <label class="form-label fw-semibold">What is your energy level?</label>
                 <div class="likert-scale">
+                  {% for i in "12345" %}
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_1" value="1">
-                    <label class="form-check-label" for="energy_1">1</label>
+                    <input class="form-check-input" type="radio" name="energy" id="energy_{{ i }}" value="{{ i }}" required>
+                    <label class="form-check-label" for="energy_{{ i }}">{{ i }}</label>
                   </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_2" value="2">
-                    <label class="form-check-label" for="energy_2">2</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_3" value="3">
-                    <label class="form-check-label" for="energy_3">3</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_4" value="4">
-                    <label class="form-check-label" for="energy_4">4</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_5" value="5">
-                    <label class="form-check-label" for="energy_5">5</label>
-                  </div>
+                  {% endfor %}
                 </div>
-                <div class="scale-labels">
+                <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
                   <span>Low energy</span>
                   <span>High energy</span>
                 </div>
@@ -185,7 +97,7 @@
 
               <!-- Multiple Choice Question -->
               <div class="mb-4">
-                <label class="form-label fw-semibold">Select from the following some things you are interested in</label>
+                <label class="form-label fw-semibold">Select some things you are interested in</label>
                 <div class="interest-checkboxes">
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_hiking" value="hiking">

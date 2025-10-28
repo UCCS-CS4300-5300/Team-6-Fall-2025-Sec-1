@@ -1,9 +1,9 @@
 
 :root {
-  --nav-bg: rgba(17, 24, 39, 0.75);
+  --nav-bg: rgba(19, 4, 107, 0.75);
   --nav-text: #ffffff;       
-  --nav-accent: #0ea5e9;     
-  --nav-hover: rgba(14, 165, 233, 0.102);     
+  --nav-accent: #860ee9;     
+  --nav-hover: rgba(124, 3, 194, 0.212);     
   --nav-border: #374151;      
   --nav-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
 }
