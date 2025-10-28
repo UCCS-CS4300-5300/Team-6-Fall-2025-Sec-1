@@ -30,9 +30,9 @@ jobs:
         run: |
           echo "⏳ Waiting for Render to finish deployment..."
 
-          # Max wait time = 10 minutes (60 attempts * 10 seconds)
-          ATTEMPTS=60
-          SLEEP=10
+          # Max wait time = 10 minutes (5 attempts * 2 minutes)
+          ATTEMPTS=5
+          SLEEP=240
 
           while [ $ATTEMPTS -gt 0 ]; do
             STATUS=$(curl -s -H "Accept: application/json" \
