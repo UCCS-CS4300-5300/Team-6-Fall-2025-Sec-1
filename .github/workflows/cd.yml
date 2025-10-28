@@ -7,7 +7,6 @@ on:
     branches:
       - main
 
-
 env:
   PYTHON_VERSION: "3.12"
   PROJECT_DIR: Wanderly
@@ -15,14 +14,54 @@ env:
 jobs:
 
   cd-pipeline-deploy:
-    #needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # Only run if the PR was actually merged into main
+    if: github.event.pull_request.merged == true
 
-      
     steps:
       - name: Trigger Render deploy via Deploy Hook
         run: |
+          echo "Triggering Render deploy..."
           curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+      - name: Verify Render deploy completed successfully
+        run: |
+          echo "⏳ Waiting for Render to finish deployment..."
+
+          # Max wait time = 10 minutes (60 attempts * 10 seconds)
+          ATTEMPTS=60
+          SLEEP=10
+
+          while [ $ATTEMPTS -gt 0 ]; do
+            STATUS=$(curl -s -H "Accept: application/json" \
+              "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys?limit=1&order=desc" \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            | grep -o '"status":"[^"]*' | cut -d'"' -f4)
+
+            echo "Current deploy status: $STATUS"
+
+            case "$STATUS" in
+              live|succeeded|success)
+                echo "✅ Deployment completed successfully on Render!"
+                exit 0
+                ;;
+              failed|canceled)
+                echo "❌ Render deployment FAILED!"
+                exit 1
+                ;;
+              *)
+                echo "⏳ Still deploying... retrying ($ATTEMPTS attempts left)"
+                ;;
+            esac
+
+            ATTEMPTS=$((ATTEMPTS-1))
+            sleep $SLEEP
+          done
+
+          echo "❌ Deployment check TIMED OUT after waiting too long."
+          exit 1
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
