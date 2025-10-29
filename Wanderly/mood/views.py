@@ -14,6 +14,7 @@ def mood_questionnaire(request):
         if form.is_valid():
             # Save to database
             mood_response = MoodResponse.objects.create(
+                destination=form.cleaned_data['destination'],
                 adventurous=form.cleaned_data['adventurous'],
                 energy=form.cleaned_data['energy'],
                 what_do_you_enjoy=form.cleaned_data['what_do_you_enjoy']
@@ -30,11 +31,12 @@ def mood_questionnaire(request):
                 #formats data to send in openai prompt
                 user_message = f"""
 User mood questionnaire responses:
+- Destination: {form.cleaned_data['destination']}
 - Adventurousness level: {form.cleaned_data['adventurous']}/5
 - Energy level: {form.cleaned_data['energy']}/5
 - Interests: {', '.join(form.cleaned_data['what_do_you_enjoy'])}
 
-Consider these responses to a mood questionnaire and suggest 5 activities nearby that would suit the user's mood - return ONLY a valid JSON array with objects that have the following fields: title, description, why_recommended, duration, type. Do not include any text outside the JSON.
+Consider these responses to a mood questionnaire and suggest 5 activities in {form.cleaned_data['destination']} that would suit the user's mood - return ONLY a valid JSON array with objects that have the following fields: title, description, why_recommended, duration, type. Do not include any text outside the JSON.
 """
 
                 response = client.chat.completions.create(
@@ -79,6 +81,7 @@ Consider these responses to a mood questionnaire and suggest 5 activities nearby
 
             # formats in a way that can be displayed on the results page
             context = {
+                'destination': form.cleaned_data['destination'],
                 'adventurous': form.cleaned_data['adventurous'],
                 'energy': form.cleaned_data['energy'],
                 'interests': form.cleaned_data['what_do_you_enjoy'],

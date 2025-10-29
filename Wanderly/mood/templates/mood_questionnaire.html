@@ -61,6 +61,12 @@
             <form method="post" novalidate>
               {% csrf_token %}
 
+              <!-- Destination Question -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold" for="id_destination">Where are you traveling to? (placeholder until merge with lbd feature)</label>
+                <input type="text" name="destination" class="form-control" id="id_destination" placeholder="e.g., Paris, Tokyo, New York City" required>
+              </div>
+
               <!-- Adventurous Question -->
               <div class="mb-4">
                 <label class="form-label fw-semibold">How adventurous are you feeling?</label>
@@ -126,6 +132,50 @@
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_market" value="local_market">
                     <label class="form-check-label" for="interest_market">Visit a local market</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_shopping" value="shopping">
+                    <label class="form-check-label" for="interest_shopping">Shopping</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_photography" value="photography">
+                    <label class="form-check-label" for="interest_photography">Photography/scenic spots</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_nightlife" value="nightlife">
+                    <label class="form-check-label" for="interest_nightlife">Nightlife/bars</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_cafes" value="cafes">
+                    <label class="form-check-label" for="interest_cafes">Coffee shops/cafes</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_parks" value="parks_nature">
+                    <label class="form-check-label" for="interest_parks">Parks/nature</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_art" value="art_galleries">
+                    <label class="form-check-label" for="interest_art">Art galleries</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_historical" value="historical_sites">
+                    <label class="form-check-label" for="interest_historical">Historical sites</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_entertainment" value="live_entertainment">
+                    <label class="form-check-label" for="interest_entertainment">Live music/theater</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_fitness" value="fitness_sports">
+                    <label class="form-check-label" for="interest_fitness">Fitness/sports activities</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_wildlife" value="wildlife">
+                    <label class="form-check-label" for="interest_wildlife">Wildlife/zoos/aquariums</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_beach" value="beach">
+                    <label class="form-check-label" for="interest_beach">Beach activities</label>
                   </div>
                 </div>
               </div>
