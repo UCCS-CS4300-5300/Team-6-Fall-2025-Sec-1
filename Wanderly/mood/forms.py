@@ -10,17 +10,38 @@ INTEREST_CHOICES = [
     ('try_new_foods', 'Try new foods'),
     ('concert_sporting', 'Attend a concert/sporting event'),
     ('local_market', 'Visit a local market'),
+    ('shopping', 'Shopping'),
+    ('photography', 'Photography/scenic spots'),
+    ('nightlife', 'Nightlife/bars'),
+    ('cafes', 'Coffee shops/cafes'),
+    ('parks_nature', 'Parks/nature'),
+    ('art_galleries', 'Art galleries'),
+    ('historical_sites', 'Historical sites'),
+    ('live_entertainment', 'Live music/theater'),
+    ('fitness_sports', 'Fitness/sports activities'),
+    ('wildlife', 'Wildlife/zoos/aquariums'),
+    ('beach', 'Beach activities'),
 ]
 
 class MoodForm(forms.Form):
+    destination = forms.CharField(
+        label="Where are you traveling to?",
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'e.g., Paris, Tokyo, New York City'
+        })
+    )
+
     adventurous = forms.ChoiceField(
         label="How adventurous are you feeling?",
-        choices=LIKERT, 
+        choices=LIKERT,
         widget=forms.RadioSelect
     )
     energy = forms.ChoiceField(
         label="What is your energy level?",
-        choices=LIKERT, 
+        choices=LIKERT,
         widget=forms.RadioSelect
     )
 
