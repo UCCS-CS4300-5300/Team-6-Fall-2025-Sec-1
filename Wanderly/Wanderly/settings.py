@@ -110,6 +110,7 @@ INSTALLED_APPS = [
     'mood',
     'google_routing',
     'location_based_discovery',
+    'places_auto_complete',
 ]
 
 MIDDLEWARE = [
