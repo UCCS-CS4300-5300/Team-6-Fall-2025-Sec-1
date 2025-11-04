@@ -15,8 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from .views import index , sign_in, sign_out, auth_receiver, register, forgot_password
+from django.urls import include, path
+
+from .views import (
+    auth_receiver,
+    forgot_password,
+    index,
+    register,
+    sign_in,
+    sign_out,
+    iteneraryTimePref,
+)
 
 urlpatterns = [
     path('', index, name='index'),
@@ -37,4 +46,11 @@ urlpatterns = [
 
     # urls for the google routing
     path('google_routing/', include('google_routing.urls')),
+
+
+    # urls for Budget planner
+    path('budget/', include(('budgets.urls', 'budgets'), namespace='budgets')),
+
+    # urls for Time Response - To be removed for final version
+    path('time/', iteneraryTimePref, name='itenerary_time'),
 ]
