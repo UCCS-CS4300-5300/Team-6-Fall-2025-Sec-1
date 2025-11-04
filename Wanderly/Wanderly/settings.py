@@ -113,6 +113,9 @@ INSTALLED_APPS = [
     'location_based_discovery',
 ]
 
+# Toggle JSON export of budget submissions (writes files to budgets/json/ when True)
+CREATE_JSON_OUTPUT = True
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 

@@ -1,66 +1,66 @@
-\.budget-itinerary .info-section {
+.budget-itinerary .info-section {
     background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
     color: #fff;
 }
 
-\.budget-itinerary .btn-primary {
+.budget-itinerary .btn-primary {
     background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
     border: none;
     padding: .75rem 2rem;
     font-weight: 500;
 }
 
-\.budget-itinerary .btn-outline-primary:hover {
+.budget-itinerary .btn-outline-primary:hover {
     background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
     color: #fff;
 }
 
-\.budget-itinerary .rounded-xxl {
+.budget-itinerary .rounded-xxl {
     border-radius: 30px;
     overflow: hidden;
 }
 
-\.budget-itinerary .gradient-card {
+.budget-itinerary .gradient-card {
     background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);
 }
 
-\.budget-itinerary .budget-item {
+.budget-itinerary .budget-item {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 24px;
     padding: .9rem 1.1rem;
     box-shadow: 0 6px 18px rgba(62, 20, 159, 0.12);
 }
 
-\.budget-itinerary .budget-item + .budget-item {
+.budget-itinerary .budget-item + .budget-item {
     margin-top: .75rem;
 }
 
-\.budget-itinerary .budget-item .row {
+.budget-itinerary .budget-item .row {
     --bs-gutter-x: .75rem;
     --bs-gutter-y: .6rem;
 }
 
-\.budget-itinerary .budget-item .form-label {
+.budget-itinerary .budget-item .form-label {
     margin-bottom: .15rem;
     font-size: .85rem;
     letter-spacing: .02em;
 }
 
-\.budget-itinerary .budget-item select,
-\.budget-itinerary .budget-item input {
+.budget-itinerary .budget-item select,
+.budget-itinerary .budget-item input {
     border-radius: 24px;
     padding: 0 .85rem;
     height: 40px;
     font-size: .95rem;
 }
 
-\.budget-itinerary .budget-item .input-group-text {
+.budget-itinerary .budget-item .input-group-text {
     border-radius: 24px 0 0 24px;
     padding: 0 .7rem;
     font-size: .85rem;
 }
 
-\.budget-itinerary .add-budget-btn {
+.budget-itinerary .add-budget-btn {
     border-radius: 999px;
     padding: .5rem 1.2rem;
     font-weight: 600;
@@ -70,7 +70,7 @@
     font-size: .9rem;
 }
 
-\.budget-itinerary .add-budget-btn:hover {
+.budget-itinerary .add-budget-btn:hover {
     border-color: transparent;
     background: linear-gradient(135deg, rgba(218, 48, 104, 0.12) 0%, rgba(62, 20, 159, 0.12) 100%);
     color: #3e149f;
