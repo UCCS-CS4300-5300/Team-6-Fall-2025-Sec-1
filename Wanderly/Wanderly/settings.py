@@ -114,7 +114,7 @@ INSTALLED_APPS = [
     'location_based_discovery',
 ]
 
-# Toggle JSON export of budget submissions (writes files to budgets/json/ when True)
+# Toggle JSON export of planner submissions (writes JSON under each planner app when True)
 CREATE_JSON_OUTPUT = True
 
 MIDDLEWARE = [
