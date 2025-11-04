@@ -107,6 +107,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'budgets',
+    'time_preferences',
     'home',
     'mood',
     'google_routing',

@@ -160,8 +160,3 @@ def auth_receiver(request):
     return redirect("index")
 
 
-# --------------------- Time Preference Views --------------------- #
-
-
-def iteneraryTimePref(request):
-    return render(request, "timePrefForm.html")

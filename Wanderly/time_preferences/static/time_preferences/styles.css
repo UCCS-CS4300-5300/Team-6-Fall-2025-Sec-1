@@ -1,0 +1,82 @@
+.time-pref-page .info-section {
+    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    color: #fff;
+}
+
+.time-pref-page .pref-hero {
+    max-width: 280px;
+}
+
+.time-pref-page .gradient-card {
+    background: linear-gradient(135deg, rgba(218, 48, 104, 0.08) 0%, rgba(62, 20, 159, 0.12) 100%);
+    border: none;
+}
+
+.time-pref-page .rounded-xxl {
+    border-radius: 32px;
+}
+
+.time-pref-page .meal-switch .form-check-input:checked {
+    background-color: #da3068;
+    border-color: #da3068;
+}
+
+.time-pref-page .btn-primary {
+    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    border: none;
+    font-weight: 600;
+}
+
+.time-pref-page .btn-primary:hover {
+    opacity: .92;
+}
+
+.time-pref-page .advanced-btn {
+    background: #f8f4ff;
+    color: #3e149f;
+    border-color: rgba(62, 20, 159, 0.35);
+    border-radius: 999px;
+    padding: .6rem 1.6rem;
+    font-weight: 600;
+}
+
+.time-pref-page .advanced-btn::after {
+    border-top-color: currentColor;
+}
+
+.time-pref-page .advanced-btn:hover {
+    background: rgba(62, 20, 159, 0.08);
+    color: #3e149f;
+}
+
+.time-pref-page .meal-section .form-label,
+.time-pref-page .collapse .form-label {
+    font-size: .78rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(62, 20, 159, 0.7);
+}
+
+.time-pref-page .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #da3068;
+    display: inline-block;
+}
+
+.time-pref-page .history-card {
+    border-radius: 32px;
+}
+
+.time-pref-page table thead th {
+    text-transform: uppercase;
+    font-size: .7rem;
+    letter-spacing: .1em;
+    color: rgba(62, 20, 159, 0.7);
+}
+
+.time-pref-page table tbody td {
+    color: #4b4b4b;
+    font-size: .92rem;
+}

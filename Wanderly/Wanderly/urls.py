@@ -17,15 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import (
-    auth_receiver,
-    forgot_password,
-    index,
-    register,
-    sign_in,
-    sign_out,
-    iteneraryTimePref,
-)
+from .views import auth_receiver, forgot_password, index, register, sign_in, sign_out
 
 urlpatterns = [
     path('', index, name='index'),
@@ -51,6 +43,6 @@ urlpatterns = [
     # urls for Budget planner
     path('budget/', include(('budgets.urls', 'budgets'), namespace='budgets')),
 
-    # urls for Time Response - To be removed for final version
-    path('time/', iteneraryTimePref, name='itenerary_time'),
+    # Time preferences planner
+    path('time-preferences/', include(('time_preferences.urls', 'time_preferences'), namespace='time_preferences')),
 ]
