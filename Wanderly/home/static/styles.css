@@ -1,27 +1,99 @@
 :root {
-    --bs-primary: #F1BF98;
+    --bs-primary: #667eea;
     --bs-border-radius: 1rem;
 }
 
-.card, .btn, .info-section img, .rounded-4 { border-radius: var(--bs-border-radius) !important; }
-.card-hover { 
-    transition: transform .12s ease; 
-    box-shadow: .12s ease;
-    border-color: .12s ease;
-    background-color: #E1F4CB;
-}
-.card-hover:hover { transform: translateY(-2px); box-shadow: 0 .8rem 1.6rem #3F4739; border-color: #717568; }
-
-.container { max-width: 1100px; }
-
-.vacation-image { max-width: 600px }
-.info-section img { display: block; margin-left: auto; margin-right: auto; }
-
-.info-section{
-    background: linear-gradient(180deg, var(--bs-secondary-bg, #F1BF98), rgba(0,0,0,0));
-    background-color: #F1BF98;
+h1 {
+    font-size: 10rem;
 }
 
-.features {
-    background-color: #F1BF98;
+footer {
+    background: rgba(19, 4, 107, 0.75);
+}
+
+.search-container {
+    position: relative;
+    width: 75%;
+    margin: 0 auto;
+    padding-top: 1rem;
+}
+
+.search-input {
+    height: 50px;
+    border-radius: 30px;
+    padding-left: 35px;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: #888;
+    z-index: 1;
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 25px;
+    padding: 8px 25px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+}
+
+.carousel-container {
+    margin: 0 auto;
+}
+
+.carousel-caption {
+    color: black;
+    background: white;
+    width: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 50px;
+}
+
+.carousel-inner img {
+    height: 33rem;
+    object-fit: cover;
+    object-position: center;
+}
+
+.card-body {
+    background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);
+}
+
+.discover-container {
+    margin: 1rem 0rem 5rem 0rem;
+}
+
+.website-button:hover {
+    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+}
+
+.image-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.overlay-text {
+    position: absolute;
+    top: 40%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    color: #fff; 
+    padding: 10px 20px; 
+    text-align: center;
 }
