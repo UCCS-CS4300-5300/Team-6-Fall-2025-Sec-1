@@ -115,7 +115,7 @@ INSTALLED_APPS = [
 ]
 
 # Toggle JSON export of planner submissions (writes JSON under each planner app when True)
-CREATE_JSON_OUTPUT = True
+CREATE_JSON_OUTPUT = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
