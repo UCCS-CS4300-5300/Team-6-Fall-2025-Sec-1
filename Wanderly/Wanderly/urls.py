@@ -15,16 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
-
-from .views import auth_receiver, forgot_password, index, register, sign_in, sign_out
+from django.urls import path, include
+from .views import index , sign_in, sign_out, auth_receiver, register, forgot_password
+from home.views import text_search, place_photos
 
 urlpatterns = [
     path('', index, name='index'),
     path('admin/', admin.site.urls),
 
-    # Location app urls
-    path('location-discovery/', include("location_based_discovery.urls")),
+    # Home New Google Places API urls
+    path('text_search/', text_search, name='text_search'),
+    path('place_photos/<path:photo_name>/', place_photos, name='place_photos'),
 
     # Mood app urls
     path('mood/', include("mood.urls", "mood")),

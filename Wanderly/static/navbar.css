@@ -1,4 +1,3 @@
-
 :root {
   --nav-bg: rgba(19, 4, 107, 0.75);
   --nav-text: #ffffff;       
@@ -78,4 +77,16 @@
 
 .site-navbar .navbar-nav {
   gap: .25rem;
+}
+
+.navbar-logo {
+  height: 50px;
+  width: auto;
+  transition: transform .2s ease;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.navbar-brand:hover .navbar-logo {
+  transform: scale(1.05);
 }

@@ -111,7 +111,6 @@ INSTALLED_APPS = [
     'home',
     'mood',
     'google_routing',
-    'location_based_discovery',
 ]
 
 # Toggle JSON export of planner submissions (writes JSON under each planner app when True)
@@ -202,11 +201,13 @@ if ENVIRONMENT == 'production':
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = False
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    CSRF_USE_SESSIONS = False
     
     # Trusted origins for CSRF
     CSRF_TRUSTED_ORIGINS = [
@@ -219,7 +220,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         'https://app-roshea-19.devedu.io',
         'http://app-jgfuze-19.devedu.io',
-        "http://app-cruzcs4300-19.devedu.io",
+        "https://app-cruzcs4300-19.devedu.io",
         "https://app-gwilli17-19.devedu.io",
         'http://localhost',
     ]
