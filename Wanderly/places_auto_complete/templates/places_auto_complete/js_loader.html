@@ -1,0 +1,11 @@
+{% load static %}
+
+<!-- <link rel="stylesheet" href="{% static 'places_auto_complete/places-autocomplete.css' %}"> -->
+
+{% if GOOGLE_MAPS_BROWSER_KEY %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_BROWSER_KEY }}&libraries=places&loading=async" async defer></script>
+{% else %}
+<script>console.warn("GOOGLE_MAPS_BROWSER_KEY is missing.");</script>
+{% endif %}
+
+<script src="{% static 'places_auto_complete/places-autocomplete.js' %}" defer></script>
