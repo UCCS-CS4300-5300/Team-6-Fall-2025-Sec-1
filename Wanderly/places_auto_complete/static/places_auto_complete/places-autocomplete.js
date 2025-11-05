@@ -1,4 +1,6 @@
 (function () {
+  const __formsWithPacEnterHandler = new WeakSet();
+
   // Run after Maps is loaded; then import the new Places library on demand.
   async function boot() {
     // If Maps base isn't ready yet, poll briefly.
@@ -30,9 +32,39 @@
 
       const pac = new PlaceAutocompleteElement(opts);
       pac.style.setProperty('color-scheme', 'light');
+      pac.style.width = "100%";
+      pac.style.minHeight = "50px";
       // Copy placeholder for consistency
       pac.setAttribute("placeholder", originalInput.getAttribute("placeholder") || "");
       
+      // Insert the PAC and hide original input
+      originalInput.insertAdjacentElement("beforebegin", pac);
+      originalInput.style.display = "none";
+
+      // Ensure pressing Enter submits the form even inside shadow DOM
+      const form = pac.closest('form');
+      if (form && !__formsWithPacEnterHandler.has(form)) {
+        form.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+
+          // Works with closed shadow DOM: use composed path to see if the event originated inside the PAC
+          const path = e.composedPath ? e.composedPath() : [];
+          const fromPac = path.some(
+            (node) =>
+              node && node.tagName &&
+              String(node.tagName).toLowerCase().includes('place-autocomplete')
+          );
+
+          if (fromPac) {
+            e.preventDefault();        // stop the component from swallowing it
+            form.requestSubmit();      // behave like clicking the submit button
+          }
+        }, true); // capture!
+        __formsWithPacEnterHandler.add(form);
+      }
+
+
+
       // Copy all classes from the original input to maintain styling
       const classes = originalInput.className;
       if (classes) {
