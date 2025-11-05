@@ -39,4 +39,11 @@ urlpatterns = [
 
     # urls for the google routing
     path('google_routing/', include('google_routing.urls')),
+
+
+    # urls for Budget planner
+    path('budget/', include(('budgets.urls', 'budgets'), namespace='budgets')),
+
+    # Time preferences planner
+    path('time-preferences/', include(('time_preferences.urls', 'time_preferences'), namespace='time_preferences')),
 ]

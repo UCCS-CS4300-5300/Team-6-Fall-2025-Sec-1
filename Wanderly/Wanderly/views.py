@@ -1,19 +1,18 @@
 # System imports
 import os
- 
+
 # Django imports
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required # Use for vies that require login
 
 # Google OAuth imports
-from google.oauth2 import id_token
 from google.auth.transport import requests
+from google.oauth2 import id_token
 
 # Local imports
 from .forms import RegistrationForm
@@ -21,7 +20,10 @@ from .forms import RegistrationForm
 
 # Homepage
 def index(request):
-    return render(request, 'index.html')
+    return render(request, "index.html")
+
+
+# --------------------- user authentication views --------------------- #
 
 # Sign in an existing user
 def sign_in(request):
@@ -31,10 +33,11 @@ def sign_in(request):
         user = form.get_user()
         login(request, user)
         messages.success(request, "Welcome back to Wanderly!")
-        return redirect('index')
+        return redirect("index")
 
     # Render the login form html and add form to context
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, "registration/login.html", {"form": form})
+
 
 # Register a new user
 def register(request):
@@ -42,8 +45,7 @@ def register(request):
     form = RegistrationForm(request.POST or None)
 
     # If the form is submitted and valid, create the user
-    if ((request.method == "POST") and (form.is_valid())):
-
+    if (request.method == "POST") and form.is_valid():
         # Create the user in the database
         user = form.save()
 
@@ -60,29 +62,29 @@ def register(request):
             messages.success(request, "Welcome to Wanderly! Your account is ready.")
 
             # Redirect to homepage
-            return redirect('index')
-        
+            return redirect("index")
+
         # If user was not authenticated, redirect to sign in page
         messages.success(request, "Account created. Please sign in.")
-        return redirect('sign_in')
+        return redirect("sign_in")
 
     # Render the registration form html and add form to context
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, "registration/register.html", {"form": form})
 
 
 # Sign out the user
 def sign_out(request):
     # logout the user
     logout(request)
-    
+
     # Remove any Google-specific session data
-    request.session.pop('google_profile_picture', None)
-    request.session.pop('google_sub', None)
+    request.session.pop("google_profile_picture", None)
+    request.session.pop("google_sub", None)
 
     # Send sign out message
     messages.success(request, "You have been signed out.")
 
-    return redirect('index')
+    return redirect("index")
 
 
 # Forgot password page
@@ -90,27 +92,28 @@ def forgot_password(request):
     # Not implemented
 
     # render the forgot password page
-    return render(request, 'registration/forgotPass.html')
- 
+    return render(request, "registration/forgotPass.html")
+
 
 @csrf_exempt
 def auth_receiver(request):
     """
     Handle the POST request from Google's sign-in widget and authenticate the user in Django.
     """
+
     # Only allow POST requests from the Google callback
     if request.method != "POST":
         return HttpResponse(status=405)
 
     # Extract the credential (ID token) from the request
-    token = request.POST.get('credential')
+    token = request.POST.get("credential")
     if not token:
         return HttpResponse(status=400)
 
     # Verify the token with Google to obtain the user payload
     try:
         user_data = id_token.verify_oauth2_token(
-            token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']
+            token, requests.Request(), os.environ["GOOGLE_OAUTH_CLIENT_ID"]
         )
     except ValueError:
         return HttpResponse(status=403)
@@ -148,10 +151,12 @@ def auth_receiver(request):
         user.save()
 
     # Log the user in via Django's session framework
-    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
     # Send welcome message
     messages.success(request, "Welcome to Wanderly!")
 
     # Redirect to homepage
-    return redirect('index')
+    return redirect("index")
+
+

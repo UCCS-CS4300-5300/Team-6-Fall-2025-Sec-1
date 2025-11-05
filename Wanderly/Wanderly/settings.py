@@ -106,11 +106,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'budgets',
+    'time_preferences',
     'home',
     'mood',
     'google_routing',
     'places_auto_complete',
 ]
+
+# Toggle JSON export of planner submissions (writes JSON under each planner app when True)
+CREATE_JSON_OUTPUT = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

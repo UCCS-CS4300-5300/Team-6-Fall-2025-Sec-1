@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Time Preferences</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <link rel="stylesheet" href="{% static 'navbar.css' %}">
+  <link rel="stylesheet" href="{% static 'time_preferences/styles.css' %}">
+</head>
+<body class="bg-light time-pref-page" data-enable-meals="{{ form.enable_meals.value|default_if_none:'on' }}">
+  <nav>{% include "navbar.html" %}</nav>
+
+  <header class="info-section text-white">
+    <div class="container py-5">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+          <h1 class="display-5 fw-bold mb-3">Time Preferences</h1>
+          <p class="lead mb-0">
+            Share how you like to pace your day—wake and sleep times, meal windows, energy peaks, and when you prefer activities.
+            We’ll blend these preferences into each itinerary we craft.
+          </p>
+        </div>
+        <div class="col-lg-5 text-center">
+          <img src="{% static 'time_preferences/clock.svg' %}" class="img-fluid pref-hero" alt="Clock illustration">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="container py-4">
+    <form method="post" class="card shadow-sm rounded-xxl gradient-card p-4 p-md-5">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-uppercase small text-muted">Wake-up time</label>
+          {{ form.wake_up_time }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-uppercase small text-muted">Sleep time</label>
+          {{ form.sleep_time }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-uppercase small text-muted">Time-of-day preference</label>
+          {{ form.energy_type }}
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div class="form-check form-switch meal-switch">
+          {{ form.enable_meals }}
+          <label class="form-check-label ms-1" for="{{ form.enable_meals.id_for_label }}">
+            Include meal times
+          </label>
+        </div>
+        <small class="text-muted">Toggle off if your meals are flexible.</small>
+      </div>
+
+      <div id="mealFields" class="row g-3 meal-section">
+        <div class="col-md-4">
+          <label class="form-label text-uppercase small text-muted">Breakfast</label>
+          {{ form.breakfast_time }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-uppercase small text-muted">Lunch</label>
+          {{ form.lunch_time }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-uppercase small text-muted">Dinner</label>
+          {{ form.dinner_time }}
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button class="btn dropdown-toggle advanced-btn" type="button" data-bs-toggle="collapse" data-bs-target="#advancedPreferences" aria-expanded="false" aria-controls="advancedPreferences">
+          Advanced preferences
+        </button>
+      </div>
+
+      <div class="collapse mt-4" id="advancedPreferences">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-uppercase small text-muted">Break frequency</label>
+            {{ form.break_frequency }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-uppercase small text-muted">Break duration</label>
+            {{ form.break_duration }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-uppercase small text-muted">Schedule strictness</label>
+            {{ form.schedule_strictness }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-uppercase small text-muted">Preferred activity window</label>
+            <div class="row g-2">
+              <div class="col-6">
+                {{ form.preferred_start_time }}
+                <small class="text-muted">Start</small>
+              </div>
+              <div class="col-6">
+                {{ form.preferred_end_time }}
+                <small class="text-muted">End</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-5">
+        <button type="submit" class="btn btn-primary px-4">Save preferences</button>
+        {% if has_existing %}
+          <div class="d-flex align-items-center text-muted small">
+            <span class="dot me-2"></span>
+            Using your most recent profile as a baseline.
+          </div>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const mealToggle = document.getElementById('{{ form.enable_meals.id_for_label }}') || document.querySelector('[name="{{ form.enable_meals.html_name }}"]');
+    const mealSection = document.getElementById('mealFields');
+    if (mealToggle && mealSection) {
+      const syncMeals = () => mealSection.classList.toggle('d-none', !mealToggle.checked);
+      mealToggle.addEventListener('change', syncMeals);
+      syncMeals();
+    }
+  </script>
+</body>
+</html>
