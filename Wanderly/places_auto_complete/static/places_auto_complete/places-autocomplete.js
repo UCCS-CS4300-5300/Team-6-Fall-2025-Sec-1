@@ -14,9 +14,10 @@
       });
     }
 
+    // Loading in the google auto complete library
     const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
 
-    // Any marker will do; keep both for flexibility.
+    // This is how we say what fields get autocomplete (data-places=1 or class = js-places)
     const inputs = document.querySelectorAll('[data-places="1"], .js-places');
     inputs.forEach((originalInput) => {
       // Build the Google element (its own input UI).
