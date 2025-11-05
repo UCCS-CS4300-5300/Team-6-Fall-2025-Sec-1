@@ -9,7 +9,6 @@ from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 
 from .forms import TimePreferenceForm
-from .models import TimePreference
 
 
 @login_required
@@ -68,14 +67,11 @@ def itinerary(request):
             )
         form = TimePreferenceForm(initial=initial)
 
-    recent = request.user.time_preferences.all()[:5]
-
     return render(
         request,
         "time_preferences/timePref.html",
         {
             "form": form,
-            "recent_preferences": recent,
             "has_existing": last_pref is not None,
         },
     )

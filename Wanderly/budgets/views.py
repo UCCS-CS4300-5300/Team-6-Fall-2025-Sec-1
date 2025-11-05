@@ -55,7 +55,7 @@ def itinerary_budget(request):
     else:
         formset = BudgetItemFormSet(prefix="items")
 
-    context = {
+    context = { 
         "formset": formset,
         "budget_other_value": BudgetItem.OTHER,
     }
