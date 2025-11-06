@@ -177,4 +177,4 @@ class HomePageTests(TestCase):
 
         self.assertIn("Hello, Alex M.", content)
         self.assertIn("My Portfolios", content)
-        self.assertIn('href="/sign-out/"', content)
+        self.assertIn(f'href="{reverse("sign_out")}"', content)
