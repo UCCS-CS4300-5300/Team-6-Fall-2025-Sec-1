@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .views import index , sign_in, sign_out, auth_receiver, register, forgot_password
+from Wanderly.views import index
 from home.views import text_search, place_photos
 
 urlpatterns = [
@@ -31,19 +31,15 @@ urlpatterns = [
     path('mood/', include("mood.urls", "mood")),
 
     # Auth urls
-    path('sign-in/', sign_in, name='sign_in'),
-    path('sign-out/', sign_out, name='sign_out'),
-    path('register/', register, name='register'),
-    path('forgot-password/', forgot_password, name='forgot_password'),
-    path('auth-receiver/', auth_receiver, name='auth_receiver'), 
+    path('auth/', include('user_auth.urls')),
 
     # urls for the google routing
     path('google_routing/', include('google_routing.urls')),
 
 
     # urls for Budget planner
-    path('budget/', include(('budgets.urls', 'budgets'), namespace='budgets')),
+    path('budget/', include('budgets.urls', 'budgets')),
 
     # Time preferences planner
-    path('time-preferences/', include(('time_preferences.urls', 'time_preferences'), namespace='time_preferences')),
+    path('time-preferences/', include('time_preferences.urls')),
 ]

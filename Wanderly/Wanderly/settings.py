@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     'home',
     'mood',
     'google_routing',
+    'user_auth',
     'places_auto_complete',
 ]
 

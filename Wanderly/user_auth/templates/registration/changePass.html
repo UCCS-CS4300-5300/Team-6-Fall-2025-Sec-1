@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Change Password | Wanderly</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'user_auth/styles.css' %}">
+    </head>
+    <body class="auth-page auth-change">
+        <section class="info-section min-vh-100 d-flex align-items-center">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card card-hover border-0 rounded-4 p-4 p-md-5 shadow">
+                            <div class="text-center mb-4">
+                                <h1 class="display-6 fw-bold mb-2">Update your password</h1>
+                                <p class="text-secondary mb-0">
+                                    Keep your Wanderly account secure by choosing a strong, unique password.
+                                </p>
+                            </div>
+                            <form method="post" class="mb-3">
+                                {% csrf_token %}
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger mb-3">
+                                        {% for error in form.non_field_errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="mb-3">
+                                    <label for="{{ form.old_password.id_for_label }}" class="form-label">Current password</label>
+                                    <input
+                                        type="password"
+                                        class="form-control form-control-lg{% if form.old_password.errors %} is-invalid{% endif %}"
+                                        id="{{ form.old_password.id_for_label }}"
+                                        name="{{ form.old_password.html_name }}"
+                                        autocomplete="current-password"
+                                        required
+                                    >
+                                    {% if form.old_password.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.old_password.errors %}
+                                                {{ error }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.new_password1.id_for_label }}" class="form-label">New password</label>
+                                    <input
+                                        type="password"
+                                        class="form-control form-control-lg{% if form.new_password1.errors %} is-invalid{% endif %}"
+                                        id="{{ form.new_password1.id_for_label }}"
+                                        name="{{ form.new_password1.html_name }}"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+                                    {% if form.new_password1.help_text %}
+                                        <div class="form-text small text-secondary">
+                                            {{ form.new_password1.help_text|safe }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.new_password1.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.new_password1.errors %}
+                                                {{ error }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.new_password2.id_for_label }}" class="form-label">Confirm new password</label>
+                                    <input
+                                        type="password"
+                                        class="form-control form-control-lg{% if form.new_password2.errors %} is-invalid{% endif %}"
+                                        id="{{ form.new_password2.id_for_label }}"
+                                        name="{{ form.new_password2.html_name }}"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+                                    {% if form.new_password2.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.new_password2.errors %}
+                                                {{ error }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100">Save new password</button>
+                            </form>
+                            <div class="text-center">
+                                <a class="text-decoration-none fw-semibold" href="{% url 'index' %}">Return to Wanderly</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
