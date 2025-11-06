@@ -87,7 +87,7 @@ class RegistrationTests(TestCase):
         self.assertTrue(response.context["form"].errors)
 
     # When authenticate returns None, the user should be created but redirected to sign-in.
-    @patch("Wanderly.views.authenticate")
+    @patch("user_auth.views.authenticate")
     def test_register_prompts_sign_in_if_authenticate_fails(self, mock_authenticate):
         mock_authenticate.return_value = None
         payload = {
@@ -156,7 +156,7 @@ class AuthReceiverTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
     # Responses lacking an email should yield a bad request status.
-    @patch("Wanderly.views.id_token.verify_oauth2_token")
+    @patch("user_auth.views.id_token.verify_oauth2_token")
     def test_missing_email_returns_bad_request(self, mock_verify):
         mock_verify.return_value = {
             "given_name": "Nameless",
@@ -168,7 +168,7 @@ class AuthReceiverTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
     # Valid credential payload should create a new user when needed.
-    @patch("Wanderly.views.id_token.verify_oauth2_token")
+    @patch("user_auth.views.id_token.verify_oauth2_token")
     def test_valid_token_creates_user_and_logs_in(self, mock_verify):
         mock_verify.return_value = {
             "email": "googleuser@example.com",
@@ -183,7 +183,7 @@ class AuthReceiverTests(TestCase):
         self.assertIn("_auth_user_id", self.client.session)
 
     # Existing users should be re-used rather than duplicated.
-    @patch("Wanderly.views.id_token.verify_oauth2_token")
+    @patch("user_auth.views.id_token.verify_oauth2_token")
     def test_valid_token_reuses_existing_user(self, mock_verify):
         existing = User.objects.create_user(
             username="existing@example.com",
