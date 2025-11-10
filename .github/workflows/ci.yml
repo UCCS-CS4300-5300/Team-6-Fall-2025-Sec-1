@@ -47,7 +47,8 @@ jobs:
       - name: Analyze code with pylint
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
-          pylint --load-plugins pylint_django $(find . -name '*.py') | tee pylint-report.txt || true
+              score=$(pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt | grep "Your code has been rated at" | awk '{print $7}')
+              echo "Pylint score: $score"
     
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
