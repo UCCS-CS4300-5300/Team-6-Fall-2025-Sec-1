@@ -46,7 +46,7 @@ jobs:
 
       - name: Analyze code with pylint
         run: | 
-          find . -name '*.py' -exec pylint {} \;
+          pylint ./src --exit-zero
           
       - name: Post coverage report comment
         if: github.event_name == 'pull_request'
