@@ -45,6 +45,7 @@ jobs:
           coverage report -m | tee coverage.txt || true
 
       - name: Analyze code with pylint
+        working-directory: ${{ env.PROJECT_DIR }}
         run: | 
           pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt || true
     
