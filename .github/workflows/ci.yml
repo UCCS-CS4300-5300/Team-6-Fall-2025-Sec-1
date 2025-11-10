@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r "${PROJECT_DIR}/requirements.txt"
           pip install pytest pytest-django coverage
-          pip install pylint
+          pip install pylint-django
 
       - name: Run tests with coverage
         working-directory: ${{ env.PROJECT_DIR }}
@@ -46,7 +46,7 @@ jobs:
 
       - name: Analyze code with pylint
         run: | 
-          pylint Wanderly | tee pylint-report.txt || true
+          pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt || true
     
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
