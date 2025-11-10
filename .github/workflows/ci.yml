@@ -53,7 +53,7 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          path: pylint-report.txt
+          path: Wanderly/pylint-report.txt
       
       - name: Post coverage report comment
         if: github.event_name == 'pull_request'
