@@ -47,7 +47,7 @@ jobs:
       - name: Analyze code with pylint
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
-              score=$(pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt | grep "Your code has been rated at" | awk '{print $7}' | cut -d/ -f1))
+              score=$(pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt | grep "Your code has been rated at" | awk '{print $7}' | cut -d/ -f1)
               echo "Pylint score: $score"
     
       - name: Post pylint report comment
