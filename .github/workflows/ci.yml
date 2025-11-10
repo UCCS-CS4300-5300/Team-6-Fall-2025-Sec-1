@@ -47,7 +47,7 @@ jobs:
       - name: Analyze code with pylint
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
-          pylint --load-plugins pylint_django Wanderly | tee pylint-report.txt || true
+          pylint --load-plugins pylint_django $(find . -name '*.py') | tee pylint-report.txt || true
     
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
