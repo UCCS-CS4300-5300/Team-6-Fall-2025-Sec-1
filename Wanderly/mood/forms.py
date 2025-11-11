@@ -29,8 +29,11 @@ class MoodForm(forms.Form):
         max_length=200,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'e.g., Paris, Tokyo, New York City'
+            'class': 'form-control js-places',
+            'placeholder': 'Enter a city or location...',
+            'data-places': '1',
+            'data-types': 'geocode',
+            'data-country': 'us'
         })
     )
 

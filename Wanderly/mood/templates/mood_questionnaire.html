@@ -1,4 +1,4 @@
-{% load static %}
+{% load static places_auto %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -61,10 +61,26 @@
             <form method="post" novalidate>
               {% csrf_token %}
 
-              <!-- Destination Question -->
+              <!-- Location Search -->
               <div class="mb-4">
-                <label class="form-label fw-semibold" for="id_destination">Where are you traveling to? (placeholder until merge with lbd feature)</label>
-                <input type="text" name="destination" class="form-control" id="id_destination" placeholder="e.g., Paris, Tokyo, New York City" required>
+                <label class="form-label fw-semibold" for="id_destination">Where are you traveling to?</label>
+                <input
+                  type="text"
+                  id="id_destination"
+                  name="destination"
+                  class="form-control js-places"
+                  placeholder="Enter a city or location..."
+                  data-places="1"
+                  data-types="geocode"
+                  data-country="us"
+                  data-place-id-target="#id_place_id"
+                  data-lat-target="#id_lat"
+                  data-lng-target="#id_lng"
+                  required
+                />
+                <input type="hidden" id="id_place_id" name="place_id">
+                <input type="hidden" id="id_lat" name="lat">
+                <input type="hidden" id="id_lng" name="lng">
               </div>
 
               <!-- Adventurous Question -->
@@ -205,5 +221,53 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Debug form submission
+      document.addEventListener("DOMContentLoaded", function() {
+          const form = document.querySelector('form[method="post"]');
+          
+          if (form) {
+              form.addEventListener('submit', function(e) {
+                  console.log('Form submission triggered');
+                  
+                  // Check if hidden fields have values
+                  const placeId = document.getElementById('id_place_id').value;
+                  const lat = document.getElementById('id_lat').value;
+                  const lng = document.getElementById('id_lng').value;
+                  
+                  console.log('Place ID:', placeId);
+                  console.log('Latitude:', lat);
+                  console.log('Longitude:', lng);
+                  
+                  // Check for validation errors
+                  const invalidFields = form.querySelectorAll(':invalid');
+                  if (invalidFields.length > 0) {
+                      console.log('Invalid fields:', invalidFields);
+                      invalidFields.forEach(field => {
+                          console.log('- Invalid field:', field.name || field.id, field.validationMessage);
+                      });
+                  }
+                  
+                  // If location field is empty, prevent submission
+                  const locationInput = document.getElementById('id_destination');
+                  if (!locationInput.value.trim()) {
+                      e.preventDefault();
+                      alert('Please enter a location');
+                      return false;
+                  }
+                  
+                  // If hidden fields are empty, warn user
+                  if (!placeId || !lat || !lng) {
+                      console.warn('Warning: Location coordinates not captured. Make sure to select from dropdown.');
+                      // Uncomment below to require selection from dropdown
+                      // e.preventDefault();
+                      // alert('Please select a location from the dropdown suggestions');
+                      // return false;
+                  }
+              });
+          }
+      });
+  </script>
+  {% places_js %}
   </body>
 </html>
