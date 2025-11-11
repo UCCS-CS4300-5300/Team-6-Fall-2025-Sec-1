@@ -47,7 +47,7 @@ jobs:
       - name: Analyze code with pylint
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
-          pylint $(find . -name '*.py') | tee pylint-report.txt
+          pylint $(find . -name '*.py') --ignore-patterns=asgi\.py,init\.py,manage\.py,settings\.py,db\.sqlite3,tests/.*\.py | tee pylint-report.txt
           
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
