@@ -1,4 +1,5 @@
 {% load static %}
+{% load static places_auto %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -62,10 +63,53 @@
               {% csrf_token %}
 
               <!-- Destination Question -->
-              <div class="mb-4">
+              <!-- <div class="mb-4">
                 <label class="form-label fw-semibold" for="id_destination">Where are you traveling to? (placeholder until merge with lbd feature)</label>
                 <input type="text" name="destination" class="form-control" id="id_destination" placeholder="e.g., Paris, Tokyo, New York City" required>
-              </div>
+              </div> -->
+
+              <div class="text-center search-container">
+    
+                <!-- Search Locations Container -->
+                <section class="text-center search-locations">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <!-- Search Input -->
+                            <form id="searchForm">
+                                <!-- Include the csrf token in the form for security -->
+                                {% csrf_token %}
+                                <div class="search-container">
+                                    <input
+                                        type="text"
+                                        id="locationSearch"
+                                        name="location"
+                                        class="form-control js-places search-input"
+                                        placeholder="Enter a city or location..."
+                                        data-places="1"
+                                        data-types="geocode"
+                                        data-country="us"
+                                        data-place-id-target="#id_place_id"
+                                        data-lat-target="#id_lat"
+                                        data-lng-target="#id_lng"
+                                        required
+                                    />
+    
+                                    <input type="hidden" id="id_place_id" name="place_id">
+                                    <input type="hidden" id="id_lat" name="lat">
+                                    <input type="hidden" id="id_lng" name="lng">
+                                    <!-- <button type="submit" class="btn btn-primary search-btn">Search</button> -->
+                                </div>
+                            </form>
+                        </div>
+    
+                        <!-- Results Container, Populated by the Script Below -->
+                        <br>
+                        <div class="row justify-content-center">
+                            <div id="results"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
 
               <!-- Adventurous Question -->
               <div class="mb-4">
@@ -205,5 +249,135 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Run search function when the page is loaded to populate the carousel
+      document.addEventListener("DOMContentLoaded", async function () {
+          const carouselInner = document.querySelector("#carousel .carousel-inner");
+          const indicatorsContainer = document.querySelector("#carousel .carousel-indicators");
+
+          if (!carouselInner || !indicatorsContainer) return;
+
+          try {
+              const places = await text_search("Top Tourist Attractions");
+
+              carouselInner.innerHTML = "";
+              indicatorsContainer.innerHTML = "";
+
+              // Create slide for each place returned from text search
+              places.forEach((place, index) => {
+                  if (place.photos && place.photos.length > 0) {
+                      const carouselItem = document.createElement("div");
+                      carouselItem.classList.add("carousel-item");
+                      if (index === 0) carouselItem.classList.add("active");
+
+                      const img = document.createElement("img");
+                      img.src = place.photos[0];
+                      img.alt = place.displayName?.text || "Tourist Attraction";
+                      img.classList.add("d-block", "w-100");
+
+                      const caption = document.createElement("div");
+                      caption.classList.add("carousel-caption", "d-none", "d-md-block");
+                      caption.innerHTML = `<h5>${place.displayName?.text}</h5><p>${place.formattedAddress || ""}</p>`;
+
+                      carouselItem.appendChild(img);
+                      carouselItem.appendChild(caption);
+                      carouselInner.appendChild(carouselItem);
+
+                      const indicator = document.createElement("button");
+                      indicator.type = "button";
+                      indicator.setAttribute("data-bs-target", "#carousel");
+                      indicator.setAttribute("data-bs-slide-to", index);
+                      if (index === 0) {
+                          indicator.classList.add("active");
+                          indicator.setAttribute("aria-current", "true");
+                      }
+                      indicatorsContainer.appendChild(indicator);
+                  }
+              });
+          } catch (err) {
+              console.error(err);
+          }
+      });
+
+      // Run search function when the search input is submitted
+      document.getElementById("searchForm").addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const query = document.getElementById("locationSearch").value.trim() + " tourist attractions";
+          const results = document.getElementById("results");
+          results.innerHTML = "<p>Searching...</p>";
+
+          if (!query) {
+              results.innerHTML = "<p>Please enter a location.</p>";
+              return;
+          }
+
+          try {
+              const places = await text_search(query);
+
+              // Clear and Display Results
+              results.innerHTML = "";
+
+              if (!places || places.length === 0) {
+                  results.innerHTML = "<p>No results found.</p>";
+                  return;
+              }
+
+              let rowContainer = results.querySelector('.row');
+              if (!rowContainer) {
+                  rowContainer = document.createElement("div");
+                  rowContainer.classList.add("row", "g-3");
+                  results.appendChild(rowContainer);
+              }
+
+              // Display each place as its own card in the row container
+              places.forEach(place => {
+                  const colDiv = document.createElement("div");
+                  colDiv.classList.add("col-md-6", "col-lg-4"); // 2 cards on medium screens, 3 on large
+
+                  const placeCard = document.createElement("div");
+                  placeCard.classList.add("card", "h-100", "shadow-sm", "rounded");
+                  placeCard.innerHTML = `
+                  <div class="card-body rounded">
+                  <h5 class="card-title">${place.displayName?.text || "Unnamed Place"}</h5>
+                  <p class="card-text">${place.formattedAddress || "No address available"}</p>
+                  ${place.websiteUri ? `<a href="${place.websiteUri}" class="website-button btn btn-outline-primary">Visit Website</a>` : ""}
+                  </div>
+              `;
+                  colDiv.appendChild(placeCard);
+                  rowContainer.appendChild(colDiv);
+              });
+          } catch (error) {
+              console.error("Error:", error);
+              results.innerHTML = `<p class="text-danger">An error occurred. Check console for details.</p>`;
+          }
+      });
+
+      // Make the text search request with inputted query 
+      async function text_search(query) {
+          const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+          const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+
+          // Make POST request
+          const response = await fetch("/text_search/", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": csrfToken,
+              },
+              body: JSON.stringify({ textQuery: query })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+              throw new Error(data.error || "Something went wrong");
+              return;
+          }
+
+          return data.places || [];
+      }
+  </script>
+  {% places_js %}
   </body>
 </html>
