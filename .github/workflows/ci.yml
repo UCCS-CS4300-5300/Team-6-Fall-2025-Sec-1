@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r "${PROJECT_DIR}/requirements.txt"
           pip install pytest pytest-django coverage
-          pip install pylint
+          pip install pylint_django
 
       - name: Run tests with coverage
         working-directory: ${{ env.PROJECT_DIR }}
@@ -47,8 +47,10 @@ jobs:
       - name: Analyze code with pylint
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
-          pylint $(find . -name '*.py') --ignore-patterns=asgi\.py,init\.py,manage\.py,settings\.py,db\.sqlite3,tests/.*\.py | tee pylint-report.txt
-          
+          pylint --load-plugins pylint_django . \
+            --ignore-patterns="init\.py|asgi\.py|manage\.py|settings\.py|.*tests/.*\.py" \
+            | tee pylint-report.txt
+
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
