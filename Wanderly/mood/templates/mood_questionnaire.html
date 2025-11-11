@@ -1,4 +1,3 @@
-{% load static %}
 {% load static places_auto %}
 <!DOCTYPE html>
 <html lang="en">
@@ -64,11 +63,11 @@
 
               <!-- Location Search -->
               <div class="mb-4">
-                <label class="form-label fw-semibold" for="locationSearch">Where are you traveling to?</label>
+                <label class="form-label fw-semibold" for="id_destination">Where are you traveling to?</label>
                 <input
                   type="text"
-                  id="locationSearch"
-                  name="location"
+                  id="id_destination"
+                  name="destination"
                   class="form-control js-places"
                   placeholder="Enter a city or location..."
                   data-places="1"
@@ -250,7 +249,7 @@
                   }
                   
                   // If location field is empty, prevent submission
-                  const locationInput = document.getElementById('locationSearch');
+                  const locationInput = document.getElementById('id_destination');
                   if (!locationInput.value.trim()) {
                       e.preventDefault();
                       alert('Please enter a location');
@@ -268,80 +267,6 @@
               });
           }
       });
-
-      // Run search function when the page is loaded to populate the carousel
-      document.addEventListener("DOMContentLoaded", async function () {
-          const carouselInner = document.querySelector("#carousel .carousel-inner");
-          const indicatorsContainer = document.querySelector("#carousel .carousel-indicators");
-
-          if (!carouselInner || !indicatorsContainer) return;
-
-          try {
-              const places = await text_search("Top Tourist Attractions");
-
-              carouselInner.innerHTML = "";
-              indicatorsContainer.innerHTML = "";
-
-              // Create slide for each place returned from text search
-              places.forEach((place, index) => {
-                  if (place.photos && place.photos.length > 0) {
-                      const carouselItem = document.createElement("div");
-                      carouselItem.classList.add("carousel-item");
-                      if (index === 0) carouselItem.classList.add("active");
-
-                      const img = document.createElement("img");
-                      img.src = place.photos[0];
-                      img.alt = place.displayName?.text || "Tourist Attraction";
-                      img.classList.add("d-block", "w-100");
-
-                      const caption = document.createElement("div");
-                      caption.classList.add("carousel-caption", "d-none", "d-md-block");
-                      caption.innerHTML = `<h5>${place.displayName?.text}</h5><p>${place.formattedAddress || ""}</p>`;
-
-                      carouselItem.appendChild(img);
-                      carouselItem.appendChild(caption);
-                      carouselInner.appendChild(carouselItem);
-
-                      const indicator = document.createElement("button");
-                      indicator.type = "button";
-                      indicator.setAttribute("data-bs-target", "#carousel");
-                      indicator.setAttribute("data-bs-slide-to", index);
-                      if (index === 0) {
-                          indicator.classList.add("active");
-                          indicator.setAttribute("aria-current", "true");
-                      }
-                      indicatorsContainer.appendChild(indicator);
-                  }
-              });
-          } catch (err) {
-              console.error(err);
-          }
-      });
-
-      // Make the text search request with inputted query 
-      async function text_search(query) {
-          const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
-          const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
-
-          // Make POST request
-          const response = await fetch("/text_search/", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  "X-CSRFToken": csrfToken,
-              },
-              body: JSON.stringify({ textQuery: query })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-              throw new Error(data.error || "Something went wrong");
-              return;
-          }
-
-          return data.places || [];
-      }
   </script>
   {% places_js %}
   </body>
