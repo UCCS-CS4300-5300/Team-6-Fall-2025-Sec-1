@@ -48,8 +48,9 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
           pylint --load-plugins pylint_django . \
-            --ignore-patterns="init\.py|asgi\.py|manage\.py|settings\.py|.*tests/.*\.py" \
-            | tee pylint-report.txt
+              --ignore=tests,tools \
+              --ignore-patterns="__init__\.py|asgi\.py|manage\.py|settings\.py|conftest\.py" \
+              | tee pylint-report.txt
 
       - name: Post pylint report comment
         if: github.event_name == 'pull_request'
