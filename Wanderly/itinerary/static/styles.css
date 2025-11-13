@@ -1,30 +1,371 @@
-/* Radio button styling */
-.likert-scale {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
-  
-  .likert-scale .form-check {
-    flex: 0 0 auto;
-  }
-  
-  .likert-scale .form-check-input {
-    cursor: pointer;
-  }
-  
-  .likert-scale .form-check-label {
-    cursor: pointer;
-    margin-left: 0.25rem;
-  }
-  
-  /* Scale labels */
-  .scale-labels {
-    display: flex;
-    justify-content: space-between;
+/* Wanderly Itinerary Page Styles */
+
+/* CSS Variables */
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --text-dark: #111827;
+    --text-medium: #374151;
+    --text-light: #6b7280;
+    --border-color: #e5e7eb;
+    --bg-light: #f9fafb;
+    --bg-white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --border-radius: 8px;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--bg-light);
+}
+
+/* Page Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+    font-size: 1rem;
+    color: var(--text-light);
+}
+
+/* Card Styles */
+.card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
     font-size: 0.875rem;
-    color: #6c757d;
-    margin-top: 0.25rem;
+    font-weight: 500;
+    color: var(--text-medium);
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-dark);
+    background-color: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Input Groups */
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-medium);
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-right: 0;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+.input-group .form-control {
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+/* Break Time Section */
+.break-time-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.break-time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.break-separator {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+/* Budget Items */
+.budget-items {
     margin-bottom: 1rem;
-  }
+}
+
+.budget-item {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.budget-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.budget-item-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.budget-item-header .form-select {
+    flex: 1;
+}
+
+.custom-category-wrapper {
+    display: none;
+}
+
+.budget-amount-wrapper {
+    margin-top: 0.5rem;
+}
+
+.budget-actions {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+/* Day Cards */
+.day-card {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.day-card-header {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+}
+
+.day-number {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: uppercase;
+}
+
+.day-card-body {
+    padding: 1rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+.btn-secondary-outline {
+    background-color: var(--bg-white);
+    color: var(--text-medium);
+    border: 2px dashed var(--border-color);
+}
+
+.btn-secondary-outline:hover {
+    background-color: var(--bg-light);
+    border-color: var(--secondary-color);
+}
+
+.btn-text {
+    background: transparent;
+    color: var(--primary-color);
+    padding: 0.5rem 0.75rem;
+}
+
+.btn-text:hover {
+    background-color: rgba(79, 70, 229, 0.1);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background: transparent;
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+.remove-break-btn:hover,
+.remove-budget-btn:hover {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+/* Form Actions */
+.form-actions {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+/* Utility Classes */
+.text-muted {
+    color: var(--text-light);
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+/* Grid System */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.g-3 {
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .card-body,
+    .card-header {
+        padding: 1rem;
+    }
+
+    .break-time-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-icon {
+        width: 100%;
+        height: 2.5rem;
+    }
+}

@@ -9,33 +9,38 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
+       
         <link rel="stylesheet" href="{% static 'navbar.css' %}">
-        
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
     </head>
 
     <body>
         {% include "navbar.html" %}
         <div class="container my-5">
             <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h2 class="mb-4">Create Your Itinerary</h2>
+                <div class="col-lg-9">
+                    <div class="page-header">
+                        <h1>Create Your Itinerary</h1>
+                        <p class="subtitle">Plan your perfect trip with detailed scheduling and budgeting</p>
+                    </div>
+                    
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
                         <!-- Destination Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"> Destination</h5>
+                                <h2>Destination</h2>
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold" for="id_destination">Where are you traveling to?</label>
+                                <div class="form-group">
+                                    <label class="form-label" for="id_destination">Where are you traveling to?</label>
                                     <input
                                         type="text"
                                         id="id_destination"
                                         name="destination"
                                         class="form-control js-places"
-                                        placeholder="Enter a city or location..."
+                                        placeholder="Enter a city or location"
                                         data-places="1"
                                         data-types="geocode"
                                         data-country="us"
@@ -54,10 +59,10 @@
                         <!-- Time Preferences Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Time Preferences</h5>
+                                <h2>Time Preferences</h2>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-3">
+                                <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="wake_up_time" class="form-label">Wake Up Time</label>
                                         <input type="time" class="form-control" id="wake_up_time" name="wake_up_time" required>
@@ -69,25 +74,23 @@
                                 </div>
                                 
                                 <!-- Break Times (Optional) -->
-                                <div class="mb-3">
-                                    <label class="form-label">Additional Break Times (Optional)</label>
+                                <div class="form-group">
+                                    <label class="form-label">Additional Break Times <span class="text-muted">(Optional)</span></label>
                                     <div id="break-times-container">
-                                        <div class="row mb-2 break-time-row">
-                                            <div class="col-md-5">
+                                        <div class="break-time-row">
+                                            <div class="break-time-inputs">
                                                 <input type="time" class="form-control" name="break_start_time[]" placeholder="Start Time">
-                                            </div>
-                                            <div class="col-md-5">
+                                                <span class="break-separator">to</span>
                                                 <input type="time" class="form-control" name="break_end_time[]" placeholder="End Time">
                                             </div>
-                                            <div class="col-md-2">
-                                                <button type="button" class="btn btn-outline-danger remove-break-btn" style="display: none;">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
+                                            <button type="button" class="btn btn-icon remove-break-btn" style="display: none;">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-break-btn">
-                                        <i class="bi bi-plus-circle"></i> Add Break Time
+                                    <button type="button" class="btn btn-text" id="add-break-btn">
+                                        <i class="bi bi-plus-lg"></i>
+                                        <span>Add Break Time</span>
                                     </button>
                                 </div>
                             </div>
@@ -96,18 +99,19 @@
                         <!-- Budget Planning Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Budget Planning</h5>
+                                <h2>Budget Planning</h2>
                             </div>
                             <div class="card-body">
-                                <div id="budget-items-container">
+                                <div id="budget-items-container" class="budget-items">
                                 </div>
                                 
-                                <button type="button" class="btn add-budget-btn w-100" id="add-budget-item-btn">
-                                    <i class="bi bi-plus-circle"></i> Add Budget Item
+                                <button type="button" class="btn btn-secondary-outline w-100" id="add-budget-item-btn">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>Add Budget Item</span>
                                 </button>
                                 
-                                <div class="text-center mt-4">
-                                    <button type="button" class="btn save-budget-btn">
+                                <div class="budget-actions">
+                                    <button type="button" class="btn btn-primary">
                                         Save Budget Plan
                                     </button>
                                 </div>
@@ -117,10 +121,10 @@
                         <!-- Days Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Days</h5>
+                                <h2>Trip Length</h2>
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
+                                <div class="form-group mb-4">
                                     <label for="num_days" class="form-label">How many days is your trip?</label>
                                     <input type="number" class="form-control" id="num_days" name="num_days" min="1" max="30" value="1" required>
                                 </div>
@@ -131,7 +135,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg">Create Itinerary</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Create Itinerary
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -151,7 +159,7 @@
                     rows.forEach((row, index) => {
                         const removeBtn = row.querySelector('.remove-break-btn');
                         if (rows.length > 1) {
-                            removeBtn.style.display = 'inline-block';
+                            removeBtn.style.display = 'flex';
                         } else {
                             removeBtn.style.display = 'none';
                         }
@@ -160,19 +168,16 @@
                 
                 addBreakBtn.addEventListener('click', function() {
                     const newRow = document.createElement('div');
-                    newRow.className = 'row mb-2 break-time-row';
+                    newRow.className = 'break-time-row';
                     newRow.innerHTML = `
-                        <div class="col-md-5">
+                        <div class="break-time-inputs">
                             <input type="time" class="form-control" name="break_start_time[]" placeholder="Start Time">
-                        </div>
-                        <div class="col-md-5">
+                            <span class="break-separator">to</span>
                             <input type="time" class="form-control" name="break_end_time[]" placeholder="End Time">
                         </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-outline-danger remove-break-btn">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-icon remove-break-btn">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     `;
                     breakContainer.appendChild(newRow);
                     updateRemoveButtons();
@@ -185,10 +190,8 @@
                         updateRemoveButtons();
                     }
                 });
-                
-                updateRemoveButtons();
 
-                // Budget Items functionality
+                // Budget Planning functionality
                 const budgetContainer = document.getElementById('budget-items-container');
                 const addBudgetBtn = document.getElementById('add-budget-item-btn');
                 
@@ -203,29 +206,25 @@
                 
                 function createBudgetItem() {
                     const budgetItem = document.createElement('div');
-                    budgetItem.className = 'budget-item-card';
+                    budgetItem.className = 'budget-item';
                     budgetItem.innerHTML = `
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-5">
-                                <label class="form-label text-white fw-bold">BUDGET CATEGORY</label>
+                        <div class="budget-item-content">
+                            <div class="budget-item-header">
                                 <select class="form-select budget-category-select" name="budget_category[]">
                                     ${budgetCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                                 </select>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label text-white fw-bold">CUSTOM CATEGORY</label>
-                                <input type="text" class="form-control custom-category-input" name="budget_custom_category[]" placeholder="Enter category name">
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <button type="button" class="btn btn-outline-light remove-budget-btn">
-                                    <i class="bi bi-trash"></i>
+                                <button type="button" class="btn btn-icon remove-budget-btn">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
-                            <div class="col-12">
-                                <label class="form-label text-white fw-bold">Budget Amount</label>
+                            <div class="custom-category-wrapper">
+                                <input type="text" class="form-control custom-category-input" name="budget_custom_category[]" placeholder="Enter custom category name">
+                            </div>
+                            <div class="budget-amount-wrapper">
+                                <label class="form-label">Amount</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" name="budget_amount[]" placeholder="0" min="0" step="0.01">
+                                    <input type="number" class="form-control" name="budget_amount[]" placeholder="0.00" min="0" step="0.01">
                                 </div>
                             </div>
                         </div>
@@ -236,13 +235,14 @@
                     // Toggle custom category visibility
                     const categorySelect = budgetItem.querySelector('.budget-category-select');
                     const customCategoryInput = budgetItem.querySelector('.custom-category-input');
+                    const customCategoryWrapper = budgetItem.querySelector('.custom-category-wrapper');
                     
                     function toggleCustomCategory() {
                         if (categorySelect.value === 'Other') {
-                            customCategoryInput.style.display = 'block';
+                            customCategoryWrapper.style.display = 'block';
                             customCategoryInput.required = true;
                         } else {
-                            customCategoryInput.style.display = 'none';
+                            customCategoryWrapper.style.display = 'none';
                             customCategoryInput.required = false;
                             customCategoryInput.value = '';
                         }
@@ -257,7 +257,7 @@
                 // Remove budget item
                 budgetContainer.addEventListener('click', function(e) {
                     if (e.target.closest('.remove-budget-btn')) {
-                        const item = e.target.closest('.budget-item-card');
+                        const item = e.target.closest('.budget-item');
                         item.remove();
                     }
                 });
@@ -274,16 +274,18 @@
                         const dayCard = document.createElement('div');
                         dayCard.className = 'day-card';
                         dayCard.innerHTML = `
-                            <div class="day-header">
-                                <i class="bi bi-calendar3"></i> Day ${i}
+                            <div class="day-card-header">
+                                <span class="day-number">Day ${i}</span>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Date</label>
-                                <input type="date" class="form-control" name="day_${i}_date" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Activities/Notes (Optional)</label>
-                                <textarea class="form-control" name="day_${i}_notes" rows="3" placeholder="E.g., Visit museum, lunch at downtown, etc."></textarea>
+                            <div class="day-card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" name="day_${i}_date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Activities & Notes <span class="text-muted">(Optional)</span></label>
+                                    <textarea class="form-control" name="day_${i}_notes" rows="3" placeholder="What would you like to do on this day?"></textarea>
+                                </div>
                             </div>
                         `;
                         daysContainer.appendChild(dayCard);
