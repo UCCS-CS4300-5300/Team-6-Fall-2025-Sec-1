@@ -12,9 +12,6 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- <li class="nav-item">
-          <a class="nav-link text-black" href="/#features">Features</a>
-        </li> -->
         <li class="nav-item">
           <a class="nav-link text-black {% if request.path == '/mood/' %}active{% endif %}"
              href="/mood/" aria-current="{% if request.path == '/mood/' %}page{% endif %}">
@@ -28,15 +25,9 @@
           </a>
         </li>
         <li>
-          <a class="nav-link text-black {% if request.path == '/time-preferences/' %}active{% endif %}"
-             href="/time-preferences/" aria-current="{% if request.path == '/time-preferences/' %}page{% endif %}">
-            Time Preferences
-          </a>
-        </li>
-        <li>
-          <a class="nav-link text-black {% if request.path == '/budget/' %}active{% endif %}"
-             href="/budget/" aria-current="{% if request.path == '/budget/' %}page{% endif %}">
-            Budget
+          <a class="nav-link text-black {% if request.path == '/itinerary/' %}active{% endif %}"
+             href="/itinerary/" aria-current="{% if request.path == '/itinerary/' %}page{% endif %}">
+            Create Itinerary
           </a>
         </li>
       </ul>

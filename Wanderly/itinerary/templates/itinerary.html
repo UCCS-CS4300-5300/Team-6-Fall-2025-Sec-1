@@ -11,57 +11,6 @@
 
         <link rel="stylesheet" href="{% static 'navbar.css' %}">
         
-        <style>
-            .budget-item-card {
-                background: linear-gradient(135deg, #9d7ff5 0%, #c084fc 100%);
-                border: none;
-                border-radius: 15px;
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .add-budget-btn {
-                background: transparent;
-                border: 2px dashed #9d7ff5;
-                color: #9d7ff5;
-                border-radius: 15px;
-                padding: 15px;
-                font-weight: 600;
-            }
-            
-            .add-budget-btn:hover {
-                background: rgba(157, 127, 245, 0.1);
-                border-color: #9d7ff5;
-                color: #9d7ff5;
-            }
-            
-            .save-budget-btn {
-                background: linear-gradient(135deg, #9d7ff5 0%, #c084fc 100%);
-                border: none;
-                border-radius: 25px;
-                padding: 12px 35px;
-                font-weight: 600;
-                color: white;
-            }
-            
-            .save-budget-btn:hover {
-                background: linear-gradient(135deg, #8b6fd9 0%, #a967e0 100%);
-            }
-
-            .day-card {
-                border: 2px solid #e0e0e0;
-                border-radius: 10px;
-                padding: 15px;
-                margin-bottom: 15px;
-                background: #f9f9f9;
-            }
-
-            .day-header {
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 10px;
-            }
-        </style>
     </head>
 
     <body>
@@ -76,7 +25,7 @@
                         <!-- Destination Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Destination</h5>
+                                <h5 class="mb-0"> Destination</h5>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
@@ -105,7 +54,7 @@
                         <!-- Time Preferences Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-clock"></i> Time Preferences</h5>
+                                <h5 class="mb-0">Time Preferences</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row mb-3">
@@ -147,11 +96,10 @@
                         <!-- Budget Planning Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-wallet2"></i> Budget Planning</h5>
+                                <h5 class="mb-0">Budget Planning</h5>
                             </div>
                             <div class="card-body">
                                 <div id="budget-items-container">
-                                    <!-- Budget items will be added here dynamically -->
                                 </div>
                                 
                                 <button type="button" class="btn add-budget-btn w-100" id="add-budget-item-btn">
