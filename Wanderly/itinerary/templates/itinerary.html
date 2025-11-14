@@ -11,7 +11,7 @@
 
        
         <link rel="stylesheet" href="{% static 'navbar.css' %}">
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
+        <link rel="stylesheet" href="{% static 'itinerary/styles.css' %}">
     </head>
 
     <body>
@@ -19,10 +19,19 @@
         <div class="container my-5">
             <div class="row justify-content-center">
                 <div class="col-lg-9">
-                    <div class="page-header">
-                        <h1>Create Your Itinerary</h1>
-                        <p class="subtitle">Plan your perfect trip with detailed scheduling and budgeting</p>
-                    </div>
+                    <header class="info-section">
+                        <div class="container py-5">
+                          <div class="row align-items-center g-5">
+                            <div class="col-lg-6 text-center text-lg-start">
+                              <h1 class="display-5 fw-bold mb-3">AI Itinerary Generator</h1>
+                              <p class="lead mb-4">
+                                Enter the information below and Wanderly will generate an itinerary for you
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </header>
+                      
                     
                     <form method="post" novalidate>
                         {% csrf_token %}
@@ -65,7 +74,7 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="wake_up_time" class="form-label">Wake Up Time</label>
-                                        <input type="time" class="form-control" id="wake_up_time" name="wake_up_time" required>
+                                        <input type="time" class="form-control" id="wake_up_time" name="wake_up_time" step="900" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="bed_time" class="form-label">Bed Time</label>
@@ -109,12 +118,6 @@
                                     <i class="bi bi-plus-lg"></i>
                                     <span>Add Budget Item</span>
                                 </button>
-                                
-                                <div class="budget-actions">
-                                    <button type="button" class="btn btn-primary">
-                                        Save Budget Plan
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
