@@ -146,6 +146,13 @@
                     </form>
                 </div>
             </div>
+
+            {% if ai_itinerary %}
+            <section class="ai-itinerary">
+                <h2>AI-Generated Itinerary</h2>
+                <pre>{{ ai_itinerary }}</pre>
+            </section>
+            {% endif %}
         </div>
 
         <!-- Bootstrap JS -->

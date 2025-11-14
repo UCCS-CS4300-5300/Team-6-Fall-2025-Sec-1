@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.conf import settings
 from .models import Itinerary, BreakTime, BudgetItem, Day
 from .forms import ItineraryForm
+from openai import OpenAI
 
 
 def itinerary(request):
@@ -54,6 +56,44 @@ def itinerary(request):
                         notes=day_notes
                     )
 
+            # --- Call ChatGPT to generate an itinerary ---
+            ai_itinerary = None
+            try:
+                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+                # Adjust field names here if your Itinerary model uses different ones
+                destination = getattr(itinerary_obj, "destination", "")
+                time_prefs = getattr(itinerary_obj, "time_preferences", "")
+                budget = getattr(itinerary_obj, "budget", "")
+                days = getattr(itinerary_obj, "num_days", num_days)
+
+                user_message = f"""
+Destination: {destination}
+Time preferences: {time_prefs}
+Budget: {budget}
+Number of days: {days}
+
+Make a detailed travel itinerary considering this information.
+"""
+
+                response = client.chat.completions.create(
+                    model="gpt-5-mini",
+                    messages=[
+                        {"role": "user", "content": user_message}
+                    ]
+                )
+
+                ai_itinerary = response.choices[0].message.content
+
+            except Exception as e:
+                # If something goes wrong with the API call, just show an error and continue
+                messages.error(request, f"Error generating AI itinerary: {e}")
+                ai_itinerary = None
+
+            # Store AI itinerary in the session so it can be shown after redirect
+            if ai_itinerary:
+                request.session['ai_itinerary'] = ai_itinerary
+
             messages.success(request, 'Itinerary created successfully!')
             return redirect('itinerary:itinerary')
         else:
@@ -61,12 +101,16 @@ def itinerary(request):
     else:
         form = ItineraryForm()
 
+    # Pull any AI itinerary result from the session (if coming from a redirect)
+    ai_itinerary = request.session.pop('ai_itinerary', None)
+
     # Get recent itineraries to display
     recent_itineraries = Itinerary.objects.all()[:5]
 
     context = {
         'form': form,
         'recent_itineraries': recent_itineraries,
+        'ai_itinerary': ai_itinerary,
     }
 
     return render(request, "itinerary.html", context)
