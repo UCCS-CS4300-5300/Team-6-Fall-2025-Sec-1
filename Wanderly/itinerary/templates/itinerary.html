@@ -147,11 +147,65 @@
                 </div>
             </div>
 
-            {% if ai_itinerary %}
-            <section class="ai-itinerary">
-                <h2>AI-Generated Itinerary</h2>
-                <pre>{{ ai_itinerary }}</pre>
-            </section>
+            {% if ai_itinerary_days %}
+            <div class="row justify-content-center mt-5">
+                <div class="col-lg-9">
+                    <!-- Itinerary Header -->
+                    <div class="itinerary-header">
+                        <h2><i class="bi bi-calendar-check"></i> Your Personalized Itinerary</h2>
+                        <p class="header-subtitle">AI-crafted travel plan based on your preferences</p>
+                    </div>
+
+                    <!-- Days Section -->
+                    <section class="itinerary-days-section">
+                        {% for day in ai_itinerary_days %}
+                        <div class="day-itinerary-card">
+                            <div class="day-header">
+                                <div class="day-badge">Day {{ day.day_number }}</div>
+                                <h3>{{ day.title }}</h3>
+                            </div>
+
+                            <div class="activities-list">
+                                {% for activity in day.activities %}
+                                <div class="activity-item">
+                                    <div class="activity-time">
+                                        <i class="bi bi-clock"></i>
+                                        <span>{{ activity.time }}</span>
+                                    </div>
+                                    <div class="activity-details">
+                                        <h4>{{ activity.name }}</h4>
+                                        <p>{{ activity.description }}</p>
+                                        <div class="activity-meta">
+                                            {% if activity.duration %}
+                                            <span class="meta-badge">
+                                                <i class="bi bi-hourglass-split"></i> {{ activity.duration }}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.cost_estimate %}
+                                            <span class="meta-badge">
+                                                <i class="bi bi-cash"></i> {{ activity.cost_estimate }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </section>
+
+                    <!-- Action Buttons -->
+                    <div class="itinerary-actions">
+                        <button type="button" class="btn-primary-custom" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print Itinerary
+                        </button>
+                        <a href="{% url 'itinerary:itinerary' %}" class="btn-secondary-custom">
+                            <i class="bi bi-arrow-left"></i> Create Another
+                        </a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
         </div>
 

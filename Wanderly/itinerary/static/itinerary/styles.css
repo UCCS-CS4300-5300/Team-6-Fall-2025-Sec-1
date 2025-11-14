@@ -329,6 +329,233 @@ button.btn-text:hover {
     color: var(--text-light);
 }
 
+/* AI Itinerary Section - Similar to Mood Results */
+.itinerary-header {
+    background: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+    border-radius: 0.5rem;
+}
+
+.itinerary-header h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.header-subtitle {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.itinerary-days-section {
+    margin-bottom: 2rem;
+}
+
+/* Day Cards - Similar to Activity Cards */
+.day-itinerary-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.75rem;
+    padding: 0;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.day-itinerary-card:hover {
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.day-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.day-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.4rem 0.9rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.day-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: white !important;
+}
+
+.activities-list {
+    padding: 1.5rem;
+}
+
+/* Activity Items */
+.activity-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background-color: #f9fafb;
+}
+
+.activity-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 80px;
+    padding-top: 0.25rem;
+}
+
+.activity-time i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.activity-time span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-details h4 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.activity-details p {
+    color: #555;
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.activity-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f0f0f0;
+    color: #666;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.meta-badge i {
+    font-size: 0.85rem;
+}
+
+/* Action Buttons - Similar to Mood Results */
+.itinerary-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary-custom:hover {
+    opacity: 0.9;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-secondary-custom {
+    background: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary-custom:hover {
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+}
+
+/* Print styles */
+@media print {
+    .itinerary-header,
+    .itinerary-actions,
+    .navbar,
+    form,
+    .info-section {
+        display: none !important;
+    }
+
+    .day-itinerary-card {
+        box-shadow: none;
+        page-break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+
+    .activity-item:hover {
+        background-color: transparent;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .page-header h1 {
@@ -348,5 +575,50 @@ button.btn-text:hover {
     .btn-icon {
         width: 100%;
         height: 2.5rem;
+    }
+
+    .itinerary-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .day-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .day-header h3 {
+        font-size: 1.15rem;
+    }
+
+    .activity-item {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .activity-time {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        min-width: auto;
+    }
+
+    .activity-time i {
+        margin-bottom: 0;
+    }
+
+    .activities-list {
+        padding: 1rem;
+    }
+
+    .itinerary-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-primary-custom,
+    .btn-secondary-custom {
+        width: 100%;
+        justify-content: center;
     }
 }
