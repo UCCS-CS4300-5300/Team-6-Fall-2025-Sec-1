@@ -1,3 +1,4 @@
+"""Controls all of the forms for the itinerary responses"""
 from django import forms
 from .models import Itinerary, BreakTime, BudgetItem, Day
 

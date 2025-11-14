@@ -1,10 +1,10 @@
+"""Controls the views and requests for the itinerary module"""
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
 from .models import Itinerary, BreakTime, BudgetItem, Day
 from .forms import ItineraryForm
 from openai import OpenAI
-
 
 def itinerary(request):
     """View for creating and displaying itineraries"""
@@ -24,21 +24,29 @@ def itinerary(request):
                     BreakTime.objects.create(
                         itinerary=itinerary_obj,
                         start_time=start,
-                        end_time=end
+                        end_time=end,
                     )
 
             # Process budget items
             budget_categories = request.POST.getlist('budget_category[]')
-            budget_custom_categories = request.POST.getlist('budget_custom_category[]')
+            budget_custom_categories = request.POST.getlist(
+                'budget_custom_category[]'
+            )
             budget_amounts = request.POST.getlist('budget_amount[]')
 
-            for category, custom_category, amount in zip(budget_categories, budget_custom_categories, budget_amounts):
+            for category, custom_category, amount in zip(
+                budget_categories,
+                budget_custom_categories,
+                budget_amounts,
+            ):
                 if amount:  # Only save if amount is provided
                     BudgetItem.objects.create(
                         itinerary=itinerary_obj,
                         category=category,
-                        custom_category=custom_category if category == 'Other' else '',
-                        amount=amount
+                        custom_category=(
+                            custom_category if category == 'Other' else ''
+                        ),
+                        amount=amount,
                     )
 
             # Process days
@@ -52,7 +60,7 @@ def itinerary(request):
                         itinerary=itinerary_obj,
                         day_number=i,
                         date=day_date,
-                        notes=day_notes
+                        notes=day_notes,
                     )
 
             # ChatGPT call to generate itinerary
@@ -61,20 +69,59 @@ def itinerary(request):
                 import json
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-                #itinerary details
+                # itinerary details
                 destination = getattr(itinerary_obj, "destination", "")
                 wake_time = getattr(itinerary_obj, "wake_up_time", "")
                 bed_time = getattr(itinerary_obj, "bed_time", "")
                 num_days = getattr(itinerary_obj, "num_days", 1)
 
-                break_times = BreakTime.objects.filter(itinerary=itinerary_obj)
-                break_times_str = ", ".join([f"{bt.start_time}-{bt.end_time}" for bt in break_times]) if break_times.exists() else "None"
+                # Break times string
+                break_times = BreakTime.objects.filter(
+                    itinerary=itinerary_obj
+                )
+                if break_times.exists():
+                    break_times_str = ", ".join(
+                        f"{bt.start_time}-{bt.end_time}"
+                        for bt in break_times
+                    )
+                else:
+                    break_times_str = "None"
 
-                budget_items = BudgetItem.objects.filter(itinerary=itinerary_obj)
-                budget_str = ", ".join([f"{bi.custom_category if bi.category == 'Other' and bi.custom_category else bi.category}: ${bi.amount}" for bi in budget_items]) if budget_items.exists() else "Flexible"
+                # Budget string
+                budget_items = BudgetItem.objects.filter(
+                    itinerary=itinerary_obj
+                )
+                if budget_items.exists():
+                    budget_parts = []
+                    for bi in budget_items:
+                        label = (
+                            bi.custom_category
+                            if bi.category == "Other" and bi.custom_category
+                            else bi.category
+                        )
+                        budget_parts.append(f"{label}: ${bi.amount}")
+                    budget_str = ", ".join(budget_parts)
+                else:
+                    budget_str = "Flexible"
 
-                day_notes = Day.objects.filter(itinerary=itinerary_obj).order_by('day_number')
-                day_notes_str = "\n".join([f"Day {d.day_number} ({d.date}): {d.notes}" for d in day_notes if d.notes])
+                # Day notes string
+                day_notes_qs = Day.objects.filter(
+                    itinerary=itinerary_obj
+                ).order_by('day_number')
+                day_note_lines = [
+                    f"Day {d.day_number} ({d.date}): {d.notes}"
+                    for d in day_notes_qs
+                    if d.notes
+                ]
+                day_notes_str = "\n".join(day_note_lines)
+
+                if day_notes_str:
+                    extra_notes = (
+                        "User preferences for specific days:\n"
+                        f"{day_notes_str}\n\n"
+                    )
+                else:
+                    extra_notes = ""
 
                 user_message = f"""
 Create a detailed travel itinerary for {destination}.
@@ -86,9 +133,7 @@ Trip Details:
 - Break times: {break_times_str}
 - Budget: {budget_str}
 
-{f"User preferences for specific days:\n{day_notes_str}" if day_notes_str else ""}
-
-Please provide a JSON response with the following structure:
+{extra_notes}Please provide a JSON response with the following structure:
 {{
   "days": [
     {{
@@ -107,7 +152,8 @@ Please provide a JSON response with the following structure:
   ]
 }}
 
-Make sure each day has 4-6 activities covering the full day from wake time to bed time, respecting break times.
+Make sure each day has 4-6 activities covering the full day from wake time
+to bed time, respecting break times.
 """
 
                 response = client.chat.completions.create(
@@ -115,21 +161,22 @@ Make sure each day has 4-6 activities covering the full day from wake time to be
                     messages=[
                         {"role": "user", "content": user_message}
                     ],
-                    response_format={"type": "json_object"}
+                    response_format={"type": "json_object"},
                 )
 
                 ai_response = response.choices[0].message.content
                 ai_itinerary_days = json.loads(ai_response).get('days', [])
 
             except Exception as e:
-                # Show errors
                 messages.error(request, f"Error generating AI itinerary: {e}")
                 ai_itinerary_days = None
 
             # Store AI itinerary in the session so it can be shown after redirect
             if ai_itinerary_days:
                 import json
-                request.session['ai_itinerary_days'] = json.dumps(ai_itinerary_days)
+                request.session['ai_itinerary_days'] = json.dumps(
+                    ai_itinerary_days
+                )
 
             messages.success(request, 'Itinerary created successfully!')
             return redirect('itinerary:itinerary')
@@ -141,7 +188,9 @@ Make sure each day has 4-6 activities covering the full day from wake time to be
     # Pull any AI itinerary result from the session (if coming from a redirect)
     import json
     ai_itinerary_json = request.session.pop('ai_itinerary_days', None)
-    ai_itinerary_days = json.loads(ai_itinerary_json) if ai_itinerary_json else None
+    ai_itinerary_days = (
+        json.loads(ai_itinerary_json) if ai_itinerary_json else None
+    )
 
     # Get recent itineraries to display
     recent_itineraries = Itinerary.objects.all()[:5]
