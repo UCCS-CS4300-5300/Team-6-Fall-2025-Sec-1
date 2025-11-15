@@ -8,6 +8,7 @@ from django.contrib.messages import get_messages
 from unittest.mock import patch, MagicMock
 from decimal import Decimal
 import json
+from openai import OpenAIError
 
 from itinerary.models import Itinerary, BreakTime, BudgetItem, Day
 from itinerary.forms import ItineraryForm
@@ -212,19 +213,19 @@ class OpenAIIntegrationTests(TestCase):
 
     @patch('itinerary.views.OpenAI')
     def test_openai_error_shows_message_but_creates_itinerary(self, mock_openai):
-        """Test API error displays message but still creates itinerary"""
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
-        mock_client.chat.completions.create.side_effect = Exception("API Error")
+        mock_client.chat.completions.create.side_effect = OpenAIError("API Error")
         
         response = self.client.post(self.url, self.post_data, follow=True)
         
-        # Itinerary still created
         self.assertEqual(Itinerary.objects.count(), 1)
         
-        # Error message shown
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any('Error generating AI itinerary' in str(m) for m in messages))
+        self.assertTrue(
+            any('We were unable to generate an AI-powered itinerary at this time.' in str(m)
+                for m in messages)
+        )
 
     @patch('itinerary.views.OpenAI')
     def test_prompt_handles_empty_break_times_and_budget(self, mock_openai):
