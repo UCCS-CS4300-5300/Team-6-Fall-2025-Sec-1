@@ -15,7 +15,6 @@ from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
- 
 
  # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +26,8 @@ root_env = BASE_DIR / ".env"
 if root_env.exists():
     load_dotenv(root_env, override=True)
 
-# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
+# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set,
+# but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
@@ -96,7 +96,6 @@ else:
         "localhost",
         "http://0.0.0.0:3000/",
     ]
-    
 
 # Application definition
 INSTALLED_APPS = [
@@ -129,7 +128,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Wanderly.urls'  
+ROOT_URLCONF = 'Wanderly.urls'
 
 TEMPLATES = [
     {
@@ -210,7 +209,6 @@ if ENVIRONMENT == 'production':
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     CSRF_USE_SESSIONS = False
-    
     # Trusted origins for CSRF
     CSRF_TRUSTED_ORIGINS = [
     f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}",

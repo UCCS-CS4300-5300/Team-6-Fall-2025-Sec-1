@@ -1,7 +1,12 @@
-from django.urls import path
-from .views import mood_questionnaire
-from home.views import text_search
+'''
+Define the necessary urls for the mood app
+'''
 
+from django.urls import path
+from home.views import text_search
+from .views import mood_questionnaire
+
+# pylint: disable=invalid-name
 app_name = "mood"
 urlpatterns = [
     path("", mood_questionnaire, name="mood_questionnaire"),

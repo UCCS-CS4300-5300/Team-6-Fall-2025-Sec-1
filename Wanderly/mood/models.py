@@ -1,6 +1,10 @@
+'''
+Define models for mood app
+'''
 from django.db import models
 
 class MoodResponse(models.Model):
+    ''' Define the model for the resonse from the mood forms '''
     destination = models.CharField(max_length=200, null=True, blank=True)
     adventurous = models.IntegerField()
     energy = models.IntegerField()

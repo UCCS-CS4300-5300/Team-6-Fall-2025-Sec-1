@@ -1,3 +1,7 @@
+'''
+Define forms for the mood app
+'''
+
 from django import forms
 
 LIKERT = [(i, str(i)) for i in range(1, 6)]
@@ -24,6 +28,7 @@ INTEREST_CHOICES = [
 ]
 
 class MoodForm(forms.Form):
+    ''' Define the necessary forms for the mood app '''
     destination = forms.CharField(
         label="Where are you traveling to?",
         max_length=200,
