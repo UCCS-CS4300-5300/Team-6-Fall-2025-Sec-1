@@ -1,6 +1,8 @@
+"""creates mood response model"""
 from django.db import models
 
 class MoodResponse(models.Model):
+    """mood response class"""
     destination = models.CharField(max_length=200, null=True, blank=True)
     adventurous = models.IntegerField()
     energy = models.IntegerField()
