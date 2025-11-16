@@ -57,7 +57,7 @@ jobs:
           path: Wanderly/pylint-report.txt
       
       - name: Post coverage report comment
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
         working-directory: ${{ env.PROJECT_DIR }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
