@@ -3,11 +3,13 @@ import os
 
 """ Django imports """
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 
 """ Google OAuth imports """
@@ -15,7 +17,7 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 
 """ Local imports """
-from .forms import RegistrationForm
+from .forms import ChangePasswordForm, RegistrationForm
 
 
 # --------------------- user authentication views --------------------- #
@@ -82,19 +84,57 @@ def sign_out(request):
     return redirect("index")
 
 
-""" Forgot password page """
-def forgot_password(request):
+""" Forgot password - Get email request page """
+def forgot_password_request(request):
     # Not implemented
 
-    # render the forgot password page
+    
     return render(request, "registration/forgotPass.html")
 
-""" Reset password page """
-def reset_password(request):
+""" Forgot password - Tells user to check their email """
+def forgot_password_check_email(request):
     # Not implemented
 
-    # render the reset password page
-    return render(request, "registration/changePass.html")
+    return render(request, "registration/forgotPass.html")
+
+
+""" Forgot password page - Page to set new password """
+def forgot_password_set(request):
+    # Not implemented
+
+    return render(request, "registration/forgotPass.html")
+
+
+""" Forgot password page - Get email request page - may not need"""
+def forgot_password_complete(request):
+    # Not implemented
+
+    return render(request, "registration/forgotPass.html")
+
+
+
+""" Allow authenticated users to change their password. """
+@login_required(login_url=reverse_lazy("sign_in"))
+def reset_password(request):
+    
+    # If the form is submitted
+    if request.method == "POST":
+
+        # Get change password form data
+        form = ChangePasswordForm(request.user, request.POST)
+
+        # check if form is valid using clean_ methods
+        if form.is_valid():
+            user = form.save()                          # Save the new password
+            update_session_auth_hash(request, user)     # Keep the user logged in
+            messages.success(request, "Your password has been updated.")
+            return redirect("index")                    # Redirect to homepage
+    else:
+        form = ChangePasswordForm(request.user)
+
+    # render the change password page w/ form context
+    return render(request, "registration/changePass.html", {"form": form})
+
 
 """ Contact google for login and create or sign in user """
 @csrf_exempt
