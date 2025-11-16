@@ -1,9 +1,7 @@
-'''
-Define the app configuration for the mood app
-'''
+"""creates django app named mood"""
 from django.apps import AppConfig
 
 class MoodConfig(AppConfig):
-    ''' Define the app configuration on start up '''
+    """mood configuration class created by django"""
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'mood'

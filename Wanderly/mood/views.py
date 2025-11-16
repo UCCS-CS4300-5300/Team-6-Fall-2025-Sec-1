@@ -1,7 +1,4 @@
-"""
-Views for mood questionnaire and Google Places text search.
-"""
-
+"""Controls the views for the mood app"""
 import logging
 import json
 import re
@@ -14,10 +11,11 @@ from openai import OpenAI, OpenAIError
 from .forms import MoodForm
 from .models import MoodResponse
 
+
 logger = logging.getLogger(__name__)
 
 def mood_questionnaire(request):
-    ''' Get the AI Response from the mood form inputs'''
+    """Mood questionnaire request form"""
     if request.method == 'POST':
         form = MoodForm(request.POST)
         if form.is_valid():
@@ -39,19 +37,18 @@ def mood_questionnaire(request):
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
                 #formats data to send in openai prompt
+                user_message = f"""
+User mood questionnaire responses:
+- Destination: {form.cleaned_data['destination']}
+- Adventurousness level: {form.cleaned_data['adventurous']}/5
+- Energy level: {form.cleaned_data['energy']}/5
+- Interests: {', '.join(form.cleaned_data['what_do_you_enjoy'])}
 
-                user_message = (
-                    "User mood questionnaire responses:\n"
-                    f"- Destination: {form.cleaned_data['destination']}\n"
-                    f"- Adventurousness level: {form.cleaned_data['adventurous']}/5\n"
-                    f"- Energy level: {form.cleaned_data['energy']}/5\n"
-                    f"- Interests: {', '.join(form.cleaned_data['what_do_you_enjoy'])}\n\n"
-                    "Consider these responses to a mood questionnaire and suggest "
-                    f"5 activities in {form.cleaned_data['destination']} that "
-                    "would suit the user's mood. Return ONLY a valid JSON array of objects "
-                    "that have the following fields: title, description, why_recommended, "
-                    "duration, type. Do not include any text outside the JSON."
-                )
+Consider these responses to a mood questionnaire and suggest 5 activities in {form.cleaned_data
+['destination']} that would suit the user's mood - return ONLY a valid JSON array with objects
+ that have the following fields: title, description, why_recommended, duration, type. Do not include 
+any text outside the JSON.
+"""
 
                 response = client.chat.completions.create(
                     model="gpt-5-mini",
@@ -61,7 +58,7 @@ def mood_questionnaire(request):
                 )
 
                 ai_response = response.choices[0].message.content
-                logger.info("OpenAI response: %s", ai_response)
+                logger.info("OpenAI response: %s", {ai_response})
 
                 # parse the json for easy printing
                 try:
@@ -69,8 +66,8 @@ def mood_questionnaire(request):
                     if not isinstance(activities, list):
                         activities = [activities]
                 except json.JSONDecodeError as e:
-                    logger.warning("Failed to parse JSON response: %s", e)
-                    logger.warning("OpenAI response text: %s", ai_response)
+                    logger.warning("Failed to parse JSON response: %s", {str(e)})
+                    logger.warning("OpenAI response text: %s", {ai_response})
                     json_match = re.search(r'\[.*\]', ai_response, re.DOTALL)
                     if json_match:
                         try:
@@ -79,38 +76,20 @@ def mood_questionnaire(request):
                                 activities = [activities]
                         except json.JSONDecodeError as e2:
                             logger.error("Failed to parse extracted JSON: %s", str(e2))
-                            logger.error(
-                                "Extracted JSON was: %s", json_match.group()
-                            )
-                            error_message = (
-                                "Could not parse activity recommendations."
+                            logger.error("Extracted JSON was: %s", json_match.group())
+                            error_message = "Could not parse activity recommendations." \
                                 "Check server logs for details."
-                            )
                             activities = []
                     else:
-                        logger.error(
-                            "No JSON array found in response. Full response: %s",
-                            ai_response,
-                        )
-                        error_message = (
-                                "Could not parse activity recommendations."
-                                "Check server logs for details."
-                        )
+                        logger.error("No JSON array found in response." \
+                            "Full response was: %s", ai_response)
+                        error_message = "Could not parse activity recommendations." \
+                            "Check server logs for details."
                         activities = []
 
-            except OpenAIError as e:
-                logger.error("OpenAI API error: %s", e)
-                error_message = f"Error from OpenAI API: {e}"
-                activities = []
-
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.error("Error parsing OpenAI response: %s", e)
-                error_message = "Invalid response format from OpenAI."
-                activities = []
-
-            except requests.exceptions.RequestException as e:
-                logger.error("Network error calling OpenAI API: %s", e)
-                error_message = "Network error communicating with OpenAI."
+            except (OpenAIError, json.JSONDecodeError, KeyError, ValueError) as exc:
+                logger.error("Error calling OpenAI API: %s", exc)
+                error_message = f"Error getting recommendations: {exc}"
                 activities = []
 
 
@@ -135,7 +114,7 @@ def mood_questionnaire(request):
 # GET place information with New Google Places API text_search
 @require_http_methods(["POST"])
 def text_search(request):
-    ''' Call for New Google Places API text search endpoint '''
+    """Search text for google autocomplete"""
     try:
         data = json.loads(request.body)
         text_query = data.get('textQuery', '')
@@ -152,12 +131,12 @@ def text_search(request):
         headers = {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
-            'X-Goog-FieldMask':
-            'places.displayName,places.formattedAddress,places.websiteUri,places.photos',
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,' \
+            'places.websiteUri,places.photos',
         }
 
         # Send POST request and check for success response
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(url, json=payload, headers=headers, timeout = 60)
         response.raise_for_status()
         response_data = response.json()
         # Process photos to add actual media URLs
@@ -172,6 +151,3 @@ def text_search(request):
     # Return error for invalid JSON format
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    # Return error for server-side error
-    except requests.exceptions.RequestException:
-        return JsonResponse({'error': 'Failed to fetch data from Google Places API'}, status=502)

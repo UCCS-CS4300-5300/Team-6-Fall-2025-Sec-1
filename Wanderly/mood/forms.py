@@ -1,7 +1,4 @@
-'''
-Define forms for the mood app
-'''
-
+"""controls all of the form info for the mood questionnaire"""
 from django import forms
 
 LIKERT = [(i, str(i)) for i in range(1, 6)]
@@ -28,7 +25,7 @@ INTEREST_CHOICES = [
 ]
 
 class MoodForm(forms.Form):
-    ''' Define the necessary forms for the mood app '''
+    """mood form class for questionnaire"""
     destination = forms.CharField(
         label="Where are you traveling to?",
         max_length=200,
@@ -59,3 +56,4 @@ class MoodForm(forms.Form):
         required=True,
         widget=forms.CheckboxSelectMultiple
     )
+

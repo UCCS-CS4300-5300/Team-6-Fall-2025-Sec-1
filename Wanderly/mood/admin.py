@@ -1,13 +1,10 @@
-'''
-Admin View of Mood Based Discovery
-'''
-
+"""admin forms for mood questionnaire"""
 from django.contrib import admin
 from .models import MoodResponse
 
 @admin.register(MoodResponse)
 class MoodResponseAdmin(admin.ModelAdmin):
-    ''' Defines how the mood should be displayed to admins'''
+    """mood response admin class"""
     list_display = ['id', 'adventurous', 'energy', 'submitted_at']
     list_filter = ['submitted_at']
     search_fields = ['what_do_you_enjoy']

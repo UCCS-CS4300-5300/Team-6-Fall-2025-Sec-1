@@ -95,6 +95,7 @@ else:
         "app-jgfuze-19.devedu.io",
         "localhost",
         "http://0.0.0.0:3000/",
+        "127.0.0.1",
     ]
 
 # Application definition
@@ -112,6 +113,7 @@ INSTALLED_APPS = [
     'google_routing',
     'user_auth',
     'places_auto_complete',
+    'itinerary',
 ]
 
 # Toggle JSON export of planner submissions (writes JSON under each planner app when True)

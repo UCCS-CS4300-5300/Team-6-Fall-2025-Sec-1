@@ -1,7 +1,4 @@
-'''
-Define the necessary urls for the mood app
-'''
-
+"""controls the urls for the mood app"""
 from django.urls import path
 from home.views import text_search
 from .views import mood_questionnaire
