@@ -87,36 +87,28 @@ def sign_out(request):
 """ Forgot password - Get email request page """
 def forgot_password_request(request):
     # Not implemented
-
-    
-    return render(request, "registration/forgotPass.html")
+    return render(request, "registration/forgotPassRequest.html")
 
 """ Forgot password - Tells user to check their email """
 def forgot_password_check_email(request):
     # Not implemented
-
-    return render(request, "registration/forgotPass.html")
-
+    return render(request, "registration/forgotPassCheckEmail.html")
 
 """ Forgot password page - Page to set new password """
 def forgot_password_set(request):
     # Not implemented
+    return render(request, "registration/forgotPassSet.html")
 
-    return render(request, "registration/forgotPass.html")
-
-
-""" Forgot password page - Get email request page - may not need"""
+""" Forgot password page - Confirmation page """
 def forgot_password_complete(request):
     # Not implemented
-
-    return render(request, "registration/forgotPass.html")
-
+    return render(request, "registration/forgotPassComplete.html")
 
 
 """ Allow authenticated users to change their password. """
 @login_required(login_url=reverse_lazy("sign_in"))
 def reset_password(request):
-    
+
     # If the form is submitted
     if request.method == "POST":
 
