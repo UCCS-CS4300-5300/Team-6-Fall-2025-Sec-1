@@ -1,0 +1,179 @@
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --text-light: #6b7280;
+    --text-dark: #111827;
+    --border-radius: 10px;
+}
+
+/* Header */
+.itinerary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-radius: var(--border-radius);
+}
+
+.itinerary-header h2 {
+    color: var(--primary-color);
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+}
+
+.header-subtitle {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* Itinerary Card */
+.itinerary-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: 0.25s ease;
+}
+
+.itinerary-card:hover {
+    box-shadow: 0 4px 14px rgba(79,70,229,0.15);
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), #5b52d4);
+    color: #fff;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+}
+
+.access-code-badge {
+    background: rgba(255,255,255,0.25);
+    padding: 0.4rem 0.8rem;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Day Containers */
+.day-list {
+    padding: 0rem 1.5rem;
+}
+
+.day-item {
+    display: flex;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 1rem;
+}
+
+.day-item:last-child {
+    border-bottom: none;
+}
+
+.day-item:hover {
+    background: #fafafa;
+}
+
+/* Day Details */
+.day-details h4 {
+    font-size: 1.15rem;
+    color: var(--primary-color);
+    margin-bottom: 0.3rem;
+}
+
+.day-details p {
+    margin-bottom: 0.7rem;
+    color: #555;
+}
+
+/* Detail Badges */
+.detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.badge {
+    display: inline-flex;
+    gap: 0.3rem;
+    padding: 0.25rem 0.75rem;
+    background: #f1f1f1;
+    color: #666;
+    border-radius: 5px;
+    font-size: 0.82rem;
+}
+
+/* Button Styling */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #5b52d4);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: 0.25s ease;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    color: #fff;
+}
+
+.btn-secondary-container {
+    padding: 0 1rem 1rem;
+}
+
+.btn-secondary {
+    border: 2px solid var(--primary-color);
+    padding: 0.75rem 2rem;
+    color: var(--primary-color);
+    background: #fff;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: 0.25s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* Print */
+@media print {
+    .itinerary-actions,
+    .navbar {
+        display: none !important;
+    }
+
+    .day-itinerary-card {
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .activity-item {
+        flex-direction: column;
+    }
+
+    .activity-time {
+        text-align: left;
+    }
+}
