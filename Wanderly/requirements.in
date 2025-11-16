@@ -1,7 +1,7 @@
 colorama~=0.4.6
 Django~=5.2
 dj-database-url~=3.0.1
-django-bootstrap5~=25.2
+django-bootstrap5~=25.3
 djangorestframework~=3.16.1
 google-api-python-client~=2.184.0
 gunicorn~=23.0.0
