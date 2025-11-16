@@ -1,7 +1,7 @@
-# System imports
+""" System imports"""
 import os
 
-# Django imports
+""" Django imports """
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -10,17 +10,17 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
-# Google OAuth imports
+""" Google OAuth imports """
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
-# Local imports
+""" Local imports """
 from .forms import RegistrationForm
 
 
 # --------------------- user authentication views --------------------- #
 
-# Sign in an existing user
+"""  Sign in an existing user """
 def sign_in(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -34,7 +34,7 @@ def sign_in(request):
     return render(request, "registration/login.html", {"form": form})
 
 
-# Register a new user
+""" Register a new user """
 def register(request):
     # Get registration form
     form = RegistrationForm(request.POST or None)
@@ -67,7 +67,7 @@ def register(request):
     return render(request, "registration/register.html", {"form": form})
 
 
-# Sign out the user
+""" Sign out the user """
 def sign_out(request):
     # logout the user
     logout(request)
@@ -82,21 +82,21 @@ def sign_out(request):
     return redirect("index")
 
 
-# Forgot password page
+""" Forgot password page """
 def forgot_password(request):
     # Not implemented
 
     # render the forgot password page
     return render(request, "registration/forgotPass.html")
 
-
+""" Reset password page """
 def reset_password(request):
     # Not implemented
 
     # render the reset password page
     return render(request, "registration/changePass.html")
 
-
+""" Contact google for login and create or sign in user """
 @csrf_exempt
 def auth_receiver(request):
     """
@@ -125,7 +125,7 @@ def auth_receiver(request):
     first_name = user_data.get("given_name", "")
     last_name = user_data.get("family_name", "")
     google_sub = user_data.get("sub")
-    picture = user_data.get("picture", "")
+    #picture = user_data.get("picture", "")
 
     if not email:
         return HttpResponse(status=400)
