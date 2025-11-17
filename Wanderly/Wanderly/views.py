@@ -1,6 +1,6 @@
 
 # Django imports
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 
 # --------------------- home views --------------------- #
 # Homepage

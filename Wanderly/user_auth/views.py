@@ -1,26 +1,47 @@
-# System imports
+""" System imports"""
 import os
 
-# Django imports
+""" Django imports """
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.csrf import csrf_exempt
 
-# Google OAuth imports
+""" Google OAuth imports """
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
-# Local imports
-from .forms import RegistrationForm
+""" Local imports """
+from .forms import ChangePasswordForm, RegistrationForm, ResetPasswordForm
+
+# Get the user model
+User = get_user_model()
+
+
+"""Mask the local part of an email for display."""
+def _mask_email_address(email):
+    # Simple masking: show first and last character of local part, mask the rest
+    if not email or "@" not in email:
+        return email
+    local, _, domain = email.partition("@")
+    if len(local) <= 2:
+        masked_local = local[0] + "*"
+    else:
+        masked_local = local[0] + "*" * (len(local) - 2) + local[-1]
+    return f"{masked_local}@{domain}"
 
 
 # --------------------- user authentication views --------------------- #
 
-# Sign in an existing user
+"""  Sign in an existing user """
 def sign_in(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
@@ -34,7 +55,7 @@ def sign_in(request):
     return render(request, "registration/login.html", {"form": form})
 
 
-# Register a new user
+""" Register a new user """
 def register(request):
     # Get registration form
     form = RegistrationForm(request.POST or None)
@@ -67,7 +88,7 @@ def register(request):
     return render(request, "registration/register.html", {"form": form})
 
 
-# Sign out the user
+""" Sign out the user """
 def sign_out(request):
     # logout the user
     logout(request)
@@ -82,21 +103,30 @@ def sign_out(request):
     return redirect("index")
 
 
-# Forgot password page
-def forgot_password(request):
-    # Not implemented
-
-    # render the forgot password page
-    return render(request, "registration/forgotPass.html")
-
-
+""" Allow authenticated users to change their password. """
+@login_required(login_url=reverse_lazy("sign_in"))
 def reset_password(request):
-    # Not implemented
 
-    # render the reset password page
-    return render(request, "registration/changePass.html")
+    # If the form is submitted
+    if request.method == "POST":
+
+        # Get change password form data
+        form = ChangePasswordForm(request.user, request.POST)
+
+        # check if form is valid using clean_ methods
+        if form.is_valid():
+            user = form.save()                          # Save the new password
+            update_session_auth_hash(request, user)     # Keep the user logged in
+            messages.success(request, "Your password has been updated.")
+            return redirect("index")                    # Redirect to homepage
+    else:
+        form = ChangePasswordForm(request.user)
+
+    # render the change password page w/ form context
+    return render(request, "registration/changePass.html", {"form": form})
 
 
+""" Contact google for login and create or sign in user """
 @csrf_exempt
 def auth_receiver(request):
     """
@@ -125,7 +155,7 @@ def auth_receiver(request):
     first_name = user_data.get("given_name", "")
     last_name = user_data.get("family_name", "")
     google_sub = user_data.get("sub")
-    picture = user_data.get("picture", "")
+    #picture = user_data.get("picture", "")
 
     if not email:
         return HttpResponse(status=400)
@@ -160,3 +190,131 @@ def auth_receiver(request):
 
     # Redirect to homepage
     return redirect("index")
+
+
+""" Forgot password - Get email request page """
+def forgot_password_request(request):
+    # Get password reset form
+    form = PasswordResetForm(request.POST or None)
+
+    #  If the form is submitted and valid, send the reset email
+    if request.method == "POST" and form.is_valid():
+
+        # Store the email in session
+        request.session["password_reset_email"] = form.cleaned_data["email"]
+
+        # Send the password reset email
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            subject_template_name="registration/emails/password_reset_subject.txt",
+            email_template_name="registration/emails/password_reset_body.txt",
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+            extra_email_context={
+                "protocol": "https" if request.is_secure() else "http",
+                "domain": request.get_host(),
+                "site_name": "Wanderly",
+            },
+        )
+
+        # Show success message
+        messages.success(
+            request,
+            "If an account with that email exists, a password reset link has been sent.",
+        )
+
+        # Redirect to check email page
+        return redirect("forgot_password_check_email")
+
+    return render(request, "registration/forgotPassRequest.html", {"form": form})
+
+""" Forgot password - Tells user to check their email """
+def forgot_password_check_email(request):
+
+    # Get the email from session
+    email = request.session.get("password_reset_email")
+
+    # Get countdown seconds from settings
+    countdown_seconds = getattr(settings, "PASSWORD_RESET_TIMEOUT", 300)
+
+    # Set up context for template
+    context = {
+        "masked_email": _mask_email_address(email) if email else None,
+        "countdown_seconds": countdown_seconds,
+        "resend_enabled": email is not None,
+    }
+    return render(request, "registration/forgotPassCheckEmail.html", context)
+
+
+""" Forgot password - resend using the stored email """
+def forgot_password_resend(request):
+
+    # Get the email from session
+    email = request.session.get("password_reset_email")
+
+    # If no email in session, redirect back with error
+    if not email:
+        messages.error(request, "We couldn't find your email. Please enter it again.")
+        return redirect("forgot_password_request")
+
+    # Resend the password reset email
+    form = PasswordResetForm({"email": email})
+    if form.is_valid():
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            subject_template_name="registration/emails/password_reset_subject.txt",
+            email_template_name="registration/emails/password_reset_body.txt",
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+            extra_email_context={
+                "protocol": "https" if request.is_secure() else "http",
+                "domain": request.get_host(),
+                "site_name": "Wanderly",
+            },
+        )
+        messages.success(request, "We sent another password reset link.")
+    else:
+        messages.error(request, "Unable to resend the reset email right now.")
+
+    return redirect("forgot_password_check_email")
+
+
+""" Forgot password page - Page to set new password """
+def forgot_password_set(request, uidb64, token):
+    # Decode the user ID from the base64 string
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+    # Handle exceptions for invalid decoding or user not found
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    # Check if the token is valid for the user
+    if (not user) or (not default_token_generator.check_token(user, token)):
+        messages.error(
+            request,
+            "The password reset link is invalid or has expired. Please request a new one.",
+        )
+        return redirect("forgot_password_request")
+
+    # If the form is submitted
+    if request.method == "POST":
+        form = ResetPasswordForm(user, request.POST) # Get reset password form data
+        if form.is_valid():                          # Validate the form
+            form.save()                              # Save the new password
+            request.session.pop("password_reset_email", None)
+            messages.success(request, "Your password has been reset. You can sign in now.")
+
+            # Redirect to the password reset complete page
+            return redirect("forgot_password_complete")
+    else:
+        form = ResetPasswordForm(user)
+
+    return render(request, "registration/forgotPassSet.html", {"form": form})
+
+
+""" Forgot password page - Confirmation page """
+def forgot_password_complete(request):
+    # Render the password reset complete page
+    return render(request, "registration/forgotPassComplete.html")

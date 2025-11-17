@@ -15,7 +15,6 @@ from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
- 
 
  # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +26,8 @@ root_env = BASE_DIR / ".env"
 if root_env.exists():
     load_dotenv(root_env, override=True)
 
-# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set, but allow a placeholder during tests
+# Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set,
+# but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
@@ -68,6 +68,17 @@ GOOGLE_ROUTES_SERVER_KEY = os.getenv("GOOGLE_ROUTES_SERVER_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # --------------------------------------------------------------
 
+# --------------------- Django Email Setup -----------------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "wanderlyhelper@gmail.com"
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "Wanderly <no-reply@wanderly.com>"
+PASSWORD_RESET_TIMEOUT = 300 # five minutes.
+# --------------------------------------------------------------
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-this-in-production')
@@ -97,7 +108,6 @@ else:
         "http://0.0.0.0:3000/",
         "127.0.0.1",
     ]
-    
 
 # Application definition
 INSTALLED_APPS = [
@@ -131,7 +141,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Wanderly.urls'  
+ROOT_URLCONF = 'Wanderly.urls'
 
 TEMPLATES = [
     {
@@ -184,6 +194,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -212,7 +223,7 @@ if ENVIRONMENT == 'production':
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     CSRF_USE_SESSIONS = False
-    
+
     # Trusted origins for CSRF
     CSRF_TRUSTED_ORIGINS = [
     f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}",
