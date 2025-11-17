@@ -1,7 +1,9 @@
+""" Use django forms """
 from django import forms
-from django.contrib.auth import password_validation
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model, password_validation
 from django.core.exceptions import ValidationError
+
+User = get_user_model()
 
 
 class RegistrationForm(forms.Form):
@@ -12,7 +14,6 @@ class RegistrationForm(forms.Form):
     email = forms.EmailField(max_length=254)
     password1 = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput)
-
 
     # ---------------- form.is_valid() callers ----------------
 
@@ -42,7 +43,7 @@ class RegistrationForm(forms.Form):
         # Return the cleaned data
         return cleaned_data
 
-    # ---------------- form.is_valid() callers  end ----------------
+    # ---------------- form.is_valid() callers end ----------------
 
     # Save the user to the database
     def save(self):
@@ -55,3 +56,125 @@ class RegistrationForm(forms.Form):
             last_name=self.cleaned_data["last_name"],
         )
         return user
+
+# Allow authenticated users to update their password.
+class ChangePasswordForm(forms.Form):
+    # Old password field for form
+    old_password = forms.CharField(widget=forms.PasswordInput)
+
+    # Get new password field (main new pass)
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+
+    # Get new password field (varify new pass)
+    new_password2 = forms.CharField(widget=forms.PasswordInput)
+
+    # Initialize the form with the user instance
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+# ---------------- form.is_valid() callers ----------------
+
+    # Ensure the provided current password is correct.
+    def clean_old_password(self):
+
+        # Get the old password from inputed data
+        old_password = self.cleaned_data.get("old_password")
+
+        # Check if the old password matches the user's current password
+        if not old_password or not self.user.check_password(old_password):
+            raise ValidationError("Incorrect current password.")
+        return old_password
+
+    def clean(self):
+        # Get the cleaned data from the form
+        cleaned_data = super().clean()
+
+        # Get the new passwords from cleaned data
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        # Check if the new passwords match
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error("new_password2", "Passwords must match.")
+
+        # Validate the strength of the new password
+        if new_password1:
+            try:
+                password_validation.validate_password(new_password1, self.user)
+            except ValidationError as exc:
+                self.add_error("new_password1", exc)
+
+        # Return the cleaned data
+        return cleaned_data
+ # ---------------- form.is_valid() callers end ----------------
+
+    # Save the new password for the user
+    def save(self):
+        # Get new password
+        password = self.cleaned_data["new_password1"]
+
+        # Set and save the new password for the user
+        self.user.set_password(password)
+        self.user.save(update_fields=["password"])
+
+        # Return the user instance
+        return self.user
+
+
+# Allow authenticated users to reset their password via email.
+class ResetPasswordForm(forms.Form):
+
+    # Get new password field (main new pass)
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+
+    # Get new password field (varify new pass)
+    new_password2 = forms.CharField(widget=forms.PasswordInput)
+
+    # Initialize the form with the user instance
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+# ---------------- form.is_valid() callers ----------------
+
+    def clean(self):
+        # Get the cleaned data from the form
+        cleaned_data = super().clean()
+
+        # Get the new passwords from cleaned data
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        # Check if the new passwords match
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error("new_password2", "Passwords must match.")
+
+        # Validate the strength of the new password
+        if new_password1:
+            try:
+                password_validation.validate_password(new_password1, self.user)
+            except ValidationError as exc:
+                self.add_error("new_password1", exc)
+
+        # Return the cleaned data
+        return cleaned_data
+ # ---------------- form.is_valid() callers end ----------------
+
+    # Save the new password for the user
+    def save(self):
+        # Get new password
+        password = self.cleaned_data["new_password1"]
+
+        # Set and save the new password for the user
+        self.user.set_password(password)
+        self.user.save(update_fields=["password"])
+
+        # Return the user instance
+        return self.user
