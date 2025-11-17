@@ -64,3 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python tools/post_coverage_comment.py coverage.txt
+      
+      - name: Run Bandit Security Linting
+        run: |
+          bandit -r Wanderly -lll
