@@ -2,7 +2,7 @@
 -r requirements.txt
 
 # Dev and CI tools (nto included in prod)
-pip-tools~=7.4
+pip-tools~=7.5
 pytest~=8.4
 pytest-django~=4.11
 coverage~=7.11
