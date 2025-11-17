@@ -1,11 +1,11 @@
 """Controls the views and requests for the itinerary module."""
 
 import json
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -168,23 +168,6 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
         return None
 
 
-def _store_ai_itinerary_in_session(request, ai_itinerary_days: Iterable[dict]) -> None:
-    """Persist AI itinerary in the session so it can be displayed after redirect."""
-    request.session["ai_itinerary_days"] = json.dumps(list(ai_itinerary_days))
-
-
-def _pop_ai_itinerary_from_session(request) -> Optional[list]:
-    """Retrieve any AI itinerary stored in the session and decode it."""
-    ai_itinerary_json = request.session.pop("ai_itinerary_days", None)
-    if not ai_itinerary_json:
-        return None
-
-    try:
-        return json.loads(ai_itinerary_json)
-    except json.JSONDecodeError:
-        return None
-
-
 def itinerary(request):
     """View for creating and displaying itineraries."""
     if request.method == "POST":
@@ -198,29 +181,48 @@ def itinerary(request):
             _create_days(request, itinerary_obj)
 
             ai_itinerary_days = _generate_ai_itinerary(itinerary_obj)
-            if ai_itinerary_days:
-                _store_ai_itinerary_in_session(request, ai_itinerary_days)
-            else:
+            if ai_itinerary_days is None:
                 messages.error(
                     request,
                     "We were unable to generate an AI-powered itinerary at this time.",
                 )
+            else:
+                # Persist whatever we got back (including empty lists) so it is available later.
+                itinerary_obj.ai_itinerary = ai_itinerary_days
+                itinerary_obj.save(update_fields=["ai_itinerary"])
 
             messages.success(request, "Itinerary created successfully!")
-            return redirect("itinerary:itinerary")
+            return redirect("itinerary:itinerary_detail", itinerary_id=itinerary_obj.id)
 
         # No `else` needed; if the form is invalid we fall through and re-render.
         messages.error(request, "Please correct the errors below.")
     else:
         form = ItineraryForm()
 
-    ai_itinerary_days = _pop_ai_itinerary_from_session(request)
-    recent_itineraries = Itinerary.objects.all()[:5]
-
     context = {
         "form": form,
-        "recent_itineraries": recent_itineraries,
-        "ai_itinerary_days": ai_itinerary_days,
     }
 
     return render(request, "itinerary.html", context)
+
+
+def itinerary_detail(request, itinerary_id: int):
+    """Display a generated itinerary."""
+    itinerary_obj = get_object_or_404(Itinerary, pk=itinerary_id)
+    ai_itinerary_days = itinerary_obj.ai_itinerary or []
+
+    context = {
+        "itinerary": itinerary_obj,
+        "ai_itinerary_days": ai_itinerary_days,
+        "break_times": itinerary_obj.break_times.all(),
+        "budget_items": itinerary_obj.budget_items.all(),
+        "trip_days": itinerary_obj.days.all(),
+    }
+
+    if not ai_itinerary_days:
+        messages.error(
+            request,
+            "This itinerary is missing generated details.",
+        )
+
+    return render(request, "itinerary_detail.html", context)

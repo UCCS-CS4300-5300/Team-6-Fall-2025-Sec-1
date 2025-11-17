@@ -24,7 +24,7 @@ class ItineraryAdmin(admin.ModelAdmin):
     list_display = ['destination', 'num_days', 'wake_up_time', 'bed_time', 'created_at']
     list_filter = ['created_at', 'num_days']
     search_fields = ['destination', 'place_id']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'ai_itinerary']
     inlines = [BreakTimeInline, BudgetItemInline, DayInline]
     fieldsets = (
         ('Destination', {
@@ -35,6 +35,10 @@ class ItineraryAdmin(admin.ModelAdmin):
         }),
         ('Trip Details', {
             'fields': ('num_days',)
+        }),
+        ('AI Output', {
+            'fields': ('ai_itinerary',),
+            'description': 'Saved JSON itinerary from the AI generator',
         }),
         ('Metadata', {
             'fields': ('created_at', 'updated_at'),

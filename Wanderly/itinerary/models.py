@@ -12,6 +12,7 @@ class Itinerary(models.Model):
     wake_up_time = models.TimeField()
     bed_time = models.TimeField()
     num_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(30)])
+    ai_itinerary = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
