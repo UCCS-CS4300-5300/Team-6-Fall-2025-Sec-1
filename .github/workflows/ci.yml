@@ -65,6 +65,18 @@ jobs:
         run: |
           python tools/post_coverage_comment.py coverage.txt
       
+      - name: Run pip-audit On Lock File
+        run: |
+          pip-audit -r requirements.txt -f json -o pip-audit-report.json
+
+      - name: Post pip-audit Report Comment
+        if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python tools/post_coverage_comment.py pip-audit-report.json
+
       - name: Run Bandit Security Linting
         run: |
-          bandit -r Wanderly -lll
+          bandit -r Wanderly -c bandit.yaml -lll

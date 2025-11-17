@@ -1,0 +1,6 @@
+exclude:
+  - "Wanderly/**/migrations"
+  - "Wanderly/**/static"
+  - "Wanderly/**/templates"
+  - "Wanderly/**/tests"
+skips: []
