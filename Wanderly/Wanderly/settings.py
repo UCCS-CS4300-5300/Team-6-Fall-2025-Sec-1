@@ -68,6 +68,17 @@ GOOGLE_ROUTES_SERVER_KEY = os.getenv("GOOGLE_ROUTES_SERVER_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # --------------------------------------------------------------
 
+# --------------------- Django Email Setup -----------------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "wanderlyhelper@gmail.com"
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "Wanderly <no-reply@wanderly.com>"
+PASSWORD_RESET_TIMEOUT = 300 # five minutes.
+# --------------------------------------------------------------
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-this-in-production')
@@ -183,6 +194,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -211,6 +223,7 @@ if ENVIRONMENT == 'production':
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     CSRF_USE_SESSIONS = False
+
     # Trusted origins for CSRF
     CSRF_TRUSTED_ORIGINS = [
     f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}",

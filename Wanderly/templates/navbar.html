@@ -30,6 +30,18 @@
             View Itineraries
           </a>
         </li>
+        {% if request.path == '/' %}
+          <li class="nav-item">
+            <button 
+              class="nav-link text-black border-0 bg-transparent"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#accessCodeModal"
+            >
+              View With Access Code
+          </button>
+          </li>
+        {% endif %}
       </ul>
 
       <!-- Auth area -->

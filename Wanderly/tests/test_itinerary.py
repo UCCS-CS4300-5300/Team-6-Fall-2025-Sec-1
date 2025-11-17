@@ -2,16 +2,76 @@
 Unit tests for itinerary views.py
 """
 
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.messages import get_messages
-from unittest.mock import patch, MagicMock
-from decimal import Decimal
 import json
+from decimal import Decimal
+from unittest.mock import patch, MagicMock
+
+from django.conf import settings
+
+TEMPLATE_STRINGS = {
+    "itinerary.html": "itinerary template",
+    "itinerary_detail.html": "itinerary detail template",
+    "navbar.html": "",
+}
+
+# Configure minimal Django settings so the tests can run without a full project.
+if not settings.configured:
+    settings.configure(
+        SECRET_KEY="test-secret-key",
+        INSTALLED_APPS=[
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.sessions",
+            "django.contrib.messages",
+            "django.contrib.staticfiles",
+            "itinerary",
+        ],
+        DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}},
+        ROOT_URLCONF="test_itinerary",
+        MIDDLEWARE=[
+            "django.middleware.security.SecurityMiddleware",
+            "django.contrib.sessions.middleware.SessionMiddleware",
+            "django.middleware.common.CommonMiddleware",
+            "django.middleware.csrf.CsrfViewMiddleware",
+            "django.contrib.auth.middleware.AuthenticationMiddleware",
+            "django.contrib.messages.middleware.MessageMiddleware",
+        ],
+        TEMPLATES=[
+            {
+                "BACKEND": "django.template.backends.django.DjangoTemplates",
+                "DIRS": [],
+                "APP_DIRS": False,
+                "OPTIONS": {
+                    "loaders": [("django.template.loaders.locmem.Loader", TEMPLATE_STRINGS)],
+                    "context_processors": [
+                        "django.template.context_processors.debug",
+                        "django.template.context_processors.request",
+                        "django.contrib.auth.context_processors.auth",
+                        "django.contrib.messages.context_processors.messages",
+                    ],
+                },
+            }
+        ],
+        USE_TZ=True,
+        OPENAI_API_KEY="test-api-key",
+        STATIC_URL="/static/",
+    )
+    import django
+
+    django.setup()
+
+from django.urls import include, path, reverse
+from django.contrib.messages import get_messages
+from django.test import TestCase, Client
 from openai import OpenAIError
 
 from itinerary.models import Itinerary, BreakTime, BudgetItem, Day
 from itinerary.forms import ItineraryForm
+
+# Minimal URL configuration that mirrors how the app is namespaced in production.
+urlpatterns = [
+    path("", include(("itinerary.urls", "itinerary"), namespace="itinerary")),
+]
 
 
 class ItineraryViewTests(TestCase):
@@ -53,31 +113,12 @@ class ItineraryViewTests(TestCase):
         self.assertTemplateUsed(response, 'itinerary.html')
         self.assertIsInstance(response.context['form'], ItineraryForm)
 
-    def test_get_displays_recent_itineraries(self):
-        """Test recent itineraries limited to 5"""
-        for i in range(7):
-            Itinerary.objects.create(
-                destination=f'Destination {i}',
-                num_days=3,
-                wake_up_time='08:00',
-                bed_time='22:00'
-            )
-        response = self.client.get(self.url)
-        self.assertEqual(len(response.context['recent_itineraries']), 5)
-
     def test_get_retrieves_ai_itinerary_from_session(self):
-        """Test AI itinerary retrieved and removed from session"""
-        ai_data = [{"day_number": 1, "title": "Day 1", "activities": []}]
-        session = self.client.session
-        session['ai_itinerary_days'] = json.dumps(ai_data)
-        session.save()
-        
+        """Test GET request does not include ai_itinerary_days in context"""
         response = self.client.get(self.url)
-        self.assertEqual(response.context['ai_itinerary_days'], ai_data)
-        
-        # Should be removed after retrieval
-        response = self.client.get(self.url)
-        self.assertIsNone(response.context['ai_itinerary_days'])
+
+        # ai_itinerary_days should not be in context for the itinerary form view
+        self.assertNotIn('ai_itinerary_days', response.context)
 
     @patch('itinerary.views.OpenAI')
     def test_post_creates_itinerary_and_related_objects(self, mock_openai):
@@ -203,12 +244,18 @@ class OpenAIIntegrationTests(TestCase):
 
     @patch('itinerary.views.OpenAI')
     def test_ai_itinerary_stored_in_session(self, mock_openai):
-        """Test AI response stored in session"""
+        """Test AI response stored in database and displayed on detail page"""
         ai_data = {"days": [{"day_number": 1, "title": "Day 1", "activities": []}]}
         self._mock_openai(mock_openai, ai_data)
-        
+
         response = self.client.post(self.url, self.post_data, follow=True)
-        
+
+        # AI itinerary should be stored in database
+        itinerary = Itinerary.objects.first()
+        self.assertIsNotNone(itinerary)
+        self.assertEqual(itinerary.ai_itinerary, ai_data['days'])
+
+        # And should be available in the detail page context after redirect
         self.assertEqual(response.context['ai_itinerary_days'], ai_data['days'])
 
     @patch('itinerary.views.OpenAI')

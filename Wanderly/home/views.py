@@ -14,11 +14,14 @@ def text_search(request):
     ''' Call for New Google Places API text search endpoint '''
     try:
         data = json.loads(request.body)
+
         text_query = data.get('textQuery', '')
         if not text_query:
             return JsonResponse({'error': 'textQuery is required'}, status=400)
+
         # New Places API endpoint
         url = 'https://places.googleapis.com/v1/places:searchText'
+
         # Request payload with just the search text
         payload = {
             'textQuery': text_query,
@@ -35,7 +38,9 @@ def text_search(request):
         # Send POST request and check for success response
         response = requests.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
+
         response_data = response.json()
+
         # Process photos to add actual media URLs
         places = response_data.get('places', [])
         for place in places:
@@ -44,7 +49,9 @@ def text_search(request):
                 f"/place_photos/{photo['name']}"
                 for photo in photos if isinstance(photo, dict) and 'name' in photo
             ]
+
         return JsonResponse({'places': places})
+
     # Return error for invalid JSON format
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -60,13 +67,19 @@ def place_photos(response, photo_name):
             return JsonResponse({'error': 'Invalid photo name'}, status=400)
 
         url = f"https://places.googleapis.com/v1/{photo_name}/media?maxWidthPx=800"
+
         headers = {
             'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
         }
-        response = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
+
+        response = requests.get(url, headers=headers, allow_redirects=True)
         response.raise_for_status()
+
         # Return the image
-        return HttpResponse(response.content,
-        content_type=response.headers.get('Content-Type', 'image/jpeg'))
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+
     except requests.exceptions.RequestException as e:
         return JsonResponse({'error': str(e)}, status=500)
