@@ -12,6 +12,6 @@ python-dotenv~=1.1.1
 pytz~=2025.2
 six~=1.17.0
 tzdata~=2025.2
-uvicorn~=0.37.0
+uvicorn~=0.38.0
 whitenoise~=6.11.0
 requests~=2.32
