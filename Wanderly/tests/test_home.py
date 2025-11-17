@@ -178,3 +178,9 @@ class HomePageTests(TestCase):
         self.assertIn("Hello, Alex M.", content)
         self.assertIn("My Portfolios", content)
         self.assertIn(f'href="{reverse("sign_out")}"', content)
+    
+    # Making sure the access code model is loaded into the home page
+    # checking that the name exists in the response
+    def test_home_has_access_code_modal(self):
+        response = self.client.get("/")
+        assert "accessCodeModal" in response.content.decode()
