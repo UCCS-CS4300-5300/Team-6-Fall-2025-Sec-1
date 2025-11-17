@@ -226,7 +226,12 @@
                     const placeCard = document.createElement("div");
                     placeCard.classList.add("card", "h-100", "shadow-sm", "rounded");
                     placeCard.innerHTML = `
-                    <div class="card-body rounded">
+                    <img
+                        src="${place.photos[0]}" 
+                        alt="${place.displayName?.text}" 
+                        class="card-img-top place-img"
+                    />
+                    <div class="card-body">
                     <h5 class="card-title">${place.displayName?.text || "Unnamed Place"}</h5>
                     <p class="card-text">${place.formattedAddress || "No address available"}</p>
                     ${place.websiteUri ? `<a href="${place.websiteUri}" class="website-button btn btn-outline-primary">Visit Website</a>` : ""}
