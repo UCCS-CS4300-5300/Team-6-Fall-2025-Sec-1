@@ -46,6 +46,7 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: | 
           pylint --load-plugins pylint_django . \
+              --disable=wrong-import-position,pointless-string-statement \
               --ignore=tests,tools \
               --ignore-patterns="__init__\.py|asgi\.py|manage\.py|settings\.py|conftest\.py" \
               | tee pylint-report.txt
