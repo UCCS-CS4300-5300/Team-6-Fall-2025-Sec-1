@@ -45,4 +45,7 @@ urlpatterns = [
 
     # Itinerary planner (combines time preferences, budget, and location)
     path('itinerary/', include('itinerary.urls')),
+
+    # User profile urls
+    path('profile/', include('user_profile.urls')),
 ]

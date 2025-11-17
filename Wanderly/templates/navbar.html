@@ -41,7 +41,7 @@
               Hello, {{ request.user.first_name|default:request.user.username }}{% if request.user.last_name %} {{ request.user.last_name|slice:":1" }}.{% endif %}
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
-              <li><a class="dropdown-item" href="#">My Portfolios</a></li>
+              <li><a class="dropdown-item" href="{% url 'user_profile' %}">My Profile</a></li>
               <li><a class="dropdown-item" href="{% url 'sign_out' %}">Sign Out</a></li>
             </ul>
           </div>

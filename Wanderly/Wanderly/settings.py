@@ -125,6 +125,7 @@ INSTALLED_APPS = [
     'user_auth',
     'places_auto_complete',
     'itinerary',
+    'user_profile',
 ]
 
 # Toggle JSON export of planner submissions (writes JSON under each planner app when True)
