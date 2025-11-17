@@ -73,6 +73,6 @@ def place_photos(request, photo_name):
             response.content,
             content_type=response.headers.get('Content-Type', 'image/jpeg')
         )
-        
+
     except requests.exceptions.RequestException as e:
         return JsonResponse({'error': str(e)}, status=500)
