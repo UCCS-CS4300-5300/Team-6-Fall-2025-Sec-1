@@ -176,7 +176,7 @@ class HomePageTests(TestCase):
         content = response.content.decode()
 
         self.assertIn("Hello, Alex M.", content)
-        self.assertIn("My Portfolios", content)
+        self.assertIn("My Profile", content)
         self.assertIn(f'href="{reverse("sign_out")}"', content)
     
     # Making sure the access code model is loaded into the home page
