@@ -19,7 +19,8 @@ def mood_questionnaire(request):
     if request.method == 'POST':
         form = MoodForm(request.POST)
         if form.is_valid():
-            # Save to database
+            # Save to database, disable pylint since this is valid Django code
+            # pylint: disable=no-member
             mood_response = MoodResponse.objects.create(
                 destination=form.cleaned_data['destination'],
                 adventurous=form.cleaned_data['adventurous'],
@@ -90,6 +91,7 @@ any text outside the JSON.
                 logger.error("Error calling OpenAI API: %s", exc)
                 error_message = f"Error getting recommendations: {exc}"
                 activities = []
+
 
             # formats in a way that can be displayed on the results page
             context = {

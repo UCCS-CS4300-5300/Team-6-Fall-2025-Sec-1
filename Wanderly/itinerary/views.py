@@ -19,12 +19,12 @@ def _create_break_times(request, itinerary_obj: Itinerary) -> None:
 
     for start, end in zip(break_start_times, break_end_times):
         if start and end:
+            # pylint: disable=no-member
             BreakTime.objects.create(
                 itinerary=itinerary_obj,
                 start_time=start,
                 end_time=end,
             )
-
 
 def _create_budget_items(request, itinerary_obj: Itinerary) -> None:
     """Create BudgetItem rows from POSTed form data."""
@@ -38,6 +38,7 @@ def _create_budget_items(request, itinerary_obj: Itinerary) -> None:
         budget_amounts,
     ):
         if amount:  # Only save if amount is provided
+            # pylint: disable=no-member
             BudgetItem.objects.create(
                 itinerary=itinerary_obj,
                 category=category,
@@ -54,6 +55,7 @@ def _create_days(request, itinerary_obj: Itinerary) -> None:
         day_notes = request.POST.get(f"day_{day_index}_notes", "")
 
         if day_date:  # Only save if date is provided
+            # pylint: disable=no-member
             Day.objects.create(
                 itinerary=itinerary_obj,
                 day_number=day_index,
@@ -61,9 +63,9 @@ def _create_days(request, itinerary_obj: Itinerary) -> None:
                 notes=day_notes,
             )
 
-
 def _format_break_times(itinerary_obj: Itinerary) -> str:
     """Return a human-readable break time string for an itinerary."""
+    # pylint: disable=no-member
     break_times = BreakTime.objects.filter(itinerary=itinerary_obj)
     if not break_times.exists():
         return "None"
@@ -73,6 +75,7 @@ def _format_break_times(itinerary_obj: Itinerary) -> str:
 
 def _format_budget(itinerary_obj: Itinerary) -> str:
     """Return a human-readable budget string for an itinerary."""
+    # pylint: disable=no-member
     budget_items = BudgetItem.objects.filter(itinerary=itinerary_obj)
     if not budget_items.exists():
         return "Flexible"
@@ -90,6 +93,7 @@ def _format_budget(itinerary_obj: Itinerary) -> str:
 
 def _format_day_notes(itinerary_obj: Itinerary) -> str:
     """Return extra notes string describing per-day notes, if any."""
+    # pylint: disable=no-member
     day_notes_qs = Day.objects.filter(itinerary=itinerary_obj).order_by("day_number")
     day_note_lines = [
         f"Day {day.day_number} ({day.date}): {day.notes}"
@@ -205,7 +209,6 @@ def itinerary(request):
 
     return render(request, "itinerary.html", context)
 
-
 def itinerary_detail(request, itinerary_id: int):
     """Display a generated itinerary."""
     itinerary_obj = get_object_or_404(Itinerary, pk=itinerary_id)
@@ -226,3 +229,7 @@ def itinerary_detail(request, itinerary_id: int):
         )
 
     return render(request, "itinerary_detail.html", context)
+
+def itinerary_list(request):
+    ''' Load the list of current itineraries '''
+    return render(request, "itinerary_list.html")

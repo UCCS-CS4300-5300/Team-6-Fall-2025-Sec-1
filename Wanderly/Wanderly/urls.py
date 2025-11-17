@@ -48,4 +48,7 @@ urlpatterns = [
 
     # User profile urls
     path('profile/', include('user_profile.urls')),
+
+    # Itinerary list view
+    path('itinerary_list/', include('itinerary.urls')),
 ]
