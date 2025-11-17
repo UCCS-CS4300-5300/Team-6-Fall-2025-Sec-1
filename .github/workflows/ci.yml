@@ -67,7 +67,7 @@ jobs:
       
       - name: Run pip-audit On Lock File
         run: |
-          pip-audit -r requirements.txt -f json -o pip-audit-report.json
+          pip-audit -r Wanderly/requirements.txt -f json -o pip-audit-report.json
 
       - name: Post pip-audit Report Comment
         if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
