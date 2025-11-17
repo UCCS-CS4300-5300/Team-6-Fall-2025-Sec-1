@@ -1,0 +1,38 @@
+<div class="modal fade" id="accessCodeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content access-code-modal">
+        {# TODO (Next Sprint): change method to POST and add action to itinerary access view #}
+      <form id="accessCodeForm" method="get">
+        <div class="modal-header">
+          <h5 class="modal-title">Access itinerary</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div class="modal-body">
+          <label for="accessCodeInput" class="form-label">Access code</label>
+          <input
+            type="text"
+            class="form-control"
+            id="accessCodeInput"
+            name="code"
+            placeholder="Enter your itinerary code"
+            required
+          >
+          <small class="text-muted">
+            In the next sprint we are connecting this to itineraries.
+          </small>
+          <div id="accessCodeMessage" class="mt-2 small"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">View itinerary</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

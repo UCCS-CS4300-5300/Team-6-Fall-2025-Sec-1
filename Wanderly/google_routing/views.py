@@ -1,13 +1,17 @@
-# google_routing/views.py
-import json
+"""
+Views for the google_routing app.
+
+This module renders a demo form for entering multiple addresses and uses
+Google's Geocoding, Routes, and Static Maps APIs to compute an optimized
+driving route, convert raw API units (meters, seconds) into friendly values,
+and display the result as a static map image with distance and duration.
+"""
+from urllib.parse import urlencode
 import requests
 from django.conf import settings
-from django.shortcuts import render, redirect
-from django.http import HttpResponseBadRequest
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django import forms
-
 from .forms import AddressForm
 
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -16,11 +20,15 @@ STATIC_MAPS_URL = "https://maps.googleapis.com/maps/api/staticmap"
 
 # Function to quickly convert meters to miles becuase google returns meters
 def meters_to_miles(meters: float | int | None) -> float | int | None:
+    """
+    Convert a distance in meters (as returned by Google APIs) to miles.
+    Returns None unchanged if the input is None.
+    """
     if meters is None:
         return None
     return meters / 1609.344
 
-# Function to convert googles seconds string: '1234s' to 
+# Function to convert googles seconds string: '1234s' to
 # Hours, minutes
 def seconds_to_human(seconds_str: str | None) -> str | None:
     """
@@ -69,7 +77,6 @@ def _build_static_map_url(encoded_polyline, markers, size="640x480"):
         label_ord += 1
 
     # Build query manually to keep multiple 'markers' params
-    from urllib.parse import urlencode
     query = urlencode(params, doseq=True)
     return f"{STATIC_MAPS_URL}?{query}"
 
@@ -90,12 +97,13 @@ def route_demo(request):
         "google_routing/route_demo.html",
         {
             "forms_list": forms_list,
-            "GOOGLE_MAPS_BROWSER_KEY": settings.GOOGLE_MAPS_BROWSER_KEY,  # not used by this page, but available
+            "GOOGLE_MAPS_BROWSER_KEY": settings.GOOGLE_MAPS_BROWSER_KEY,
         },
     )
 
 @require_POST
 @csrf_exempt
+# pylint: disable=too-many-locals
 def compute_route(request):
     """
     Handles the plain HTML form POST (no JS).
@@ -133,9 +141,11 @@ def compute_route(request):
 
     # 1) Geocode → place_ids
     place_ids = []
-    latlngs = []  # for markers
     for addr in addresses:
-        pid = _geocode_place_id(addr, settings.GOOGLE_ROUTES_SERVER_KEY or settings.GOOGLE_MAPS_BROWSER_KEY)
+        pid = _geocode_place_id(
+            addr,
+            settings.GOOGLE_ROUTES_SERVER_KEY or settings.GOOGLE_MAPS_BROWSER_KEY
+        )
         if not pid:
             return render(
                 request,

@@ -108,3 +108,13 @@ footer {
     padding: 10px 20px; 
     text-align: center;
 }
+
+.access-code-modal {
+    background: linear-gradient(to bottom, #eae8ff, #d0cefd);
+}
+
+.access-code-modal .modal-header,
+.access-code-modal .modal-body,
+.access-code-modal .modal-footer {
+    background: transparent;
+}
