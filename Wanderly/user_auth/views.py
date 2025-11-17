@@ -11,6 +11,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.csrf import csrf_exempt
@@ -48,6 +49,8 @@ def sign_in(request):
     if request.method == "POST" and form.is_valid():
         user = form.get_user()
         login(request, user)
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
         messages.success(request, "Welcome back to Wanderly!")
         return redirect("index")
 
@@ -73,6 +76,8 @@ def register(request):
         # If user was authenticated, log them in and redirect to homepage
         if authenticated_user:
             login(request, authenticated_user)
+            authenticated_user.last_login = timezone.now()
+            authenticated_user.save(update_fields=["last_login"])
 
             # Give seccess message
             messages.success(request, "Welcome to Wanderly! Your account is ready.")
@@ -184,6 +189,8 @@ def auth_receiver(request):
 
     # Log the user in via Django's session framework
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
 
     # Send welcome message
     messages.success(request, "Welcome to Wanderly!")

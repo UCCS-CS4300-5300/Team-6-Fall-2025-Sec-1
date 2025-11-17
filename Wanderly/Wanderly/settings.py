@@ -125,6 +125,7 @@ INSTALLED_APPS = [
     'user_auth',
     'places_auto_complete',
     'itinerary',
+    'user_profile',
 ]
 
 # Toggle JSON export of planner submissions (writes JSON under each planner app when True)
@@ -190,7 +191,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Denver'
 USE_I18N = True
 USE_TZ = True
 
