@@ -1,5 +1,5 @@
 # include all runtime dependencies in dev
--r requirements.in
+-r requirements.txt
 
 # Dev and CI tools (nto included in prod)
 pip-tools~=7.4
