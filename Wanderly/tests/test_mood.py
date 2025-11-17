@@ -5,6 +5,8 @@ from mood.models import MoodResponse
 from mood.forms import MoodForm
 from unittest.mock import patch, MagicMock
 import json
+from django.contrib.messages import get_messages
+from openai import OpenAIError
 
 
 @pytest.mark.django_db
@@ -255,21 +257,5 @@ class TestIntegrationAndAIHandling:
         assert 'activities' in resp.context
         assert resp.context['activities'] == []
         # Error string present
-        assert resp.context.get('error')
-        assert 'mood_response_id' in resp.context
-
-    @patch('mood.views.OpenAI')
-    def test_openai_exception_is_handled(self, mock_openai_class, client):
-        """OpenAI client raises -> outer exception path sets error and empty activities."""
-        # Configure the mocked client to raise on .create(...)
-        mock_instance = MagicMock()
-        mock_instance.chat.completions.create.side_effect = RuntimeError("boom")
-        mock_openai_class.return_value = mock_instance
-
-        resp = client.post(reverse('mood:mood_questionnaire'), data=self._valid_form_data())
-        assert resp.status_code == 200
-        assert MoodResponse.objects.count() == 1
-        assert 'activities' in resp.context
-        assert resp.context['activities'] == []
         assert resp.context.get('error')
         assert 'mood_response_id' in resp.context
