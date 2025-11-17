@@ -1,12 +1,17 @@
+'''
+Calls for New Google Places API Endpoint
+'''
+
+import json
 import requests
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
-import json
 
 # GET place information with New Google Places API text_search
 @require_http_methods(["POST"])
 def text_search(request):
+    ''' Call for New Google Places API text search endpoint '''
     try:
         data = json.loads(request.body)
 
@@ -26,11 +31,12 @@ def text_search(request):
         headers = {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
-            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.websiteUri,places.photos',
+            'X-Goog-FieldMask':
+            'places.displayName,places.formattedAddress,places.websiteUri,places.photos',
         }
 
         # Send POST request and check for success response
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
 
         response_data = response.json()
@@ -50,11 +56,12 @@ def text_search(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     # Return error for server-side error
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         return JsonResponse({'error': 'Failed to fetch data from Google Places API'}, status=502)
 
 # Fetch place photo from Google Places API
-def place_photos(request, photo_name):
+def place_photos(response, photo_name):
+    ''' Call for New Google Places API place photos endpoint '''
     try:
         if not photo_name.startswith("places/"):
             return JsonResponse({'error': 'Invalid photo name'}, status=400)

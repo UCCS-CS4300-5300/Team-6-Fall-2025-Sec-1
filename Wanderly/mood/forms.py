@@ -56,3 +56,4 @@ class MoodForm(forms.Form):
         required=True,
         widget=forms.CheckboxSelectMultiple
     )
+

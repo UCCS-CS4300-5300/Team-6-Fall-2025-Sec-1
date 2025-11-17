@@ -1,8 +1,9 @@
-
-# Django imports
+'''
+Define the imports
+'''
 from django.shortcuts import render
 
 # --------------------- home views --------------------- #
-# Homepage
 def index(request):
+    ''' Render the homepage '''
     return render(request, "index.html")
