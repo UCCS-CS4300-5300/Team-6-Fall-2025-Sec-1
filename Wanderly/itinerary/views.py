@@ -203,16 +203,11 @@ def itinerary(request):
     else:
         form = ItineraryForm()
 
-    ai_itinerary_days = _pop_ai_itinerary_from_session(request)
-    # pylint: disable=no-member
-    recent_itineraries = Itinerary.objects.all()[:5]
-
     context = {
         "form": form,
     }
 
     return render(request, "itinerary.html", context)
-
 
 def itinerary_detail(request, itinerary_id: int):
     """Display a generated itinerary."""
