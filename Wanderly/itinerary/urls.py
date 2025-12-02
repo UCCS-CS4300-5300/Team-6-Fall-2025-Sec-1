@@ -8,5 +8,5 @@ urlpatterns = [
     path("", itinerary, name="itinerary"),
     path("list/", itinerary_list, name="itinerary_list"),
     path("access/", find_itinerary, name="find_itinerary"), # Where the find_itinerary runs
-    path("<int:itinerary_id>/", itinerary_detail, name="itinerary_detail"),
+    path("<str:access_code>/", itinerary_detail, name="itinerary_detail"),
 ]

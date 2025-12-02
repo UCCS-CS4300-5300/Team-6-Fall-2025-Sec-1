@@ -197,7 +197,7 @@ def itinerary(request):
                 itinerary_obj.save(update_fields=["ai_itinerary"])
 
             messages.success(request, "Itinerary created successfully!")
-            return redirect("itinerary:itinerary_detail", itinerary_id=itinerary_obj.id)
+            return redirect("itinerary:itinerary_detail", itinerary_obj.access_code)
 
         # No `else` needed; if the form is invalid we fall through and re-render.
         messages.error(request, "Please correct the errors below.")
@@ -210,9 +210,9 @@ def itinerary(request):
 
     return render(request, "itinerary.html", context)
 
-def itinerary_detail(request, itinerary_id: int):
+def itinerary_detail(request, access_code: str):
     """Display a generated itinerary."""
-    itinerary_obj = get_object_or_404(Itinerary, pk=itinerary_id)
+    itinerary_obj = get_object_or_404(Itinerary, access_code=access_code.upper())
     ai_itinerary_days = itinerary_obj.ai_itinerary or []
 
     context = {
@@ -264,20 +264,8 @@ def find_itinerary(request):
         messages.error(request, msg)
         return redirect("itinerary:itinerary")
 
-    # If there was a code try and pull it out as an int
-    # !!! As of now this is only a number, change depending
-    # on how I implement the access code !!!
-    try:
-        itinerary_id = int(code)
-    except ValueError:
-        msg = "Access code must be a number."
-        if is_ajax:
-            return JsonResponse({"ok": False, "error": msg}, status=400)
-        messages.error(request, msg)
-        return redirect("itinerary:itinerary")
-
     # Grab the itinerary object from the database using the itinerary_id 
-    itinerary_obj = Itinerary.objects.filter(pk=itinerary_id).first() # pylint: disable=no-member
+    itinerary_obj = Itinerary.objects.filter(access_code=code).first() # pylint: disable=no-member
 
     # If there is no itinerary with that id return a repsonse
     if itinerary_obj is None:
@@ -288,7 +276,7 @@ def find_itinerary(request):
         return redirect("itinerary:itinerary")
 
     # Success
-    detail_url = reverse("itinerary:itinerary_detail", args=[itinerary_obj.id])
+    detail_url = reverse("itinerary:itinerary_detail", args=[itinerary_obj.access_code])
 
     if is_ajax:
         return JsonResponse({"ok": True, "redirect_url": detail_url})
