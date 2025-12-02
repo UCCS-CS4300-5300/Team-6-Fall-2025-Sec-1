@@ -1,9 +1,10 @@
 """Controls the views and requests for the itinerary module."""
-
 import json
 from typing import List, Optional
 
 from django.conf import settings
+from django.http import JsonResponse
+from django.urls import reverse
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from openai import OpenAI, OpenAIError
@@ -233,3 +234,63 @@ def itinerary_detail(request, itinerary_id: int):
 def itinerary_list(request):
     ''' Load the list of current itineraries '''
     return render(request, "itinerary_list.html")
+
+def find_itinerary(request):
+    """
+    Takes an access code from the user (currently the itinerary ID)
+    then redirect to the matching itinerary detail page.
+    """
+
+    # Checking to make sure the request is ajax to /itinerary/access/
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    # Making sure the request is post so only coming from the form
+    if request.method != "POST":
+        if is_ajax:
+            return JsonResponse(
+                {"ok":False, "error": "Invalid request method."},
+                status=405,
+            )
+        return redirect("itinerary:itinerary")
+
+    # Getting the access_code from the request
+    code = request.POST.get("access_code", "").strip()
+
+    # If there was no code return a response
+    if not code:
+        msg = "Please enter an access code."
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": msg}, status=400)
+        messages.error(request, msg)
+        return redirect("itinerary:itinerary")
+
+    # If there was a code try and pull it out as an int
+    # !!! As of now this is only a number, change depending
+    # on how I implement the access code !!!
+    try:
+        itinerary_id = int(code)
+    except ValueError:
+        msg = "Access code must be a number."
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": msg}, status=400)
+        messages.error(request, msg)
+        return redirect("itinerary:itinerary")
+
+    # Grab the itinerary object from the database using the itinerary_id 
+    itinerary_obj = Itinerary.objects.filter(pk=itinerary_id).first() # pylint: disable=no-member
+
+    # If there is no itinerary with that id return a repsonse
+    if itinerary_obj is None:
+        msg = "No itinerary found with that access code."
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": msg}, status=404)
+        messages.error(request, msg)
+        return redirect("itinerary:itinerary")
+
+    # Success
+    detail_url = reverse("itinerary:itinerary_detail", args=[itinerary_obj.id])
+
+    if is_ajax:
+        return JsonResponse({"ok": True, "redirect_url": detail_url})
+
+    return redirect(detail_url)
