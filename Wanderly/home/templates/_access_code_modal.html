@@ -2,7 +2,8 @@
   <div class="modal-dialog">
     <div class="modal-content access-code-modal">
         {# TODO (Next Sprint): change method to POST and add action to itinerary access view #}
-      <form id="accessCodeForm" method="get">
+      <form id="accessCodeForm" method="post" action="{% url 'itinerary:find_itinerary' %}">
+        {% csrf_token %}
         <div class="modal-header">
           <h5 class="modal-title">Access itinerary</h5>
           <button
@@ -19,7 +20,7 @@
             type="text"
             class="form-control"
             id="accessCodeInput"
-            name="code"
+            name="access_code"
             placeholder="Enter your itinerary code"
             required
           >
@@ -36,3 +37,55 @@
     </div>
   </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("accessCodeForm");
+    if (!form) return;
+  
+    const input = document.getElementById("accessCodeInput");
+    const messageDiv = document.getElementById("accessCodeMessage");
+  
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();  // stop normal form submit / page reload
+  
+      messageDiv.textContent = "";
+      messageDiv.classList.remove("text-danger");
+  
+      const accessCode = input.value.trim();
+      if (!accessCode) {
+        messageDiv.textContent = "Please enter an access code.";
+        messageDiv.classList.add("text-danger");
+        return;
+      }
+  
+      const csrfToken = form.querySelector("input[name='csrfmiddlewaretoken']").value;
+  
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({ access_code: accessCode }),
+        });
+  
+        const data = await response.json();
+  
+        if (data.ok) {
+          // Success: go to the detail page
+          window.location.href = data.redirect_url;
+        } else {
+          messageDiv.textContent = data.error || "Something went wrong.";
+          messageDiv.classList.add("text-danger");
+        }
+      } catch (err) {
+        console.error(err);
+        messageDiv.textContent = "Network error. Please try again.";
+        messageDiv.classList.add("text-danger");
+      }
+    });
+  });
+  </script>
+  
