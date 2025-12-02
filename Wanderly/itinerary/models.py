@@ -2,6 +2,7 @@
 import string
 import secrets
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 def generate_access_code():
@@ -42,11 +43,17 @@ class Itinerary(models.Model):
     def save(self, *args, **kwargs):
         """Make sure each itinerary has a different access code"""
         if not self.access_code:
-            while True:
-                code = generate_access_code()
-                if not Itinerary.objects.filter(access_code=code).exists():
-                    self.access_code = code
-                    break
+            try:
+                while True:
+                    code = generate_access_code()
+                    if not Itinerary.objects.filter(access_code=code).exists():
+                        self.access_code = code
+                        break
+            except Exception as exc:
+                raise ValidationError(
+                    "There was an error generating an access code for this itinerary. "
+                    "Please try again."
+                ) from exc
         super().save(*args, **kwargs)
 
     
