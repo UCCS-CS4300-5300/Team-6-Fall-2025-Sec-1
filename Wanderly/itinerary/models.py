@@ -1,7 +1,16 @@
 """Creates itinerary models with the space for the form data"""
+import string
+import secrets
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+def generate_access_code():
+    """
+    Function to generate access code for each itinerary object.
+    8-character code with numbers and letters
+    """
+    ac_alphabet = string.ascii_uppercase + string.digits
+    return "".join(secrets.choice(ac_alphabet) for _ in range(8))
 
 class Itinerary(models.Model):
     """Main itinerary model storing trip information"""
@@ -15,6 +24,13 @@ class Itinerary(models.Model):
     ai_itinerary = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    access_code = models.CharField(
+        max_length=8,
+        unique=True,
+        editable=False,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name_plural = "Itineraries"
@@ -22,6 +38,18 @@ class Itinerary(models.Model):
 
     def __str__(self):
         return f"{self.destination} - {self.num_days} days"
+
+    def save(self, *args, **kwargs):
+        """Make sure each itinerary has a different access code"""
+        if not self.access_code:
+            while True:
+                code = generate_access_code()
+                if not Itinerary.objects.filter(access_code=code).exists():
+                    self.access_code = code
+                    break
+        super().save(*args, **kwargs)
+
+    
 
 
 class BreakTime(models.Model):
