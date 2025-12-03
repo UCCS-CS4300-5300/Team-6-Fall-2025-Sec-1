@@ -304,7 +304,7 @@ def place_reviews(request):
 
     headers = {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": os.environ['GOOGLE_ROUTES_SERVER_KEY'],
+        "X-Goog-Api-Key": os.environ['GOOGLE_PLACES_RATING_API_KEY'],
         "X-Goog-FieldMask": (
             "places.id,places.displayName,places.rating,"
             "places.userRatingCount,places.reviews"
