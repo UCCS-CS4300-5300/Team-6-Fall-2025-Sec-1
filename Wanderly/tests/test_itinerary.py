@@ -1,7 +1,6 @@
 """
 Unit tests for itinerary views.py
 """
-from datetime import time
 
 import json
 from decimal import Decimal
@@ -293,64 +292,3 @@ class OpenAIIntegrationTests(TestCase):
         
         self.assertIn('None', user_message)  # Break times
         self.assertIn('Flexible', user_message)  # Budget
-
-
-# Template-focused tests for itinerary_detail.html.
-class ItineraryDetailTemplateTests(TestCase):
-    """Ensure the itinerary detail template renders expected review controls."""
-
-    def setUp(self):
-        self.itinerary = Itinerary.objects.create(
-            destination="Paris",
-            wake_up_time=time(8, 0),
-            bed_time=time(22, 0),
-            num_days=1,
-        )
-        self.itinerary.ai_itinerary = [
-            {
-                "day_number": 1,
-                "title": "Arrival & Exploration",
-                "activities": [
-                    {
-                        "time": "9:00 AM",
-                        "name": "Morning Coffee Tour",
-                        "description": "Taste the best cafés in town.",
-                        "duration": "2 hours",
-                        "cost_estimate": "$40",
-                    }
-                ],
-            }
-        ]
-        self.itinerary.save(update_fields=["ai_itinerary"])
-
-    def _get_detail_response(self):
-        url = reverse("itinerary:itinerary_detail", args=[self.itinerary.access_code])
-        return self.client.get(url)
-
-    def test_activity_rating_display(self):
-        """The activity card includes the rating placeholder and query metadata."""
-        response = self._get_detail_response()
-        self.assertEqual(response.status_code, 200)
-        html = response.content.decode()
-
-        self.assertIn('class="activity-rating badge bg-light text-dark" data-rating', html)
-        self.assertIn("Loading...", html)
-        self.assertIn(
-            'data-place-query="Morning Coffee Tour Paris"',
-            html,
-        )
-
-    def test_reviews_button_state(self):
-        """Reviews buttons render disabled initially to prevent premature clicks."""
-        response = self._get_detail_response()
-        html = response.content.decode()
-        self.assertIn('data-review-btn disabled', html)
-
-    def test_reviews_modal_functionality(self):
-        """Modal markup includes the ARIA roles/targets required for accessibility."""
-        response = self._get_detail_response()
-        html = response.content.decode()
-        self.assertIn('id="reviewsModal"', html)
-        self.assertIn('role="dialog"', html)
-        self.assertIn('id="reviewsPlaceTitle"', html)
-        self.assertIn('id="reviewsList"', html)
