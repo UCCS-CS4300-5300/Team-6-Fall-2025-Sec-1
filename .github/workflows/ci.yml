@@ -53,7 +53,7 @@ jobs:
               --ignore-patterns="__init__\.py|asgi\.py|manage\.py|settings\.py|conftest\.py" \
               | tee pylint-report.txt
           if [ ! -s pylint-report.txt ]; then
-            echo "Pylint score 10.00/10" > pylint-report.txt
+            echo "Pylint score 10.00/10.00" > pylint-report.txt
           fi
 
       - name: Post pylint report comment
