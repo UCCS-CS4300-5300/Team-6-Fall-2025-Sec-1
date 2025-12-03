@@ -187,11 +187,11 @@
                     const hasHalf = rating - fullStars >= 0.5;
                     for (let i = 0; i < 5; i += 1) {
                         if (i < fullStars) {
-                            stars.push('<span class="star">★</span>');
+                            stars.push('<span class="star">&#9733;</span>');
                         } else if (i === fullStars && hasHalf) {
-                            stars.push('<span class="star">☆</span>');
+                            stars.push('<span class="star">&#9734;</span>');
                         } else {
-                            stars.push('<span class="star text-muted">☆</span>');
+                            stars.push('<span class="star text-muted">&#9734;</span>');
                         }
                     }
                     return stars.join("");
