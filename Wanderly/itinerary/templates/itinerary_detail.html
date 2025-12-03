@@ -152,7 +152,7 @@
 
         <input type="hidden" id="itineraryCsrfToken" value="{{ csrf_token }}">
 
-        <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-hidden="true">
+        <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-describedby="reviewsModalDescription" aria-hidden="true" role="dialog" aria-modal="true">
           <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
               <div class="modal-header">
@@ -160,6 +160,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
+                <p id="reviewsModalDescription" class="visually-hidden">Recent reviews for the selected place</p>
                 <h6 id="reviewsPlaceTitle" class="fw-bold mb-3"></h6>
                 <div id="reviewsList"></div>
               </div>
@@ -186,17 +187,38 @@
                     const hasHalf = rating - fullStars >= 0.5;
                     for (let i = 0; i < 5; i += 1) {
                         if (i < fullStars) {
-                            stars.push('<span class="star">★</span>');
+                            stars.push('<span class="star">&#9733;</span>');
                         } else if (i === fullStars && hasHalf) {
-                            stars.push('<span class="star">☆</span>');
+                            stars.push('<span class="star">&#9734;</span>');
                         } else {
-                            stars.push('<span class="star text-muted">☆</span>');
+                            stars.push('<span class="star text-muted">&#9734;</span>');
                         }
                     }
                     return stars.join("");
                 }
 
+                function setUnavailableState(item, message) {
+                    const ratingEl = item.querySelector("[data-rating]");
+                    const reviewsButton = item.querySelector("[data-review-btn]");
+                    if (ratingEl) {
+                        ratingEl.innerHTML = `<span class="text-muted">${message}</span>`;
+                    }
+                    if (reviewsButton) {
+                        reviewsButton.disabled = true;
+                        reviewsButton.textContent = "No Reviews";
+                    }
+                }
+
                 function handleReviewsResponse(item, data) {
+                    if (!item) {
+                        return;
+                    }
+
+                    if (!data || typeof data !== "object") {
+                        setUnavailableState(item, "Rating unavailable");
+                        return;
+                    }
+
                     const ratingEl = item.querySelector("[data-rating]");
                     const reviewsButton = item.querySelector("[data-review-btn]");
                     if (!ratingEl) {
@@ -241,18 +263,10 @@
                         },
                         body: JSON.stringify({ query }),
                     })
-                        .then((response) => response.ok ? response.json() : Promise.reject())
+                        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Bad response from server"))))
                         .then((data) => handleReviewsResponse(item, data))
                         .catch(() => {
-                            const ratingEl = item.querySelector("[data-rating]");
-                            const reviewsButton = item.querySelector("[data-review-btn]");
-                            if (ratingEl) {
-                                ratingEl.innerHTML = '<span class="text-muted">Rating unavailable</span>';
-                            }
-                            if (reviewsButton) {
-                                reviewsButton.disabled = true;
-                                reviewsButton.textContent = "No Reviews";
-                            }
+                            setUnavailableState(item, "Unable to load rating");
                         });
                 });
 

@@ -484,11 +484,13 @@ button.btn-text:hover {
 }
 
 .reviews-btn:disabled {
-    opacity: 0.55;
+    opacity: 1;
     cursor: not-allowed;
-    color: #e5e7eb;
-    background: linear-gradient(135deg, #cbd5f5, #d8d4f9);
+    color: var(--text-dark);
+    background: #fff;
+    border: 2px solid var(--border-color);
     box-shadow: none;
+    font-weight: 600;
 }
 
 .activity-details {
