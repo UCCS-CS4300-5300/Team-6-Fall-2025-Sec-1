@@ -1,5 +1,6 @@
 """Controls the views and requests for the itinerary module."""
 import json
+import os
 from typing import List, Optional
 
 from django.conf import settings
@@ -7,6 +8,9 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import requests
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -235,6 +239,7 @@ def itinerary_list(request):
     ''' Load the list of current itineraries '''
     return render(request, "itinerary_list.html")
 
+
 def find_itinerary(request):
     """
     Takes an access code from the user (currently the itinerary ID)
@@ -282,3 +287,55 @@ def find_itinerary(request):
         return JsonResponse({"ok": True, "redirect_url": detail_url})
 
     return redirect(detail_url)
+
+
+# ------------- Reviews -------------
+
+@require_http_methods(["POST"])
+def place_reviews(request):
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+
+    query = payload.get("query", "").strip()
+    if not query:
+        return JsonResponse({"error": "query required"}, status=400)
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": os.environ['GOOGLE_ROUTES_SERVER_KEY'],
+        "X-Goog-FieldMask": (
+            "places.id,places.displayName,places.rating,"
+            "places.userRatingCount,places.reviews"
+        ),
+    }
+
+    try:
+        text_resp = requests.post(
+            "https://places.googleapis.com/v1/places:searchText",
+            headers=headers,
+            json={"textQuery": query},
+            timeout=10,
+        )
+        text_resp.raise_for_status()
+        place_data = text_resp.json()
+    except requests.RequestException:
+        return JsonResponse({"error": "Failed to contact Google Places"}, status=502)
+
+    place = (place_data.get("places") or [{}])[0]
+    reviews = place.get("reviews", [])[:5]  # include positive & negative
+
+    return JsonResponse({
+        "name": place.get("displayName", {}).get("text"),
+        "rating": place.get("rating"),
+        "count": place.get("userRatingCount"),
+        "reviews": [
+            {
+                "text": r.get("text", {}).get("text"),
+                "rating": r.get("rating"),
+                "author": r.get("authorAttribution", {}).get("displayName"),
+            }
+            for r in reviews
+        ],
+    })
