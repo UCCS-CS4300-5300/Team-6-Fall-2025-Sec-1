@@ -443,6 +443,54 @@ button.btn-text:hover {
     text-align: center;
 }
 
+.activity-rating {
+    font-size: 0.85rem;
+    text-align: right;
+    min-width: 120px;
+}
+
+.activity-rating .star {
+    color: #f5c518;
+    margin-left: 2px;
+}
+
+.reviews-btn {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    border: none;
+    color: white;
+    padding: 0.55rem 1.3rem;
+    border-radius: 0.45rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 0.65rem 1.3rem rgba(91, 82, 212, 0.35);
+    transition: opacity 0.3s ease, transform 0.2s ease;
+}
+
+.reviews-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.reviews-btn:focus-visible {
+    outline: 3px solid rgba(91, 82, 212, 0.45);
+    outline-offset: 2px;
+}
+
+.reviews-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    color: #e5e7eb;
+    background: linear-gradient(135deg, #cbd5f5, #d8d4f9);
+    box-shadow: none;
+}
+
 .activity-details {
     flex: 1;
 }
@@ -622,3 +670,5 @@ button.btn-text:hover {
         justify-content: center;
     }
 }
+
+
