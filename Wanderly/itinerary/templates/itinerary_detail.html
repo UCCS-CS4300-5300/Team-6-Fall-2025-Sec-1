@@ -95,7 +95,7 @@
 
                                 <div class="activities-list">
                                     {% for activity in day.activities %}
-                                    <div class="activity-item" data-place-query="{{ activity.name }} {{ itinerary.destination }}">
+                                    <div class="activity-item" data-place-query="{{ activity.name }} {{ itinerary.destination }}" data-place-query="{{ activity.name }} {{ itinerary.destination }}">
                                         <div class="activity-time">
                                             <i class="bi bi-clock"></i>
                                             <span>{{ activity.time }}</span>
@@ -103,8 +103,15 @@
                                         <div class="activity-details">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div>
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                <div>
                                                     <h4>{{ activity.name }}</h4>
-                                                    <p>{{ activity.description }}</p>
+                                                            <p>{{ activity.description }}</p>
+                                                </div>
+                                                <div class="activity-rating badge bg-light text-dark" data-rating>
+                                                    <span class="text-muted">Loading...</span>
+                                                </div>
+                                            </div>
                                                 </div>
                                                 <div class="activity-rating badge bg-light text-dark" data-rating>
                                                     <span class="text-muted">Loading...</span>
@@ -122,6 +129,9 @@
                                                 </span>
                                                 {% endif %}
                                             </div>
+                                            <button type="button" class="btn reviews-btn mt-2" data-review-btn disabled>
+                                                View Reviews
+                                            </button>
                                             <button type="button" class="btn reviews-btn mt-2" data-review-btn disabled>
                                                 View Reviews
                                             </button>
@@ -253,6 +263,158 @@
                                 reviewsButton.disabled = true;
                                 reviewsButton.textContent = "No Reviews";
                             }
+                        });
+                });
+
+                document.querySelectorAll("[data-review-btn]").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        const wrapper = button.closest(".activity-item");
+                        if (!wrapper) {
+                            return;
+                        }
+                        const name = wrapper.dataset.placeName || "Recent Reviews";
+                        const reviews = JSON.parse(wrapper.dataset.reviews || "[]");
+
+                        reviewsPlaceTitle.textContent = name;
+                        if (!reviews.length) {
+                            reviewsList.innerHTML = '<p class="text-muted mb-0">No reviews available.</p>';
+                        } else {
+                            reviewsList.innerHTML = reviews
+                                .slice(0, 6)
+                                .map((review) => `
+                                    <div class="mb-3 border-bottom pb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>${review.author || "Traveler"}</strong>
+                                            <span>${renderStars(review.rating || 0)}</span>
+                                        </div>
+                                        <p class="mb-0 mt-2">${review.text || "No review text provided."}</p>
+                                    </div>
+                                `)
+                                .join("");
+                        }
+                        reviewsModal.show();
+                    });
+                });
+            })();
+        </script>
+
+        <input type="hidden" id="itineraryCsrfToken" value="{{ csrf_token }}">
+
+        <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-describedby="reviewsModalDescription" aria-hidden="true" role="dialog" aria-modal="true">
+          <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="reviewsModalLabel">Place Reviews</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p id="reviewsModalDescription" class="visually-hidden">Recent reviews for the selected place</p>
+                <h6 id="reviewsPlaceTitle" class="fw-bold mb-3"></h6>
+                <div id="reviewsList"></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            (function () {
+                const csrfTokenInput = document.getElementById("itineraryCsrfToken");
+                const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+                const reviewsModalEl = document.getElementById("reviewsModal");
+                const reviewsModal = new bootstrap.Modal(reviewsModalEl);
+                const reviewsPlaceTitle = document.getElementById("reviewsPlaceTitle");
+                const reviewsList = document.getElementById("reviewsList");
+
+                function renderStars(rating) {
+                    const stars = [];
+                    const fullStars = Math.floor(rating);
+                    const hasHalf = rating - fullStars >= 0.5;
+                    for (let i = 0; i < 5; i += 1) {
+                        if (i < fullStars) {
+                            stars.push('<span class="star">★</span>');
+                        } else if (i === fullStars && hasHalf) {
+                            stars.push('<span class="star">☆</span>');
+                        } else {
+                            stars.push('<span class="star text-muted">☆</span>');
+                        }
+                    }
+                    return stars.join("");
+                }
+
+                function setUnavailableState(item, message) {
+                    const ratingEl = item.querySelector("[data-rating]");
+                    const reviewsButton = item.querySelector("[data-review-btn]");
+                    if (ratingEl) {
+                        ratingEl.innerHTML = `<span class="text-muted">${message}</span>`;
+                    }
+                    if (reviewsButton) {
+                        reviewsButton.disabled = true;
+                        reviewsButton.textContent = "No Reviews";
+                    }
+                }
+
+                function handleReviewsResponse(item, data) {
+                    if (!item) {
+                        return;
+                    }
+
+                    if (!data || typeof data !== "object") {
+                        setUnavailableState(item, "Rating unavailable");
+                        return;
+                    }
+
+                    const ratingEl = item.querySelector("[data-rating]");
+                    const reviewsButton = item.querySelector("[data-review-btn]");
+                    if (!ratingEl) {
+                        return;
+                    }
+
+                    const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+                    item.dataset.placeName = data.name || item.dataset.placeQuery;
+                    item.dataset.reviews = JSON.stringify(reviews);
+
+                    if (!data.rating) {
+                        ratingEl.innerHTML = '<span class="text-muted">Rating unavailable</span>';
+                    } else {
+                        const ratingMarkup = `
+                            <div>${renderStars(data.rating)}</div>
+                            <div class="mt-1 text-dark fw-semibold">${data.rating.toFixed(1)}</div>
+                            <div class="text-muted small">${data.count || 0} reviews</div>
+                        `;
+                        ratingEl.innerHTML = ratingMarkup;
+                    }
+
+                    if (!reviews.length) {
+                        reviewsButton.disabled = true;
+                        reviewsButton.textContent = "No Reviews";
+                    } else {
+                        reviewsButton.disabled = false;
+                        reviewsButton.textContent = "View Reviews";
+                    }
+                }
+
+                document.querySelectorAll(".activity-item").forEach((item) => {
+                    const query = item.dataset.placeQuery;
+                    if (!query) {
+                        return;
+                    }
+
+                    fetch("{% url 'itinerary:place_reviews' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken,
+                        },
+                        body: JSON.stringify({ query }),
+                    })
+                        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Bad response from server"))))
+                        .then((data) => handleReviewsResponse(item, data))
+                        .catch(() => {
+                            setUnavailableState(item, "Unable to load rating");
                         });
                 });
 
