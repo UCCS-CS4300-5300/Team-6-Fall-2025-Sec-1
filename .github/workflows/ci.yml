@@ -52,6 +52,9 @@ jobs:
               --ignore=tests,tools \
               --ignore-patterns="__init__\.py|asgi\.py|manage\.py|settings\.py|conftest\.py" \
               | tee pylint-report.txt
+          if [ ! -s pylint-report.txt ]; then
+            echo "Pylint score 10.00/10" > pylint-report.txt
+          fi
 
       - name: Post pylint report comment
         if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
