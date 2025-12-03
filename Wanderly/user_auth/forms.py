@@ -7,6 +7,7 @@ User = get_user_model()
 
 
 class RegistrationForm(forms.Form):
+    """Collect the information needed to register a new user."""
 
     # Define form fields
     first_name = forms.CharField(max_length=150)
@@ -19,12 +20,14 @@ class RegistrationForm(forms.Form):
 
     # Check if email is already in use
     def clean_email(self):
+        """Ensure the submitted email address is unique."""
         email = self.cleaned_data["email"].lower()
         if User.objects.filter(email=email).exists():
             raise ValidationError("An account with this email already exists.")
         return email
 
     def clean(self):
+        """Validate matching passwords and enforce complexity."""
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
@@ -47,6 +50,7 @@ class RegistrationForm(forms.Form):
 
     # Save the user to the database
     def save(self):
+        """Persist a new user instance."""
         # Create a new Django auth in the database
         user = User.objects.create_user(
             username=self.cleaned_data["email"],
@@ -59,6 +63,7 @@ class RegistrationForm(forms.Form):
 
 # Allow authenticated users to update their password.
 class ChangePasswordForm(forms.Form):
+    """Allow authenticated users to update their password."""
     # Old password field for form
     old_password = forms.CharField(widget=forms.PasswordInput)
 
@@ -73,6 +78,7 @@ class ChangePasswordForm(forms.Form):
 
     # Initialize the form with the user instance
     def __init__(self, user, *args, **kwargs):
+        """Store the current user for validation."""
         self.user = user
         super().__init__(*args, **kwargs)
 
@@ -80,6 +86,7 @@ class ChangePasswordForm(forms.Form):
 
     # Ensure the provided current password is correct.
     def clean_old_password(self):
+        """Verify the submitted old password matches the current one."""
 
         # Get the old password from inputed data
         old_password = self.cleaned_data.get("old_password")
@@ -90,6 +97,7 @@ class ChangePasswordForm(forms.Form):
         return old_password
 
     def clean(self):
+        """Validate matching new passwords and complexity."""
         # Get the cleaned data from the form
         cleaned_data = super().clean()
 
@@ -114,6 +122,7 @@ class ChangePasswordForm(forms.Form):
 
     # Save the new password for the user
     def save(self):
+        """Persist the new password for the user."""
         # Get new password
         password = self.cleaned_data["new_password1"]
 
@@ -127,6 +136,7 @@ class ChangePasswordForm(forms.Form):
 
 # Allow authenticated users to reset their password via email.
 class ResetPasswordForm(forms.Form):
+    """Form used in the emailed password reset flow."""
 
     # Get new password field (main new pass)
     new_password1 = forms.CharField(
@@ -139,12 +149,14 @@ class ResetPasswordForm(forms.Form):
 
     # Initialize the form with the user instance
     def __init__(self, user, *args, **kwargs):
+        """Store the target user for validation."""
         self.user = user
         super().__init__(*args, **kwargs)
 
 # ---------------- form.is_valid() callers ----------------
 
     def clean(self):
+        """Validate matching new passwords and enforce validators."""
         # Get the cleaned data from the form
         cleaned_data = super().clean()
 
@@ -169,6 +181,7 @@ class ResetPasswordForm(forms.Form):
 
     # Save the new password for the user
     def save(self):
+        """Persist the new password on the user."""
         # Get new password
         password = self.cleaned_data["new_password1"]
 

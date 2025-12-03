@@ -1,9 +1,11 @@
+"""URL patterns for the budgets app."""
+
 from django.urls import path
 
-from . import views
+from .views import itinerary_budget
 
 app_name = "budgets"
 
 urlpatterns = [
-    path("", views.itinerary_budget, name="itinerary_budget"),
+    path("", itinerary_budget, name="itinerary_budget"),
 ]

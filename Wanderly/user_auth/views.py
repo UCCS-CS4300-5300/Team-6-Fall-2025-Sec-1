@@ -4,7 +4,13 @@ import os
 """ Django imports """
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth import (
+    authenticate,
+    get_user_model,
+    login,
+    logout,
+    update_session_auth_hash,
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
@@ -27,8 +33,8 @@ from .forms import ChangePasswordForm, RegistrationForm, ResetPasswordForm
 User = get_user_model()
 
 
-"""Mask the local part of an email for display."""
 def _mask_email_address(email):
+    """Mask the local part of an email for display."""
     # Simple masking: show first and last character of local part, mask the rest
     if not email or "@" not in email:
         return email
@@ -42,8 +48,8 @@ def _mask_email_address(email):
 
 # --------------------- user authentication views --------------------- #
 
-"""  Sign in an existing user """
 def sign_in(request):
+    """Render the login form and handle credentials submission."""
     form = AuthenticationForm(request, data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -58,8 +64,8 @@ def sign_in(request):
     return render(request, "registration/login.html", {"form": form})
 
 
-""" Register a new user """
 def register(request):
+    """Create a new user account and log them in."""
     # Get registration form
     form = RegistrationForm(request.POST or None)
 
@@ -93,8 +99,8 @@ def register(request):
     return render(request, "registration/register.html", {"form": form})
 
 
-""" Sign out the user """
 def sign_out(request):
+    """Clear the current session and redirect home."""
     # logout the user
     logout(request)
 
@@ -108,9 +114,9 @@ def sign_out(request):
     return redirect("index")
 
 
-""" Allow authenticated users to change their password. """
 @login_required(login_url=reverse_lazy("sign_in"))
 def reset_password(request):
+    """Allow an authenticated user to change their password."""
 
     # If the form is submitted
     if request.method == "POST":
@@ -131,12 +137,9 @@ def reset_password(request):
     return render(request, "registration/changePass.html", {"form": form})
 
 
-""" Contact google for login and create or sign in user """
 @csrf_exempt
 def auth_receiver(request):
-    """
-    Handle the POST request from Google's sign-in widget and authenticate the user in Django.
-    """
+    """Handle the Google sign-in callback and log the user in."""
 
     # Only allow POST requests from the Google callback
     if request.method != "POST":
@@ -199,8 +202,8 @@ def auth_receiver(request):
     return redirect("index")
 
 
-""" Forgot password - Get email request page """
 def forgot_password_request(request):
+    """Display and process the forgot-password request form."""
     # Get password reset form
     form = PasswordResetForm(request.POST or None)
 
@@ -235,8 +238,8 @@ def forgot_password_request(request):
 
     return render(request, "registration/forgotPassRequest.html", {"form": form})
 
-""" Forgot password - Tells user to check their email """
 def forgot_password_check_email(request):
+    """Show the countdown and masked email after a reset link is sent."""
 
     # Get the email from session
     email = request.session.get("password_reset_email")
@@ -253,8 +256,8 @@ def forgot_password_check_email(request):
     return render(request, "registration/forgotPassCheckEmail.html", context)
 
 
-""" Forgot password - resend using the stored email """
 def forgot_password_resend(request):
+    """Send another reset email using the address stored in session."""
 
     # Get the email from session
     email = request.session.get("password_reset_email")
@@ -286,8 +289,8 @@ def forgot_password_resend(request):
     return redirect("forgot_password_check_email")
 
 
-""" Forgot password page - Page to set new password """
 def forgot_password_set(request, uidb64, token):
+    """Validate the reset token and accept a new password."""
     # Decode the user ID from the base64 string
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -321,7 +324,7 @@ def forgot_password_set(request, uidb64, token):
     return render(request, "registration/forgotPassSet.html", {"form": form})
 
 
-""" Forgot password page - Confirmation page """
 def forgot_password_complete(request):
+    """Render a confirmation screen once the password is reset."""
     # Render the password reset complete page
     return render(request, "registration/forgotPassComplete.html")

@@ -1,3 +1,4 @@
+"""Views for managing time preference settings."""
 import json
 import uuid
 from pathlib import Path
@@ -8,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 
+from .constants import TIME_PREFERENCE_FIELDS
 from .forms import TimePreferenceForm
 
 
@@ -57,22 +59,7 @@ def itinerary(request):
     else:
         initial = None
         if last_pref:
-            initial = model_to_dict(
-                last_pref,
-                fields=[
-                    "wake_up_time",
-                    "sleep_time",
-                    "enable_meals",
-                    "breakfast_time",
-                    "lunch_time",
-                    "dinner_time",
-                    "break_frequency",
-                    "break_duration",
-                    "schedule_strictness",
-                    "preferred_start_time",
-                    "preferred_end_time",
-                ],
-            )
+            initial = model_to_dict(last_pref, fields=TIME_PREFERENCE_FIELDS)
         form = TimePreferenceForm(initial=initial)
 
     return render(

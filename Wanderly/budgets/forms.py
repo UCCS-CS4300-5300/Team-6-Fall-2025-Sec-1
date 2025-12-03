@@ -1,10 +1,14 @@
+"""Form helpers for collecting budget data."""
+
 from django import forms
 from django.forms import formset_factory
 
 from .models import BudgetItem
 
- 
+
 class BudgetItemForm(forms.ModelForm):
+    """Model form that enforces category-specific validation rules."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         category_field = self.fields["category"]
@@ -54,13 +58,6 @@ class BudgetItemForm(forms.ModelForm):
             self.add_error("amount", "Enter a budget amount.")
 
         return cleaned_data
-
-    def save(self, budget, commit=True):
-        item = super().save(commit=False)
-        item.budget = budget
-        if commit:
-            item.save()
-        return item
 
 
 BudgetItemFormSet = formset_factory(BudgetItemForm, extra=1, can_delete=False)
