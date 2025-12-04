@@ -22,6 +22,68 @@
                         <p class="header-subtitle">
                             AI-crafted plan for {{ itinerary.num_days }} day{{ itinerary.num_days|pluralize }}
                         </p>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-4">
+                                <div class="mini-stat">
+                                    <p class="text-muted mb-1">Dates</p>
+                                    <p class="mb-0 fw-semibold">
+                                        {{ itinerary.start_date|date:"M d, Y" }} – {{ itinerary.end_date|date:"M d, Y" }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mini-stat">
+                                    <p class="text-muted mb-1">Trip Style</p>
+                                    <p class="mb-0 fw-semibold">{{ itinerary.get_trip_purpose_display }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mini-stat">
+                                    <p class="text-muted mb-1">Travelers</p>
+                                    <p class="mb-0 fw-semibold">
+                                        {{ itinerary.party_adults }} adult{{ itinerary.party_adults|pluralize }}
+                                        {% if itinerary.party_children %}
+                                            &amp; {{ itinerary.party_children }} child{{ itinerary.party_children|pluralize }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% if itinerary.arrival_datetime or itinerary.departure_datetime %}
+                        <div class="row g-3 mt-2">
+                            {% if itinerary.arrival_datetime %}
+                            <div class="col-md-6">
+                                <div class="mini-stat border-top pt-2">
+                                    <p class="text-muted mb-1">Arrival Flight</p>
+                                    <p class="mb-0 fw-semibold">
+                                        {{ itinerary.arrival_datetime|date:"M d, Y @ h:i A" }}
+                                        {% if itinerary.arrival_airport %}via {{ itinerary.arrival_airport }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if itinerary.departure_datetime %}
+                            <div class="col-md-6">
+                                <div class="mini-stat border-top pt-2">
+                                    <p class="text-muted mb-1">Departure Flight</p>
+                                    <p class="mb-0 fw-semibold">
+                                        {{ itinerary.departure_datetime|date:"M d, Y @ h:i A" }}
+                                        {% if itinerary.departure_airport %}from {{ itinerary.departure_airport }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="row g-3 mt-2">
+                            <div class="col-12">
+                                <div class="mini-stat border-top pt-2">
+                                    <p class="text-muted mb-1">Flights</p>
+                                    <p class="mb-0">No flight information provided.</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="card mb-4">
@@ -68,18 +130,49 @@
                                 </div>
                             </div>
 
-                            {% if trip_days %}
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-1">Hotel Plans</h6>
+                                    {% if itinerary.hotel_name or itinerary.hotel_address or itinerary.hotel_check_in or itinerary.hotel_check_out %}
+                                    <ul class="mb-0 ps-3">
+                                        {% if itinerary.hotel_name %}
+                                        <li>{{ itinerary.hotel_name }}</li>
+                                        {% endif %}
+                                        {% if itinerary.hotel_address %}
+                                        <li>{{ itinerary.hotel_address }}</li>
+                                        {% endif %}
+                                        {% if itinerary.hotel_check_in %}
+                                        <li>Check-in: {{ itinerary.hotel_check_in|date:"M d, Y @ h:i A" }}</li>
+                                        {% endif %}
+                                        {% if itinerary.hotel_check_out %}
+                                        <li>Check-out: {{ itinerary.hotel_check_out|date:"M d, Y @ h:i A" }}</li>
+                                        {% endif %}
+                                    </ul>
+                                    {% else %}
+                                    <p class="mb-0">No hotel information provided.</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-1">Dietary &amp; Mobility Notes</h6>
+                                    <p class="mb-1">{{ itinerary.dietary_notes|default:"No dietary information provided." }}</p>
+                                    <p class="mb-0 text-muted">{{ itinerary.mobility_notes|default:"No mobility information provided." }}</p>
+                                </div>
+                            </div>
+
+                            {% if day_notes_display %}
                             <hr />
                             <h6 class="text-muted mb-2">Day Notes</h6>
                             <ul class="mb-0 ps-3">
-                                {% for day in trip_days %}
-                                {% if day.notes %}
+                                {% for entry in day_notes_display %}
                                 <li>
-                                    Day {{ day.day_number }} ({{ day.date }}): {{ day.notes }}
+                                    Day {{ entry.day_number }} ({{ entry.date }}): {{ entry.text }}
                                 </li>
-                                {% endif %}
                                 {% endfor %}
                             </ul>
+                            {% else %}
+                            <hr />
+                            <h6 class="text-muted mb-2">Day Notes</h6>
+                            <p class="mb-0 text-muted">No per-day notes were provided.</p>
                             {% endif %}
                         </div>
                     </div>
@@ -87,15 +180,49 @@
                     <section class="itinerary-days-section">
                         {% if ai_itinerary_days %}
                             {% for day in ai_itinerary_days %}
-                            <div class="day-itinerary-card">
+                            <div class="day-itinerary-card" data-day-card data-day-number="{{ day.day_number }}">
                                 <div class="day-header">
-                                    <div class="day-badge">Day {{ day.day_number }}</div>
-                                    <h3>{{ day.title }}</h3>
+                                    <div class="day-heading">
+                                        <div class="day-badge">Day {{ day.day_number }}</div>
+                                        <h3>{{ day.title }}</h3>
+                                    </div>
+                                    <button type="button" class="route-day-btn" data-route-day-btn>
+                                        <i class="bi bi-signpost-split"></i>
+                                        Map This Day
+                                    </button>
                                 </div>
+                            {% if day.form_day %}
+                            <div class="day-annotations px-3 py-2">
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if day.form_day.wake_override or day.form_day.bed_override %}
+                                    <span class="meta-badge">
+                                        Custom rhythm:
+                                        {{ day.form_day.wake_override|default:itinerary.wake_up_time|time:"g:i A" }}
+                                        –
+                                        {{ day.form_day.bed_override|default:itinerary.bed_time|time:"g:i A" }}
+                                    </span>
+                                    {% endif %}
+                                    {% if day.form_day.must_do %}
+                                    <span class="meta-badge badge-mustdo">
+                                        <i class="bi bi-star-fill"></i>
+                                        Must-do: {{ day.form_day.must_do }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% if day.form_day.constraints %}
+                                <p class="text-muted small mb-0 mt-2">
+                                    Constraints: {{ day.form_day.constraints }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
 
-                                <div class="activities-list">
+                            <div class="activities-list">
                                     {% for activity in day.activities %}
-                                    <div class="activity-item" data-place-query="{{ activity.name }} {{ itinerary.destination }}">
+                                    <div class="activity-item"
+                                         data-place-query="{{ activity.place_query|default:'' }}"
+                                         data-requires-place="{{ activity.requires_place|yesno:'true,false' }}"
+                                         data-day-weekday="{% if day.form_day %}{{ day.form_day.date|date:'l' }}{% endif %}">
                                         <div class="activity-time">
                                             <i class="bi bi-clock"></i>
                                             <span>{{ activity.time }}</span>
@@ -106,25 +233,45 @@
                                                     <h4>{{ activity.name }}</h4>
                                                     <p>{{ activity.description }}</p>
                                                 </div>
+                                                {% if activity.requires_place %}
                                                 <div class="activity-rating badge bg-light text-dark" data-rating>
                                                     <span class="text-muted">Loading...</span>
                                                 </div>
+                                                {% endif %}
                                             </div>
-                                            <div class="activity-meta">
-                                                {% if activity.duration %}
-                                                <span class="meta-badge">
-                                                    <i class="bi bi-hourglass-split"></i> {{ activity.duration }}
-                                                </span>
+                                             <div class="activity-meta">
+                                                 {% if activity.duration %}
+                                                 <span class="meta-badge">
+                                                     <i class="bi bi-hourglass-split"></i> {{ activity.duration }}
+                                                 </span>
                                                 {% endif %}
                                                 {% if activity.cost_estimate %}
                                                 <span class="meta-badge">
                                                     <i class="bi bi-cash"></i> {{ activity.cost_estimate }}
                                                 </span>
                                                 {% endif %}
-                                            </div>
-                                            <button type="button" class="btn reviews-btn mt-2" data-review-btn disabled>
-                                                View Reviews
-                                            </button>
+                                             </div>
+                                             {% if activity.requires_place %}
+                                             <div class="activity-place-details d-none" data-place-details>
+                                                 <div class="place-line d-none" data-place-name-line>
+                                                     <i class="bi bi-shop"></i>
+                                                     <span data-place-name></span>
+                                                 </div>
+                                                 <div class="place-line d-none" data-place-address-line>
+                                                     <i class="bi bi-geo-alt"></i>
+                                                     <span data-place-address></span>
+                                                 </div>
+                                                 <div class="place-line d-none" data-place-hours-line>
+                                                     <i class="bi bi-clock-history"></i>
+                                                     <span data-place-hours></span>
+                                                 </div>
+                                             </div>
+                                             {% endif %}
+                                             {% if activity.requires_place %}
+                                             <button type="button" class="btn reviews-btn mt-2" data-review-btn disabled>
+                                                 View Reviews
+                                             </button>
+                                             {% endif %}
                                         </div>
                                     </div>
                                     {% endfor %}
@@ -174,6 +321,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             (function () {
+                const routingBaseUrl = "{% url 'google_routing:route_demo' %}";
                 const csrfTokenInput = document.getElementById("itineraryCsrfToken");
                 const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
                 const reviewsModalEl = document.getElementById("reviewsModal");
@@ -195,6 +343,26 @@
                         }
                     }
                     return stars.join("");
+                }
+
+                function formatHoursText(data, weekday) {
+                    if (!data || typeof data !== "object") {
+                        return "";
+                    }
+                    const hoursArr = Array.isArray(data.hours) ? data.hours : [];
+                    if (hoursArr.length) {
+                        if (weekday) {
+                            const match = hoursArr.find((entry) => entry.toLowerCase().startsWith(weekday.toLowerCase()));
+                            if (match) {
+                                return match;
+                            }
+                        }
+                        return hoursArr.slice(0, 2).join(" | ");
+                    }
+                    if (typeof data.open_now === "boolean") {
+                        return data.open_now ? "Open now" : "Currently closed";
+                    }
+                    return data.primary_type || "";
                 }
 
                 function setUnavailableState(item, message) {
@@ -221,12 +389,23 @@
 
                     const ratingEl = item.querySelector("[data-rating]");
                     const reviewsButton = item.querySelector("[data-review-btn]");
+                    const detailsWrapper = item.querySelector("[data-place-details]");
+                    const nameLine = item.querySelector("[data-place-name-line]");
+                    const addressLine = item.querySelector("[data-place-address-line]");
+                    const hoursLine = item.querySelector("[data-place-hours-line]");
+                    const nameTarget = item.querySelector("[data-place-name]");
+                    const addressTarget = item.querySelector("[data-place-address]");
+                    const hoursTarget = item.querySelector("[data-place-hours]");
+                    const weekday = item.dataset.dayWeekday || "";
                     if (!ratingEl) {
                         return;
                     }
 
                     const reviews = Array.isArray(data.reviews) ? data.reviews : [];
                     item.dataset.placeName = data.name || item.dataset.placeQuery;
+                    if (data.address) {
+                        item.dataset.placeAddress = data.address;
+                    }
                     item.dataset.reviews = JSON.stringify(reviews);
 
                     if (!data.rating) {
@@ -240,18 +419,57 @@
                         ratingEl.innerHTML = ratingMarkup;
                     }
 
-                    if (!reviews.length) {
-                        reviewsButton.disabled = true;
-                        reviewsButton.textContent = "No Reviews";
-                    } else {
-                        reviewsButton.disabled = false;
-                        reviewsButton.textContent = "View Reviews";
+                    if (reviewsButton) {
+                        if (!reviews.length) {
+                            reviewsButton.disabled = true;
+                            reviewsButton.textContent = "No Reviews";
+                        } else {
+                            reviewsButton.disabled = false;
+                            reviewsButton.textContent = "View Reviews";
+                        }
+                    }
+
+                    let showAnyDetail = false;
+                    if (detailsWrapper) {
+                        if (nameTarget && nameLine) {
+                            if (data.name) {
+                                nameTarget.textContent = data.name;
+                                nameLine.classList.remove("d-none");
+                                showAnyDetail = true;
+                            } else {
+                                nameTarget.textContent = "";
+                                nameLine.classList.add("d-none");
+                            }
+                        }
+                        if (addressTarget && addressLine) {
+                            if (data.address) {
+                                addressTarget.textContent = data.address;
+                                addressLine.classList.remove("d-none");
+                                showAnyDetail = true;
+                            } else {
+                                addressTarget.textContent = "";
+                                addressLine.classList.add("d-none");
+                            }
+                        }
+                        const hoursText = formatHoursText(data, weekday);
+                        if (hoursTarget && hoursLine) {
+                            if (hoursText) {
+                                hoursTarget.textContent = hoursText;
+                                hoursLine.classList.remove("d-none");
+                                showAnyDetail = true;
+                            } else {
+                                hoursTarget.textContent = "";
+                                hoursLine.classList.add("d-none");
+                            }
+                        }
+                        detailsWrapper.classList.toggle("d-none", !showAnyDetail);
                     }
                 }
 
                 document.querySelectorAll(".activity-item").forEach((item) => {
-                    const query = item.dataset.placeQuery;
-                    if (!query) {
+                    const requiresPlace = item.dataset.requiresPlace !== "false";
+                    const query = (item.dataset.placeQuery || '').trim();
+                    if (!requiresPlace || !query) {
                         return;
                     }
 
@@ -297,6 +515,34 @@
                                 .join("");
                         }
                         reviewsModal.show();
+                    });
+                });
+
+                document.querySelectorAll("[data-route-day-btn]").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        const card = button.closest("[data-day-card]");
+                        if (!card) {
+                            return;
+                        }
+                        const stops = [];
+                        card.querySelectorAll(".activity-item").forEach((item) => {
+                            if ((item.dataset.requiresPlace || "false") === "false") {
+                                return;
+                            }
+                            const resolved = (item.dataset.placeAddress || item.dataset.placeName || item.dataset.placeQuery || "").trim();
+                            if (resolved) {
+                                stops.push(resolved);
+                            }
+                        });
+                        if (stops.length < 2) {
+                            window.alert("Need at least two places with addresses to build a route for this day.");
+                            return;
+                        }
+                        const params = new URLSearchParams();
+                        params.set("n", Math.max(2, stops.length));
+                        stops.forEach((stop) => params.append("stops", stop));
+                        const url = `${routingBaseUrl}?${params.toString()}`;
+                        window.open(url, "_blank");
                     });
                 });
             })();

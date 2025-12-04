@@ -1,13 +1,14 @@
 """
 Unit tests for itinerary views.py
 """
-from datetime import time
+from datetime import date, datetime, time
 
 import json
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
 
 from django.conf import settings
+from django.utils import timezone
 
 TEMPLATE_STRINGS = {
     "itinerary.html": "itinerary template",
@@ -83,18 +84,43 @@ class ItineraryViewTests(TestCase):
         self.url = reverse('itinerary:itinerary')
         self.valid_post_data = {
             'destination': 'Paris',
+            'place_id': 'some-place',
+            'latitude': '48.8566',
+            'longitude': '2.3522',
             'num_days': 2,
+            'start_date': '2025-01-01',
+            'end_date': '2025-01-02',
             'wake_up_time': '08:00',
             'bed_time': '22:00',
+            'energy_level': 'balanced',
+            'include_breakfast': 'on',
+            'include_lunch': 'on',
+            'include_dinner': 'on',
+            'dietary_notes': '',
+            'mobility_notes': '',
+            'trip_purpose': 'leisure',
+            'party_adults': 2,
+            'party_children': 0,
+            'arrival_datetime': '',
+            'arrival_airport': '',
+            'departure_datetime': '',
+            'departure_airport': '',
+            'overall_budget_min': '1000',
+            'overall_budget_max': '2500',
+            'activity_priorities': '1. Eiffel Tower\n2. Seine Cruise',
+            'mood_tags': 'relaxing,cultural',
             'break_start_time[]': ['12:00'],
             'break_end_time[]': ['13:00'],
+            'break_purpose[]': ['Lunch'],
             'budget_category[]': ['Food'],
             'budget_custom_category[]': [''],
             'budget_amount[]': ['500'],
             'day_1_date': '2025-01-01',
             'day_1_notes': 'Visit Eiffel Tower',
+            'day_1_must_do': 'Eiffel Tower top view',
             'day_2_date': '2025-01-02',
             'day_2_notes': '',
+            'day_2_must_do': '',
         }
 
     def _mock_openai(self, mock_openai, ai_response=None):
@@ -193,7 +219,18 @@ class ItineraryViewTests(TestCase):
 
     def test_invalid_form_shows_error(self):
         """Test invalid form displays error message"""
-        invalid_data = {'destination': '', 'num_days': 3}
+        invalid_data = {
+            'destination': '',
+            'start_date': '2025-01-01',
+            'end_date': '2025-01-03',
+            'num_days': 3,
+            'wake_up_time': '08:00',
+            'bed_time': '22:00',
+            'energy_level': 'balanced',
+            'trip_purpose': 'leisure',
+            'party_adults': 1,
+            'party_children': 0,
+        }
         response = self.client.post(self.url, invalid_data)
         
         self.assertEqual(Itinerary.objects.count(), 0)
@@ -209,16 +246,40 @@ class OpenAIIntegrationTests(TestCase):
         self.url = reverse('itinerary:itinerary')
         self.post_data = {
             'destination': 'Tokyo',
+            'place_id': 'tokyo',
+            'latitude': '35.6762',
+            'longitude': '139.6503',
             'num_days': 1,
+            'start_date': '2025-02-01',
+            'end_date': '2025-02-01',
             'wake_up_time': '07:00',
             'bed_time': '23:00',
+            'energy_level': 'high',
+            'include_breakfast': 'on',
+            'include_lunch': 'on',
+            'include_dinner': 'on',
+            'dietary_notes': '',
+            'mobility_notes': '',
+            'trip_purpose': 'adventure',
+            'party_adults': 1,
+            'party_children': 0,
+            'arrival_datetime': '',
+            'arrival_airport': '',
+            'departure_datetime': '',
+            'departure_airport': '',
+            'overall_budget_min': '500',
+            'overall_budget_max': '1500',
+            'activity_priorities': '',
+            'mood_tags': '',
             'break_start_time[]': ['12:00'],
             'break_end_time[]': ['13:00'],
+            'break_purpose[]': ['Lunch'],
             'budget_category[]': ['Food'],
             'budget_custom_category[]': [''],
             'budget_amount[]': ['1000'],
             'day_1_date': '2025-02-01',
             'day_1_notes': 'Explore temples',
+            'day_1_must_do': 'Senso-ji Temple',
         }
 
     def _mock_openai(self, mock_openai, ai_data=None):
@@ -257,7 +318,12 @@ class OpenAIIntegrationTests(TestCase):
         self.assertEqual(itinerary.ai_itinerary, ai_data['days'])
 
         # And should be available in the detail page context after redirect
-        self.assertEqual(response.context['ai_itinerary_days'], ai_data['days'])
+        rendered_days = response.context['ai_itinerary_days']
+        simplified = [
+            {k: v for k, v in day.items() if k != "form_day"}
+            for day in rendered_days
+        ]
+        self.assertEqual(simplified, ai_data['days'])
 
     @patch('itinerary.views.OpenAI')
     def test_openai_error_shows_message_but_creates_itinerary(self, mock_openai):
@@ -300,11 +366,21 @@ class ItineraryDetailTemplateTests(TestCase):
     """Ensure the itinerary detail template renders expected review controls."""
 
     def setUp(self):
+        arrival_dt = timezone.make_aware(datetime(2025, 3, 1, 8, 0))
+        departure_dt = timezone.make_aware(datetime(2025, 3, 5, 18, 0))
         self.itinerary = Itinerary.objects.create(
             destination="Paris",
             wake_up_time=time(8, 0),
             bed_time=time(22, 0),
-            num_days=1,
+            start_date=date(2025, 3, 1),
+            end_date=date(2025, 3, 5),
+            trip_purpose="leisure",
+            party_adults=2,
+            party_children=0,
+            arrival_airport="CDG",
+            arrival_datetime=arrival_dt,
+            departure_airport="CDG",
+            departure_datetime=departure_dt,
         )
         self.itinerary.ai_itinerary = [
             {
@@ -322,6 +398,16 @@ class ItineraryDetailTemplateTests(TestCase):
             }
         ]
         self.itinerary.save(update_fields=["ai_itinerary"])
+        Day.objects.create(
+            itinerary=self.itinerary,
+            day_number=1,
+            date=date(2025, 3, 1),
+            notes="Visit Louvre",
+            must_do="Louvre highlights tour",
+            constraints="Dinner at 8 PM",
+            wake_override=time(9, 0),
+            bed_override=time(23, 0),
+        )
 
     def _get_detail_response(self):
         url = reverse("itinerary:itinerary_detail", args=[self.itinerary.access_code])

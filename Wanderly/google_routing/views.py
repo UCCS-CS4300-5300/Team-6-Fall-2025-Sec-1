@@ -91,7 +91,17 @@ def route_demo(request):
         n = 2
     n = max(2, min(n, 10))  # sane bounds
 
-    forms_list = [AddressForm(prefix=f"f{i}") for i in range(n)]
+    stops = [s.strip() for s in request.GET.getlist("stops") if s.strip()]
+    if len(stops) > 10:
+        stops = stops[:10]
+    if stops:
+        n = max(n, min(len(stops), 10))
+
+    forms_list = []
+    for i in range(n):
+        initial = {"address": stops[i]} if i < len(stops) else None
+        forms_list.append(AddressForm(prefix=f"f{i}", initial=initial))
+
     return render(
         request,
         "google_routing/route_demo.html",

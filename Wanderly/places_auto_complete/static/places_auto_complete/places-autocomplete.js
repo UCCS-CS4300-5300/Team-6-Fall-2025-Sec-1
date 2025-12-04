@@ -37,9 +37,21 @@
       pac.style.minHeight = "50px";
       // Copy placeholder for consistency
       pac.setAttribute("placeholder", originalInput.getAttribute("placeholder") || "");
+      const initialValue = originalInput.value;
       
       // Insert the PAC and hide original input
       originalInput.insertAdjacentElement("beforebegin", pac);
+      const syncOriginalFromPac = () => {
+        originalInput.value = pac.value || "";
+      };
+      pac.addEventListener("input", syncOriginalFromPac);
+      pac.addEventListener("change", syncOriginalFromPac);
+      if (initialValue) {
+        pac.value = initialValue;
+        pac.setAttribute("value", initialValue);
+        originalInput.value = initialValue;
+        requestAnimationFrame(syncOriginalFromPac);
+      }
       originalInput.style.display = "none";
 
       // Ensure pressing Enter submits the form even inside shadow DOM
@@ -103,6 +115,11 @@
         const lng = place.location ? place.location.lng() : "";
         setTarget("data-lat-target", lat);
         setTarget("data-lng-target", lng);
+        const displayName =
+          (place.displayName && (place.displayName.text || place.displayName)) ||
+          place.name ||
+          "";
+        setTarget("data-name-target", displayName);
 
         // Optional: notify other scripts
         originalInput.dispatchEvent(new CustomEvent("places:changed", { detail: { place, lat, lng } }));
