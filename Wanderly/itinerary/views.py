@@ -18,76 +18,94 @@ from .models import BreakTime, BudgetItem, Day, Itinerary
 
 def _create_break_times(request, itinerary_obj: Itinerary) -> None:
     """Create BreakTime rows from POSTed form data."""
+    # Grab the three parallel arrays from the form submission.
     break_start_times = request.POST.getlist("break_start_time[]")
     break_end_times = request.POST.getlist("break_end_time[]")
     break_purposes = request.POST.getlist("break_purpose[]")
 
+    # Use the longest list length so we don't miss partially completed rows.
     max_length = max(len(break_start_times), len(break_end_times), len(break_purposes))
     for idx in range(max_length):
+        # Safely pull each element by index, falling back to blank strings.
         start = break_start_times[idx] if idx < len(break_start_times) else ""
         end = break_end_times[idx] if idx < len(break_end_times) else ""
         purpose = break_purposes[idx] if idx < len(break_purposes) else ""
-        if start and end:
-            # pylint: disable=no-member
-            BreakTime.objects.create(
-                itinerary=itinerary_obj,
-                start_time=start,
-                end_time=end,
-                purpose=purpose.strip(),
-            )
+        # If either the start or end time is missing, skip this row.
+        if not (start and end):
+            continue
+        # Persist the valid break slot for the current itinerary.
+        # pylint: disable=no-member
+        BreakTime.objects.create(
+            itinerary=itinerary_obj,
+            start_time=start,
+            end_time=end,
+            purpose=purpose.strip(),
+        )
 
 def _create_budget_items(request, itinerary_obj: Itinerary) -> None:
     """Create BudgetItem rows from POSTed form data."""
+    # Pull the arrays for category, optional custom label, and amount.
     budget_categories = request.POST.getlist("budget_category[]")
     budget_custom_categories = request.POST.getlist("budget_custom_category[]")
     budget_amounts = request.POST.getlist("budget_amount[]")
 
+    # Walk the triplets together so each row is created with matching values.
     for category, custom_category, amount in zip(
         budget_categories,
         budget_custom_categories,
         budget_amounts,
     ):
-        if amount:  # Only save if amount is provided
-            # pylint: disable=no-member
-            BudgetItem.objects.create(
-                itinerary=itinerary_obj,
-                category=category,
-                custom_category=(custom_category if category == "Other" else ""),
-                amount=amount,
-            )
+        # Skip rows without a numeric amount.
+        if not amount:
+            continue
+        # Create a BudgetItem, storing a custom label only when "Other" is chosen.
+        # pylint: disable=no-member
+        BudgetItem.objects.create(
+            itinerary=itinerary_obj,
+            category=category,
+            custom_category=(custom_category if category == "Other" else ""),
+            amount=amount,
+        )
 
 
 def _create_days(request, itinerary_obj: Itinerary) -> None:
     """Create Day rows from POSTed form data."""
+    # Use the server-side num_days value to avoid trusting client input.
     num_days = itinerary_obj.num_days
     for day_index in range(1, num_days + 1):
+        # Every generated day has a predictable field prefix (day_1_*, day_2_*, ...).
         day_date = request.POST.get(f"day_{day_index}_date")
+        if not day_date:
+            continue
+        # Pull the optional metadata for this day.
         day_notes = request.POST.get(f"day_{day_index}_notes", "")
-        wake_override = request.POST.get(f"day_{day_index}_wake_override")
-        bed_override = request.POST.get(f"day_{day_index}_bed_override")
+        wake_override = request.POST.get(f"day_{day_index}_wake_override") or None
+        bed_override = request.POST.get(f"day_{day_index}_bed_override") or None
         constraints = request.POST.get(f"day_{day_index}_constraints", "")
         must_do = request.POST.get(f"day_{day_index}_must_do", "")
 
-        if day_date:  # Only save if date is provided
-            # pylint: disable=no-member
-            Day.objects.create(
-                itinerary=itinerary_obj,
-                day_number=day_index,
-                date=day_date,
-                notes=day_notes,
-                wake_override=wake_override or None,
-                bed_override=bed_override or None,
-                constraints=constraints,
-                must_do=must_do,
-            )
+        # Persist the Day row so itinerary_detail has structured context.
+        # pylint: disable=no-member
+        Day.objects.create(
+            itinerary=itinerary_obj,
+            day_number=day_index,
+            date=day_date,
+            notes=day_notes,
+            wake_override=wake_override,
+            bed_override=bed_override,
+            constraints=constraints,
+            must_do=must_do,
+        )
 
 def _format_break_times(itinerary_obj: Itinerary) -> str:
     """Return a human-readable break time string for an itinerary."""
     # pylint: disable=no-member
     break_times = BreakTime.objects.filter(itinerary=itinerary_obj)
+    # When no entries exist we explicitly say "None".
     if not break_times.exists():
         return "None"
 
+    # Convert each break slot to "start-end" form and join with commas.
     return ", ".join(f"{bt.start_time}-{bt.end_time}" for bt in break_times)
 
 
@@ -95,17 +113,20 @@ def _format_budget(itinerary_obj: Itinerary) -> str:
     """Return a human-readable budget string for an itinerary."""
     # pylint: disable=no-member
     budget_items = BudgetItem.objects.filter(itinerary=itinerary_obj)
+    # A missing budget is treated as "Flexible" spending.
     if not budget_items.exists():
         return "Flexible"
 
     budget_parts: List[str] = []
     for item in budget_items:
+        # Use the custom label when the user provided one under "Other".
         label = (
             item.custom_category
             if item.category == "Other" and item.custom_category
             else item.category
         )
         budget_parts.append(f"{label}: ${item.amount}")
+    # Return a compact comma-separated summary.
     return ", ".join(budget_parts)
 
 
@@ -115,6 +136,7 @@ def _format_day_notes(itinerary_obj: Itinerary) -> str:
     day_notes_qs = Day.objects.filter(itinerary=itinerary_obj).order_by("day_number")
     day_note_lines = []
     for day in day_notes_qs:
+        # Build up a list of snippets for this day (notes, must-do, etc.).
         fragments = []
         if day.notes:
             fragments.append(day.notes)
@@ -139,6 +161,7 @@ def _format_day_notes(itinerary_obj: Itinerary) -> str:
 
 def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     """Build the user message sent to the OpenAI model."""
+    # Core itinerary values needed throughout the prompt.
     destination = getattr(itinerary_obj, "destination", "")
     wake_time = getattr(itinerary_obj, "wake_up_time", "")
     bed_time = getattr(itinerary_obj, "bed_time", "")
@@ -149,19 +172,23 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     adults = getattr(itinerary_obj, "party_adults", 1)
     children = getattr(itinerary_obj, "party_children", 0)
 
+    # Pre-compute helper strings before building the large prompt template.
     break_times_str = _format_break_times(itinerary_obj)
     budget_str = _format_budget(itinerary_obj)
     extra_notes = _format_day_notes(itinerary_obj)
+    # Build a readable date range (or fallback to flexible wording).
     date_range = ""
     if start_date and end_date:
         date_range = f"{start_date:%B %d, %Y} through {end_date:%B %d, %Y}"
     elif start_date:
         date_range = f"Start date: {start_date:%B %d, %Y}"
 
+    # Summarize how many adults/children are traveling.
     party_summary = f"{adults} adult{'s' if adults != 1 else ''}"
     if children:
         party_summary += f" and {children} child{'ren' if children != 1 else ''}"
 
+    # Build a basic meal line so the AI knows which meals to schedule.
     meal_preferences = []
     if itinerary_obj.include_breakfast:
         meal_preferences.append("breakfast")
@@ -171,6 +198,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
         meal_preferences.append("dinner")
     meals_line = ", ".join(meal_preferences) if meal_preferences else "No planned meals"
 
+    # Flights are optional. Provide a bullet per direction so the AI respects buffers.
     flight_lines = []
     if itinerary_obj.arrival_datetime:
         arrival_airport = itinerary_obj.arrival_airport or "unspecified airport"
@@ -186,6 +214,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
         )
     flight_block = "\n".join(flight_lines) or "No flights provided."
 
+    # Summarize the lodging plan, defaulting to "Hotel TBD" so the model doesn't invent one.
     hotel_summary = "Hotel TBD"
     if (
         itinerary_obj.hotel_address
@@ -204,6 +233,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
             hotel_parts.append(f"Check-out {itinerary_obj.hotel_check_out:%B %d at %I:%M %p}")
         hotel_summary = " | ".join(hotel_parts)
 
+    # Inform the AI of the general season to avoid suggesting out-of-season attractions.
     season_hint = ""
     ref_date = start_date or end_date
     if ref_date:
@@ -217,6 +247,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
         else:
             season_hint = f"Travel month: {ref_date:%B} (autumn conditions)."
 
+    # Gather any per-day overrides to feed into the prompt in a machine-friendly list.
     override_lines = []
     # pylint: disable=no-member
     for day in Day.objects.filter(itinerary=itinerary_obj).order_by("day_number"):
@@ -226,6 +257,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
             )
     overrides_block = "\n".join(override_lines) or "None supplied; use the global wake/bed times."
 
+    # Compose the final multi-section prompt with all gathered data.
     return f"""
 You are Wanderly's itinerary planner bot. Produce a JSON-only response; do not include prose.
 
@@ -315,17 +347,22 @@ Rules:
 
 def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
     """Call OpenAI to generate an itinerary. Return a list of days or None."""
+    # Instantiate the client with the configured API key.
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    # Build the structured prompt text for this itinerary.
     user_message = _build_ai_prompt(itinerary_obj)
 
     try:
+        # Ask the model for a JSON object; OpenAI enforces structured output.
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": user_message}],
             response_format={"type": "json_object"},
         )
+        # Pull the JSON payload and parse it into a Python dict.
         ai_response = response.choices[0].message.content
         parsed = json.loads(ai_response)
+        # Return just the list of days, defaulting to [] when missing.
         return parsed.get("days", [])
     except (OpenAIError, json.JSONDecodeError, KeyError, ValueError):
         # The calling view is responsible for displaying a user-facing error.
@@ -333,17 +370,29 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
 
 
 def itinerary(request):
-    """View for creating and displaying itineraries."""
+    """
+    Render the itinerary builder or process a submission.
+
+    POST flow:
+      1. Validate/persist the Itinerary model.
+      2. Persist related rows (breaks, budgets, per-day customizations).
+      3. Call OpenAI for the JSON plan and store it (even if empty) for later viewing.
+    GET flow simply seeds an empty form. Validation errors fall through to re-render.
+    """
     if request.method == "POST":
+        # Bind POST data to the form for validation.
         form = ItineraryForm(request.POST)
 
         if form.is_valid():
+            # Persist the base Itinerary record.
             itinerary_obj = form.save()
 
+            # Persist nested data captured via dynamic JS controls.
             _create_break_times(request, itinerary_obj)
             _create_budget_items(request, itinerary_obj)
             _create_days(request, itinerary_obj)
 
+            # Kick off AI generation and store the structured result if present.
             ai_itinerary_days = _generate_ai_itinerary(itinerary_obj)
             if ai_itinerary_days is None:
                 messages.error(
@@ -358,11 +407,13 @@ def itinerary(request):
             messages.success(request, "Itinerary created successfully!")
             return redirect("itinerary:itinerary_detail", itinerary_obj.access_code)
 
-        # No `else` needed; if the form is invalid we fall through and re-render.
+        # Validation failed: fall through and re-render with errors.
         messages.error(request, "Please correct the errors below.")
     else:
+        # Render a blank form for GET requests.
         form = ItineraryForm()
 
+    # Render template with whichever form instance we have (blank or bound).
     context = {
         "form": form,
     }
@@ -374,6 +425,7 @@ def itinerary_detail(request, access_code: str):
     itinerary_obj = get_object_or_404(Itinerary, access_code=access_code.upper())
     ai_itinerary_days = itinerary_obj.ai_itinerary or []
     trip_days_qs = itinerary_obj.days.all()
+    # Quickly map day_number -> Day record for lookups later.
     day_lookup = {day.day_number: day for day in trip_days_qs}
     def format_time_label(value):
         """Format a time object for display without leading zero."""
@@ -386,6 +438,7 @@ def itinerary_detail(request, access_code: str):
         copied["form_day"] = day_lookup.get(day.get("day_number"))
         activities = copied.get("activities", [])
         for activity in activities:
+            # Normalize place data so templates only request reviews when a venue exists.
             place_query = (activity.get("place_query") or "").strip()
             requires_place = bool(place_query) and place_query.lower() != "not req"
             if not requires_place:
@@ -396,6 +449,7 @@ def itinerary_detail(request, access_code: str):
 
     day_notes_display = []
     for day in trip_days_qs:
+        # Build a semi-colon separated string for each stored Day entry.
         fragments = []
         if day.notes:
             fragments.append(day.notes)
@@ -418,6 +472,7 @@ def itinerary_detail(request, access_code: str):
                 }
             )
 
+    # Bundle everything needed by the template layer.
     context = {
         "itinerary": itinerary_obj,
         "ai_itinerary_days": enriched_days,
@@ -428,22 +483,31 @@ def itinerary_detail(request, access_code: str):
     }
 
     if not ai_itinerary_days:
+        # Surface a message when the AI output is missing/empty.
         messages.error(
             request,
             "This itinerary is missing generated details.",
         )
 
+    # Render the finalized page with enriched day data.
     return render(request, "itinerary_detail.html", context)
 
 def itinerary_list(request):
-    ''' Load the list of current itineraries '''
+    """Load the list of current itineraries."""
     return render(request, "itinerary_list.html")
 
 
 def _itinerary_error_response(request, is_ajax, message, status_code):
-    """Return a consistent error response for itinerary lookups."""
+    """
+    Return a consistent error response for itinerary lookups.
+
+    AJAX callers get JSON payloads so the front-end can surface errors inline,
+    while regular form submissions fall back to Django messages + redirect.
+    """
     if is_ajax:
+        # Return a structured response the front-end can consume.
         return JsonResponse({"ok": False, "error": message}, status=status_code)
+    # Non-AJAX flows rely on Django messages + redirect to the form.
     messages.error(request, message)
     return redirect("itinerary:itinerary")
 
