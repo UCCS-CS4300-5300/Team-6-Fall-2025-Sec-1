@@ -18,4 +18,5 @@ def places_js(context):
     places_auto_complete JS loader template so autocomplete functionality
     can be added to any HTML page.
     """
+    _ = context  # ensure context is consumed for template tag semantics
     return {"GOOGLE_MAPS_BROWSER_KEY": getattr(settings, "GOOGLE_MAPS_BROWSER_KEY", "")}

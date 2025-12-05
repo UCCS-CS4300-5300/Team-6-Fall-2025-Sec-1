@@ -33,7 +33,7 @@ from .prompt_utils import (
 
 def _create_break_times(request, itinerary_obj: Itinerary) -> None:
     """Create BreakTime rows from POSTed form data."""
-    
+
     # Extract the lists of break time fields from the POST data.
     break_start_times = request.POST.getlist("break_start_time[]")
     break_end_times = request.POST.getlist("break_end_time[]")
@@ -142,7 +142,7 @@ def _fetch_flight_details(flight_number: str) -> Optional[dict]:
     # Handle API-level errors indicated in the payload.
     if isinstance(payload, dict) and payload.get("error"):
         raise requests.RequestException(payload["error"].get("info", "API error"))
-    
+
     # Extract flight details from the response.
     flights = payload.get("data") or []
 
