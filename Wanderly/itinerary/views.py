@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -175,14 +176,20 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
         # The calling view is responsible for displaying a user-facing error.
         return None
 
-
+@login_required
 def itinerary(request):
     """View for creating and displaying itineraries."""
     if request.method == "POST":
         form = ItineraryForm(request.POST)
 
         if form.is_valid():
-            itinerary_obj = form.save()
+            itinerary_obj = form.save(commit=False)
+
+            # Setting each itinerary obj to a user
+            if request.user.is_authenticated:
+                itinerary_obj.user = request.user
+            
+            itinerary_obj.save()
 
             _create_break_times(request, itinerary_obj)
             _create_budget_items(request, itinerary_obj)
@@ -234,10 +241,11 @@ def itinerary_detail(request, access_code: str):
 
     return render(request, "itinerary_detail.html", context)
 
+@login_required
 def itinerary_list(request):
-    ''' Load the list of current itineraries '''
-    return render(request, "itinerary_list.html")
-
+    ''' Load the list of current itineraries for current user.'''
+    itineraries = Itinerary.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "itinerary_list.html", {"itineraries": itineraries})
 
 def _itinerary_error_response(request, is_ajax, message, status_code):
     """Return a consistent error response for itinerary lookups."""
