@@ -1,8 +1,7 @@
 """Controls the views and requests for the itinerary module."""
-# pylint: disable=too-many-lines
 import json
 import os
-from typing import List, Optional
+from typing import Optional
 import requests
 
 from django.conf import settings
@@ -16,11 +15,26 @@ from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
 from .models import BreakTime, BudgetItem, Day, Itinerary
+from .prompt_utils import (
+    _build_overrides_block,
+    _collect_additional_guidance,
+    _flight_prompt_details,
+    _format_break_times,
+    _format_budget,
+    _format_date_range,
+    _format_day_notes,
+    _hotel_plan_summary,
+    _meals_line,
+    _season_hint,
+    _summarize_party,
+    collect_day_fragments,
+)
 
 
 def _create_break_times(request, itinerary_obj: Itinerary) -> None:
     """Create BreakTime rows from POSTed form data."""
-    # Parallel arrays from the dynamic break inputs.
+    
+    # Extract the lists of break time fields from the POST data.
     break_start_times = request.POST.getlist("break_start_time[]")
     break_end_times = request.POST.getlist("break_end_time[]")
     break_purposes = request.POST.getlist("break_purpose[]")
@@ -88,7 +102,6 @@ def _create_days(request, itinerary_obj: Itinerary) -> None:
         constraints = request.POST.get(f"day_{day_index}_constraints", "")
         must_do = request.POST.get(f"day_{day_index}_must_do", "")
 
-        # pylint: disable=no-member
         Day.objects.create(
             itinerary=itinerary_obj,
             day_number=day_index,
@@ -100,165 +113,78 @@ def _create_days(request, itinerary_obj: Itinerary) -> None:
             must_do=must_do,
         )
 
-def _format_break_times(itinerary_obj: Itinerary) -> str:
-    """Return a human-readable break time string for an itinerary."""
-
-    # Query all break rows associated with this itinerary.
-    break_times = BreakTime.objects.filter(itinerary=itinerary_obj)
-
-    # When no entries exist we explicitly say "None".
-    if not break_times.exists():
-        return "None"
-
-    # Convert each break slot to "start-end" form and join with commas.
-    return ", ".join(f"{bt.start_time}-{bt.end_time}" for bt in break_times)
-
-
-def _format_budget(itinerary_obj: Itinerary) -> str:
-    """Return a human-readable budget string for an itinerary."""
-
-    # Query all budget rows associated with this itinerary.
-    budget_items = BudgetItem.objects.filter(itinerary=itinerary_obj)
-
-    # A missing budget is treated as "Flexible" spending.
-    if not budget_items.exists():
-        return "Flexible"
-
-    # Collect each formatted segment before return.
-    budget_parts: List[str] = []
-    for item in budget_items:
-        # Use the custom label when the user provided one under "Other".
-        label = (
-            item.custom_category
-            if item.category == "Other" and item.custom_category
-            else item.category
-        )
-        budget_parts.append(f"{label}: ${item.amount}")
-
-    # Return a compact comma-separated summary.
-    return ", ".join(budget_parts)
-
-
-def _format_day_notes(itinerary_obj: Itinerary) -> str:
-    """Return extra notes string describing per-day notes, if any."""
-    # pylint: disable=no-member
-    day_notes_qs = Day.objects.filter(itinerary=itinerary_obj).order_by("day_number")
-
-    # Store each day's notes string for later concatenation.
-    day_note_lines = []
-    for day in day_notes_qs:
-
-        # Build up a list of snippets for this day (notes, must-do, etc.).
-        fragments = []
-        if day.notes:
-            fragments.append(day.notes)
-        if day.must_do:
-            fragments.append(f"Must-do: {day.must_do}")
-        if day.constraints:
-            fragments.append(f"Constraints: {day.constraints}")
-        if day.wake_override or day.bed_override:
-            fragments.append(
-                f"Custom wake/bed: {day.wake_override or 'same'} / {day.bed_override or 'same'}"
-            )
-
-        # Only append entries that actually contain text.
-        if fragments:
-            joined = "; ".join(fragments)
-            day_note_lines.append(f"Day {day.day_number} ({day.date}): {joined}")
-
-    # When no per-day metadata exists we return an empty string.
-    if not day_note_lines:
-        return ""
-
-    # Combine all of the lines into a single summary block.
-    joined = "\n".join(day_note_lines)
-    return f"User preferences for specific days:\n{joined}\n\n"
-
-
-def _fetch_flight_details(flight_number: str) -> Optional[dict]:  # pylint: disable=too-many-locals
+def _fetch_flight_details(flight_number: str) -> Optional[dict]:
     """Call AviationStack to fetch flight details for a given flight number."""
 
     # Dont call API if we lack a flight number or API key.
     if not flight_number or not os.environ['AVIATIONSTACK_API_KEY']:
         return None
 
-    # Build the AviationStack query parameters using the supplied flight number.
+    # Build and send the request to AviationStack.
     params = {
         "access_key": os.environ['AVIATIONSTACK_API_KEY'],
         "flight_iata": flight_number.strip().upper(),
     }
 
-    # Call API to retrieve the flight data.
+    # Perform the HTTP GET request to the AviationStack API.
     response = requests.get(
         "http://api.aviationstack.com/v1/flights",
         params=params,
         timeout=15,
     )
 
-    # Raise for any HTTP errors to standardize error handling upstream.
+    # Raise an error for bad responses.
     response.raise_for_status()
 
-    # Parse the returned payload into JSON.
+    # Parse the JSON payload and handle API-level errors.
     payload = response.json()
 
-    # AviationStack can return error dicts instead of HTTP errors, so handle that.
+    # Handle API-level errors indicated in the payload.
     if isinstance(payload, dict) and payload.get("error"):
         raise requests.RequestException(payload["error"].get("info", "API error"))
-
-    # Grab the data array and gracefully handle empty responses.
+    
+    # Extract flight details from the response.
     flights = payload.get("data") or []
+
+    # Return None when no matching flights were found.
     if not flights:
         return None
 
-    # We only need the first matching flight for this UI flow.
+    # Inspect the first matching flight record.
     flight = flights[0]
 
-    # Extract the airline name for later display.
+    # Normalize the airline name and flight number.
     airline = (flight.get("airline") or {}).get("name") or ""
-
-    # Normalize the flight number field from the API.
     number = (flight.get("flight") or {}).get("iata") or flight_number
 
-    # Capture both the departure and arrival sections for reuse.
-    departure = flight.get("departure") or {}
-    arrival = flight.get("arrival") or {}
+    # Helper to extract details from a flight section.
+    def _extract(section_name: str) -> dict:
+        """Return code, name, and timestamp for a flight section."""
+        section = flight.get(section_name) or {}
+        return {
+            "code": section.get("iata") or "",
+            "name": section.get("airport") or "",
+            "time": section.get("scheduled") or section.get("estimated") or "",
+        }
 
-    def _extract(section):
-        """Return code, full name, and timestamp string for a flight section."""
-        # When the section is missing we return canonical empty values.
-        if not section:
-            return "", "", ""
+    # Extract departure and arrival info.
+    departure_info = _extract("departure")
+    arrival_info = _extract("arrival")
 
-        # Pull out the short IATA code if present.
-        airport_code = section.get("iata") or ""
-
-        # Pull out the human readable airport name.
-        airport_name = section.get("airport") or ""
-
-        # Prefer the scheduled time but fall back to the estimated timestamp.
-        time_raw = section.get("scheduled") or section.get("estimated") or ""
-        return airport_code, airport_name, time_raw
-
-    # Parse the departure bundle into a tuple of values.
-    departure_code, departure_name, departure_time = _extract(departure)
-
-    # Parse the arrival bundle into a tuple of values.
-    arrival_code, arrival_name, arrival_time = _extract(arrival)
-
-    # Return a normalized dictionary that the rest of the codebase understands.
+    # Return the normalized flight details.
     return {
         "flight_number": number,
         "airline": airline,
-        "departure_airport": departure_code,
-        "departure_airport_name": departure_name,
-        "departure_time": departure_time,
-        "arrival_airport": arrival_code,
-        "arrival_airport_name": arrival_name,
-        "arrival_time": arrival_time,
+        "departure_airport": departure_info["code"],
+        "departure_airport_name": departure_info["name"],
+        "departure_time": departure_info["time"],
+        "arrival_airport": arrival_info["code"],
+        "arrival_airport_name": arrival_info["name"],
+        "arrival_time": arrival_info["time"],
     }
 
 
-def _autofill_flight_data(itinerary_obj: Itinerary) -> None:  # pylint: disable=too-many-locals
+def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
     """Populate arrival/departure fields by calling the flight API when needed."""
     # Track which fields were modified so we can issue a minimal save.
     updates = set()
@@ -331,377 +257,79 @@ def _autofill_flight_data(itinerary_obj: Itinerary) -> None:  # pylint: disable=
         itinerary_obj.save(update_fields=list(updates))
 
 
-# pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     """Build the user message sent to the OpenAI model."""
 
     # Extract core itinerary fields for easier access.
-    destination = getattr(itinerary_obj, "destination", "")
     wake_time = getattr(itinerary_obj, "wake_up_time", "")
     bed_time = getattr(itinerary_obj, "bed_time", "")
     num_days = getattr(itinerary_obj, "num_days", 1)
     start_date = getattr(itinerary_obj, "start_date", None)
     end_date = getattr(itinerary_obj, "end_date", None)
-    trip_purpose = itinerary_obj.get_trip_purpose_display()
-    adults = getattr(itinerary_obj, "party_adults", 1)
-    children = getattr(itinerary_obj, "party_children", 0)
-
-    # Text fragments reused across multiple sections.
-    break_times_str = _format_break_times(itinerary_obj)
-    budget_str = _format_budget(itinerary_obj)
-    extra_notes = _format_day_notes(itinerary_obj)
-
-    # Format the date range string.
-    date_range = ""
-
-    # Build date range when both dates are present.
-    if start_date and end_date:
-        date_range = f"{start_date:%B %d, %Y} through {end_date:%B %d, %Y}"
-
-    # Handle the end-date-only case.
-    elif start_date:
-        date_range = f"Start date: {start_date:%B %d, %Y}"
-
-    # Mention how many people are in the party.
-    party_summary = f"{adults} adult{'s' if adults != 1 else ''}"
-    if children:
-        party_summary += f" and {children} child{'ren' if children != 1 else ''}"
-
-    # Convey which meals should turn into explicit stops.
-    meal_preferences = []
-    if itinerary_obj.include_breakfast:
-        meal_preferences.append("breakfast")
-    if itinerary_obj.include_lunch:
-        meal_preferences.append("lunch")
-    if itinerary_obj.include_dinner:
-        meal_preferences.append("dinner")
-    if meal_preferences:
-        joined_meals = ", ".join(meal_preferences)
-        meals_line = (
-            f"{joined_meals} "
-            "(schedule meal stops only for these selections)"
-        )
-    else:
-        meals_line = (
-            "No planned meals; skip dedicated meal stops "
-            "unless explicitly requested elsewhere"
-        )
-
-    # Summarize the flight plan into bullet points.
-    def _format_flight_line(
-        direction: str,
-        dt_value,
-        airport_label: str,
-        airline_label: str,
-        flight_number: str,
-    ) -> str:
-        """Return a descriptive bullet without performing additional API lookups."""
-
-        # Skip empty flight entries.
-        if not any([dt_value, airport_label, airline_label, flight_number]):
-            return ""
-
-        # Build the flight line prefix.
-        normalized_number = (flight_number or "").upper()
-
-        # Construct the prefix and suffix parts.
-        if airline_label and normalized_number:
-            prefix = f"{airline_label} Flight {normalized_number}"
-        elif airline_label:
-            prefix = f"{airline_label} Flight"
-        elif normalized_number:
-            prefix = f"Flight {normalized_number}"
-        else:
-            prefix = "Flight"
-        if direction == "arrival":
-            verb = "arrives at"
-        else:
-            verb = "departs from"
-        time_hint = dt_value.strftime("%B %d at %I:%M %p") if dt_value else ""
-        suffix_parts = []
-
-        # Append airport and time hints when available.
-        if airport_label:
-            suffix_parts.append(f"{verb} {airport_label}")
-
-        # Append time hint when available.
-        if time_hint:
-            suffix_parts.append(f"on {time_hint}")
-
-        # Join the suffix parts into a single string.
-        suffix = ", ".join(suffix_parts)
-
-        # Return the full formatted line.
-        return f"- {prefix} {suffix}." if suffix else f"- {prefix}."
-
-    # Flights are optional. Provide a bullet per direction so the AI respects buffers.
-    flight_lines = []
-
-    # Format arrival and departure flight lines when data exists.
-    arrival_line = _format_flight_line(
-        "arrival",
-        itinerary_obj.arrival_datetime,
-        itinerary_obj.arrival_airport,
-        itinerary_obj.arrival_airline,
-        itinerary_obj.arrival_flight_number,
+    date_range = _format_date_range(start_date, end_date)
+    meals_line = _meals_line(itinerary_obj)
+    flight_ctx = _flight_prompt_details(itinerary_obj, num_days)
+    hotel_summary, has_hotel_details, needs_hotel_suggestion = _hotel_plan_summary(
+        itinerary_obj
     )
 
-    # Format departure flight line.
-    departure_line = _format_flight_line(
-        "departure",
-        itinerary_obj.departure_datetime,
-        itinerary_obj.departure_airport,
-        itinerary_obj.departure_airline,
-        itinerary_obj.departure_flight_number,
+    # Build additional prompt sections.
+    season_hint = _season_hint(start_date, end_date)
+    overrides_block = _build_overrides_block(
+        itinerary_obj,
+        wake_time,
+        bed_time,
+        flight_ctx["excluded_days"],
     )
 
-    # Append non-empty flight lines to the block.
-    if arrival_line:
-        flight_lines.append(arrival_line)
-
-    # Append departure line if present.
-    if departure_line:
-        flight_lines.append(departure_line)
-
-    # Combine flight lines into a single block or note absence.
-    flight_block = "\n".join(flight_lines) or "No flights provided."
-
-    # Summarize the lodging plan, defaulting to "Hotel TBD" so the model doesn't invent one.
-    hotel_summary = "Hotel TBD"
-
-    # Determine if we have enough hotel details to avoid suggesting one.
-    has_hotel_details = any(
-        [
-            itinerary_obj.hotel_address,
-            itinerary_obj.hotel_name,
-            itinerary_obj.hotel_check_in,
-            itinerary_obj.hotel_check_out,
-        ]
+    # Collect any additional guidance the user provided.
+    additional_guidance = _collect_additional_guidance(
+        itinerary_obj,
+        flight_ctx["has_arrival"],
+        flight_ctx["has_departure"],
+        has_hotel_details,
+        needs_hotel_suggestion,
     )
 
-    # Determine if we need to ask the AI to suggest a hotel.
-    needs_hotel_suggestion = bool(itinerary_obj.auto_suggest_hotel and not has_hotel_details)
-
-    # Build the hotel summary line based on available data.
-    if has_hotel_details:
-        hotel_parts = [] # Collect hotel details into parts.
-
-        # Append each available hotel detail.
-        if itinerary_obj.hotel_address:
-            hotel_parts.append(itinerary_obj.hotel_address)
-        if itinerary_obj.hotel_name:
-            hotel_parts.append(itinerary_obj.hotel_name)
-        if itinerary_obj.hotel_check_in:
-            hotel_parts.append(f"Check-in {itinerary_obj.hotel_check_in:%B %d at %I:%M %p}")
-        if itinerary_obj.hotel_check_out:
-            hotel_parts.append(f"Check-out {itinerary_obj.hotel_check_out:%B %d at %I:%M %p}")
-        hotel_summary = " | ".join(hotel_parts)
-
-    # If no hotel was provided but the user wants a suggestion, inform the AI.
-    elif needs_hotel_suggestion:
-        hotel_summary = (
-            f"Need Wanderly to recommend a hotel suitable for {party_summary} "
-            f"within the ${itinerary_obj.overall_budget_max or 'Flexible'} budget."
-        )
-
-    # Provide a seasonal/weather hint based on trip dates.
-    season_hint = ""
-
-    # Determine the reference date for seasonality (start or end date).
-    ref_date = start_date or end_date
-
-    # Build a seasonal hint when we have a reference date.
-    if ref_date:
-        month = ref_date.month
-        if month in (12, 1, 2):
-            season_hint = f"Travel month: {ref_date:%B} (expect winter conditions)."
-        elif month in (3, 4, 5):
-            season_hint = f"Travel month: {ref_date:%B} (spring shoulder season)."
-        elif month in (6, 7, 8):
-            season_hint = f"Travel month: {ref_date:%B} (peak summer weather)."
-        else:
-            season_hint = f"Travel month: {ref_date:%B} (autumn conditions)."
-
-    # Determine if arrival/departure flights exist to adjust wake/bed guidance.
-    has_arrival_info = bool(
-        itinerary_obj.arrival_datetime
-        or itinerary_obj.arrival_airport
-        or itinerary_obj.arrival_flight_number
-    )
-
-    # Determine if departure flight info exists.
-    has_departure_info = bool(
-        itinerary_obj.departure_datetime
-        or itinerary_obj.departure_airport
-        or itinerary_obj.departure_flight_number
-    )
-
-    # Build a note about flight-driven wake/bed times when applicable.
-    flight_wake_note = ""
-
-    # When either arrival or departure info exists, inform the AI.
-    if has_arrival_info or has_departure_info:
-        impacted_sections = []
-
-        # Identify which days are affected by flight schedules.
-        if has_arrival_info:
-            impacted_sections.append("Day 1 (arrival day)")
-
-        # Identify departure day when applicable.
-        if has_departure_info and num_days:
-            impacted_sections.append(f"Day {num_days} (departure day)")
-
-        # Build the flight-driven wake/bed note.
-        flight_wake_note = (
-            "Ignore typical wake/bed expectations on "
-            + " and ".join(impacted_sections)
-            + " because flights dictate those schedules."
-        )
-
-    # Gather any per-day overrides to feed into the prompt in a machine-friendly list,
-    # skipping the arrival/departure days so flights can control those timelines.
-    override_lines = []
-
-    # Determine which days to exclude from wake/bed overrides.
-    flight_excluded_days = set()
-
-    # Exclude arrival day when applicable.
-    if has_arrival_info:
-        flight_excluded_days.add(1)
-
-    # Exclude departure day when applicable.
-    if has_departure_info and num_days:
-        flight_excluded_days.add(num_days)
-
-    # Iterate over each Day to find wake/bed overrides.
-    for day in Day.objects.filter(itinerary=itinerary_obj).order_by("day_number"):
-        if day.day_number in flight_excluded_days:
-            continue
-
-        # Only include days that have at least one override.
-        if day.wake_override or day.bed_override:
-            override_lines.append(
-                (
-                    f"- Day {day.day_number}: wake at "
-                    f"{day.wake_override or wake_time}, "
-                    f"bed by {day.bed_override or bed_time}"
-                )
-            )
-
-    # Build the final overrides block for the prompt.
-    if override_lines:
-        overrides_block = "\n".join(override_lines)
-
-        # Append a note about excluded days when applicable.
-        if flight_excluded_days:
-            overrides_block += (
-                "\n(Arrival/departure days are omitted because flights override wake/bed windows.)"
-            )
-    else: # No overrides were provided.
-        overrides_block = "None supplied; use the global wake/bed times."
-
-    # Build additional guidance based on flights and hotel data.
-    guidance_lines = []
-
-    # Arrival flight guidance.
-    if has_arrival_info:
-        guidance_lines.append(
-            "Day 1 must begin with an \"Arrival Flight\" block summarizing "
-            "the airline, flight number, arrival airport, and arrival time "
-            "(omit PNR). Ignore the typical wake/bed windows for this day."
-        )
-        guidance_lines.append(
-            "Even if overrides are configured, do not enforce wake/bed times "
-            "on the arrival day; anchor the schedule around the flight."
-        )
-
-    # Hotel check-in guidance.
-    if has_hotel_details:
-        check_in_str = (
-            f"{itinerary_obj.hotel_check_in:%I:%M %p}"
-            if itinerary_obj.hotel_check_in
-            else "the typical afternoon check-in window"
-        )
-
-        # Determine a label for the hotel in the guidance.
-        hotel_label = itinerary_obj.hotel_name or itinerary_obj.hotel_address or "the hotel"
-        guidance_lines.append(
-            f"Include a dedicated \"Check in at {hotel_label}\" block timed near {check_in_str}, "
-            "and remind travelers to wind down or return there when appropriate."
-        )
-
-    # Hotel suggestion guidance.
-    elif needs_hotel_suggestion:
-        guidance_lines.append(
-            "No hotel was provided, so choose a realistic hotel that fits "
-            "the party size and budget ceiling, mention it explicitly "
-            "before the first full day, include a nightly price range in the "
-            "cost_estimate field, and respect its check-in/out windows."
-        )
-
-    # Departure flight guidance.
-    if has_departure_info:
-        guidance_lines.append(
-            "On the final day ignore typical wake/bed times and instead shape "
-            "the schedule around the departure flight, leaving a buffer of at "
-            "least one hour beforehand."
-        )
-
-    # Combine all additional guidance lines into a single block.
-    additional_guidance = "\n".join(guidance_lines) or "None."
-
-    if has_arrival_info or has_departure_info:
-        tail_guidance = (
-            "- Do not schedule activities before the arrival flight lands or "
-            "within 1 hour of the departure flight; mention this buffer in "
-            "your plan if applicable."
-        )
-    else:
-        tail_guidance = (
-            "- Flights were not provided, so treat the trip as fully "
-            "land-based with no arrival/departure buffers."
-        )
-
-
-    # Build and return the full prompt string.
+    # Build and return the full prompt string using the helper output.
     return f"""
 You are Wanderly's itinerary planner bot. Produce a JSON-only response; do not include prose.
 
 === Traveler Profile ===
-Destination: {destination}
+Destination: {getattr(itinerary_obj, "destination", "")}
 Dates: {date_range or 'Flexible'}
-Party: {party_summary}
-Trip purpose: {trip_purpose}
+Party: {_summarize_party(itinerary_obj)}
+Trip purpose: {itinerary_obj.get_trip_purpose_display()}
 Energy level: {itinerary_obj.get_energy_level_display()}
 Downtime required: {"Yes" if itinerary_obj.downtime_required else "No"}
 
 === Daily Rhythm & Meals ===
 Wake time: {wake_time}
 Bed time: {bed_time}
-Flight-day wake/bed note: {flight_wake_note or 'Not applicable'}
-Break windows: {break_times_str}
+Flight-day wake/bed note: {flight_ctx['wake_note'] or 'Not applicable'}
+Break windows: {_format_break_times(itinerary_obj)}
 Meals to include: {meals_line}
 Dietary notes: {itinerary_obj.dietary_notes or 'None'}
 Mobility notes: {itinerary_obj.mobility_notes or 'None'}
 
 === Logistics ===
 Flights:
-{flight_block}
+{flight_ctx['block']}
 Hotel / lodging: {hotel_summary}
 Overall budget ceiling: ${itinerary_obj.overall_budget_max or 'Flexible'}
-Budget categories: {budget_str}
+Budget categories: {_format_budget(itinerary_obj)}
 Season / weather cue: {season_hint or 'Season unspecified'}
 
 === Additional Guidance ===
 {additional_guidance}
 
 === Per-Day Overrides ===
-{extra_notes or 'No special per-day instructions were provided.'}
+{_format_day_notes(itinerary_obj) or 'No special per-day instructions were provided.'}
 - Respect must-do items and constraints on the specified days.
 - When arrival/departure flights exist, align Day 1 and the final day with those times.
 - Wake/bed overrides by day:
 {overrides_block}
-{tail_guidance}
+{flight_ctx['tail_guidance']}
 
 === Output Contract ===
 Respond with JSON shaped exactly like this example (real content, no comments):
@@ -805,6 +433,85 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
         return None
 
 
+def _format_time_label(value):
+    """Format time values without a leading zero."""
+    if not value:
+        return ""
+    return value.strftime("%I:%M %p").lstrip("0")
+
+
+def _enrich_ai_days(itinerary_obj: Itinerary, trip_days: list[Day]) -> list[dict]:
+    """Attach per-day metadata and normalize activities for template rendering."""
+
+    # Enrich each AI-generated day with its corresponding Day model.
+    ai_itinerary_days = itinerary_obj.ai_itinerary or []
+
+    # Build a lookup of Day objects by day number for easy access.
+    day_lookup = {day.day_number: day for day in trip_days}
+
+    # Enrich each AI day with its Day model and normalize activities.
+    enriched_days = []
+
+    # Iterate over each day in the AI-generated itinerary.
+    for day in ai_itinerary_days:
+
+        # Copy the day dict to avoid mutating the original.
+        copied = dict(day)
+
+        # Link to the corresponding Day model instance.
+        copied["form_day"] = day_lookup.get(day.get("day_number"))
+
+        # Normalize each activity's place_query and requires_place fields.
+        for activity in copied.get("activities", []):
+            place_query = (activity.get("place_query") or "").strip()
+            requires_place = bool(place_query) and place_query.lower() != "not req"
+            activity["place_query"] = place_query if requires_place else ""
+            activity["requires_place"] = requires_place
+
+        # Append the enriched day to the result list.
+        enriched_days.append(copied)
+
+    # Return the list of enriched days.
+    return enriched_days
+
+
+def _build_day_notes_display(itinerary_obj: Itinerary, trip_days: list[Day]) -> list[dict]:
+    """Return display records describing per-day notes and overrides."""
+
+    # Build a list of day notes for display in the detail view.
+    display = []
+
+    # Iterate over each Day to collect its fragments.
+    for day in trip_days:
+
+        # Build override text if applicable.
+        override_text = ""
+
+        # Check for wake/bed overrides.
+        if day.wake_override or day.bed_override:
+            override_text = (
+                "Custom wake/bed: "
+                f"{_format_time_label(day.wake_override or itinerary_obj.wake_up_time)} / "
+                f"{_format_time_label(day.bed_override or itinerary_obj.bed_time)}"
+            )
+
+        # Append notes if they exist.
+        fragments = collect_day_fragments(day, override_text)
+
+        # Only add days with at least one fragment.
+        if fragments:
+            display.append(
+                {
+                    "day_number": day.day_number,
+                    "date": day.date,
+                    "text": "; ".join(fragments),
+                }
+            )
+
+    # Return the built display list.
+    return display
+
+
 def itinerary(request):
     """
     Render the itinerary builder or process a submission.
@@ -816,7 +523,7 @@ def itinerary(request):
     GET flow simply seeds an empty form. Validation errors fall through to re-render.
     """
 
-    #
+    # Handle form submissions.
     if request.method == "POST":
 
         # Bind POST data to the form for validation.
@@ -848,6 +555,7 @@ def itinerary(request):
                 messages.error(
                     request,
                     "We were unable to generate an AI-powered itinerary at this time.",
+                    extra_tags="itinerary",
                 )
             else:
                 # Save the generated itinerary days onto the model.
@@ -855,13 +563,13 @@ def itinerary(request):
                 itinerary_obj.save(update_fields=["ai_itinerary"])
 
             # Redirect to the detail view upon success.
-            messages.success(request, "Itinerary created successfully!")
+            messages.success(request, "Itinerary created successfully!", extra_tags="itinerary")
 
             # Redirect to the itinerary detail page.
             return redirect("itinerary:itinerary_detail", itinerary_obj.access_code)
 
         # Validation failed: fall through and re-render with errors.
-        messages.error(request, "Please correct the errors below.")
+        messages.error(request, "Please correct the errors below.", extra_tags="itinerary")
     else:
         # Render a blank form for GET requests.
         form = ItineraryForm()
@@ -873,97 +581,20 @@ def itinerary(request):
 
     return render(request, "itinerary.html", context)
 
-def itinerary_detail(request, access_code: str):  # pylint: disable=too-many-locals
+def itinerary_detail(request, access_code: str):
     """Display a generated itinerary."""
 
     # Fetch the itinerary or return 404 if not found.
     itinerary_obj = get_object_or_404(Itinerary, access_code=access_code.upper())
 
-    # Pull the AI-generated itinerary days (if any).
-    ai_itinerary_days = itinerary_obj.ai_itinerary or []
+    # Load all persisted Day rows once for reuse.
+    trip_days = list(itinerary_obj.days.all())
 
-    # Query all persisted Day rows for this itinerary.
-    trip_days_qs = itinerary_obj.days.all()
-
-    # Build a lookup map of day_number -> Day row for quick access.
-    day_lookup = {day.day_number: day for day in trip_days_qs}
-
-    # Helper to format time objects without leading zeros.
-    def format_time_label(value):
-        """Format a time object for display without leading zero."""
-
-        # Return blank strings when no time exists.
-        if not value:
-            return ""
-
-        # Format in 12-hour style and strip any leading zero.
-        return value.strftime("%I:%M %p").lstrip("0")
-
-    # Store enriched AI day dictionaries for template rendering.
-    enriched_days = []
-
-    # Iterate over each AI-generated day to normalize data.
-    for day in ai_itinerary_days:
-
-        # Copy each AI entry so we can mutate without modifying the stored JSON.
-        copied = dict(day)
-
-        # Link to the corresponding Day row for metadata access.
-        copied["form_day"] = day_lookup.get(day.get("day_number"))
-
-        # Pull the list of activities for this day.
-        activities = copied.get("activities", [])
-
-        # Normalize each activity within the day.
-        for activity in activities:
-
-            # Normalize place data so templates only request reviews when a venue exists.
-            place_query = (activity.get("place_query") or "").strip()
-
-            # Determine whether this activity requires a specific place lookup.
-            requires_place = bool(place_query) and place_query.lower() != "not req"
-
-            # When no place is required, clear out the query to avoid confusion.
-            if not requires_place:
-                place_query = ""
-
-            # Update the activity in place.
-            activity["place_query"] = place_query
-            activity["requires_place"] = requires_place
-
-        # Append the enriched day to the final list.
-        enriched_days.append(copied)
+    # Enrich AI itinerary days for template rendering.
+    enriched_days = _enrich_ai_days(itinerary_obj, trip_days)
 
     # Build helper data for rendering the per-day annotations panel.
-    day_notes_display = []
-
-    # Iterate over each Day row to extract notes, must-dos, constraints, and overrides.
-    for day in trip_days_qs:
-        fragments = []
-
-        # Build up a list of snippets for this day (notes, must-do, etc.).
-        if day.notes:
-            fragments.append(day.notes)
-        if day.must_do:
-            fragments.append(f"Must-do: {day.must_do}")
-        if day.constraints:
-            fragments.append(f"Constraints: {day.constraints}")
-        if day.wake_override or day.bed_override:
-            fragments.append(
-                "Custom wake/bed: "
-                f"{format_time_label(day.wake_override or itinerary_obj.wake_up_time)} / "
-                f"{format_time_label(day.bed_override or itinerary_obj.bed_time)}"
-            )
-
-        # Only append entries that actually contain text.
-        if fragments:
-            day_notes_display.append(
-                {
-                    "day_number": day.day_number,
-                    "date": day.date,
-                    "text": "; ".join(fragments),
-                }
-            )
+    day_notes_display = _build_day_notes_display(itinerary_obj, trip_days)
 
     # Bundle everything needed by the template layer.
     context = {
@@ -971,16 +602,17 @@ def itinerary_detail(request, access_code: str):  # pylint: disable=too-many-loc
         "ai_itinerary_days": enriched_days,
         "break_times": itinerary_obj.break_times.all(),
         "budget_items": itinerary_obj.budget_items.all(),
-        "trip_days": trip_days_qs,
+        "trip_days": trip_days,
         "day_notes_display": day_notes_display,
     }
 
     # Surface a message when no AI-generated details exist.
-    if not ai_itinerary_days:
+    if not itinerary_obj.ai_itinerary:
         # Surface a message when the AI output is missing/empty.
         messages.error(
             request,
             "This itinerary is missing generated details.",
+            extra_tags="itinerary",
         )
 
     # Render the finalized page with enriched day data.
@@ -1000,13 +632,15 @@ def _itinerary_error_response(request, is_ajax, message, status_code):
     while regular form submissions fall back to Django messages + redirect.
     """
 
-    # Determine response format based on caller expectations.
+    # AJAX callers get structured JSON responses.
     if is_ajax:
         # Return a structured response the front-end can consume.
         return JsonResponse({"ok": False, "error": message}, status=status_code)
 
-    # Non-AJAX flows rely on Django messages + redirect to the form.
-    messages.error(request, message)
+    # Regular form submissions use Django messages.
+    messages.error(request, message, extra_tags="itinerary")
+
+    # Redirect back to the main itinerary lookup page.
     return redirect("itinerary:itinerary")
 
 
@@ -1067,7 +701,7 @@ def find_itinerary(request):
         return _itinerary_error_response(request, is_ajax, "Please enter an access code.", 400)
 
     # Attempt to look up the itinerary by its public access code.
-    itinerary_obj = Itinerary.objects.filter(access_code=code).first()  # pylint: disable=no-member
+    itinerary_obj = Itinerary.objects.filter(access_code=code).first()
 
     # Surface a friendly error if the code does not exist.
     if itinerary_obj is None:

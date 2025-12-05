@@ -38,7 +38,9 @@
                         {% if messages %}
                             <div class="mb-3">
                                 {% for message in messages %}
-                                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                    {% if 'itinerary' in message.tags %}
+                                        <div class="alert alert-{{ message.level_tag }}">{{ message }}</div>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                         {% endif %}
@@ -1067,6 +1069,7 @@
                         }
                     });
                 });
+
             });
         </script>
         

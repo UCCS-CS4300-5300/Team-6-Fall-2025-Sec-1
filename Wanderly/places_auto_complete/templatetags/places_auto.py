@@ -10,10 +10,9 @@ from django.conf import settings
 
 register = template.Library()
 
-# I need to disable unused arg for pylint becuase django needs it for the
-# tag injection, but pylint thinks I am not using it b/c its not in the func
+
 @register.inclusion_tag("places_auto_complete/js_loader.html", takes_context=True)
-def places_js(context): # pylint: disable=unused-argument
+def places_js(context):
     """
     Template tag that injects the Google Maps Browser API key into the
     places_auto_complete JS loader template so autocomplete functionality

@@ -83,7 +83,7 @@ class Itinerary(models.Model):
         null=True,
     )
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Model metadata for itineraries."""
         verbose_name_plural = "Itineraries"
         ordering = ['-created_at']
@@ -106,7 +106,7 @@ class Itinerary(models.Model):
             try:
                 while True:
                     code = generate_access_code()
-                    if not Itinerary.objects.filter(access_code=code).exists():  # pylint: disable=no-member
+                    if not Itinerary.objects.filter(access_code=code).exists():
                         self.access_code = code
                         break
             except Exception as exc:
@@ -123,7 +123,7 @@ class BreakTime(models.Model):
     end_time = models.TimeField()
     purpose = models.CharField(max_length=64, blank=True)
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering for break times."""
         ordering = ['start_time']
 
@@ -147,7 +147,7 @@ class BudgetItem(models.Model):
     custom_category = models.CharField(max_length=100, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering for budget items."""
         ordering = ['category']
 
@@ -168,7 +168,7 @@ class Day(models.Model):
     constraints = models.TextField(blank=True)
     must_do = models.TextField(blank=True)
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering and uniqueness for days."""
         ordering = ['day_number']
         unique_together = ['itinerary', 'day_number']

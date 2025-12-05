@@ -54,7 +54,7 @@ def sign_in(request):
         login(request, user)
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
-        messages.success(request, "Welcome back to Wanderly!")
+        messages.success(request, "Signed in successfully.")
         return redirect("index")
 
     # Render the login form html and add form to context
@@ -82,8 +82,8 @@ def register(request):
             authenticated_user.last_login = timezone.now()
             authenticated_user.save(update_fields=["last_login"])
 
-            # Give seccess message
-            messages.success(request, "Welcome to Wanderly! Your account is ready.")
+            # Give success message
+            messages.success(request, "Account created and you're now signed in.")
 
             # Redirect to homepage
             return redirect("index")
@@ -106,7 +106,7 @@ def sign_out(request):
     request.session.pop("google_sub", None)
 
     # Send sign out message
-    messages.success(request, "You have been signed out.")
+    messages.success(request, "Signed out.")
 
     return redirect("index")
 
@@ -193,7 +193,7 @@ def auth_receiver(request):
     user.save(update_fields=["last_login"])
 
     # Send welcome message
-    messages.success(request, "Welcome to Wanderly!")
+    messages.success(request, "Signed in with Google.")
 
     # Redirect to homepage
     return redirect("index")

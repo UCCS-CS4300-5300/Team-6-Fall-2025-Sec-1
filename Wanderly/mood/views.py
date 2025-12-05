@@ -23,8 +23,6 @@ def mood_questionnaire(request):
     if request.method == 'POST':
         form = MoodForm(request.POST)
         if form.is_valid():
-            # Save to database, disable pylint since this is valid Django code
-            # pylint: disable=no-member
             mood_response = MoodResponse.objects.create(
                 destination=form.cleaned_data['destination'],
                 adventurous=form.cleaned_data['adventurous'],

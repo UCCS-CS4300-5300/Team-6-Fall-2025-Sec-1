@@ -9,7 +9,6 @@ from .views import (
     flight_lookup,
 )
 
-# pylint: disable=invalid-name
 app_name = "itinerary"
 urlpatterns = [
     path("", itinerary, name="itinerary"),
