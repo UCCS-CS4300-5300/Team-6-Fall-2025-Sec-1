@@ -522,6 +522,22 @@ button.btn-text:hover {
     outline-offset: 2px;
 }
 
+.flight-fetch-btn {
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    text-transform: none;
+    box-shadow: 0 0.35rem 0.9rem rgba(79, 70, 229, 0.25);
+}
+
+.flight-fetch-btn:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .activities-list {
     padding: 1.5rem;
 }

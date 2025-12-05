@@ -32,11 +32,16 @@ class ItineraryForm(forms.ModelForm):
             'trip_purpose',
             'party_adults',
             'party_children',
+            'arrival_flight_number',
             'arrival_datetime',
             'arrival_airport',
+            'arrival_airline',
+            'departure_flight_number',
             'departure_datetime',
             'departure_airport',
+            'departure_airline',
             'overall_budget_max',
+            'auto_suggest_hotel',
             'num_days',
         ]
         widgets = {
@@ -146,6 +151,16 @@ class ItineraryForm(forms.ModelForm):
                 'placeholder': 'e.g., JFK',
                 'id': 'arrival_airport',
             }),
+            'arrival_airline': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Delta Air Lines',
+                'id': 'arrival_airline',
+            }),
+            'arrival_flight_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., DL123',
+                'id': 'arrival_flight_number',
+            }),
             'departure_datetime': forms.DateTimeInput(attrs={
                 'class': 'form-control',
                 'type': 'datetime-local',
@@ -155,6 +170,20 @@ class ItineraryForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'e.g., LAX',
                 'id': 'departure_airport',
+            }),
+            'departure_airline': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Southwest',
+                'id': 'departure_airline',
+            }),
+            'departure_flight_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., DL456',
+                'id': 'departure_flight_number',
+            }),
+            'auto_suggest_hotel': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'auto_suggest_hotel',
             }),
             'num_days': forms.HiddenInput(attrs={
                 'id': 'num_days',

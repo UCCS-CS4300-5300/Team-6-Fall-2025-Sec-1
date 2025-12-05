@@ -59,6 +59,13 @@
                                         {{ itinerary.arrival_datetime|date:"M d, Y @ h:i A" }}
                                         {% if itinerary.arrival_airport %}via {{ itinerary.arrival_airport }}{% endif %}
                                     </p>
+                                    {% if itinerary.arrival_airline or itinerary.arrival_flight_number %}
+                                    <p class="text-muted mb-0 small">
+                                        {% if itinerary.arrival_airline %}{{ itinerary.arrival_airline }}{% endif %}
+                                        {% if itinerary.arrival_airline and itinerary.arrival_flight_number %}, {% endif %}
+                                        {% if itinerary.arrival_flight_number %}Flight {{ itinerary.arrival_flight_number }}{% endif %}
+                                    </p>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}
@@ -70,6 +77,13 @@
                                         {{ itinerary.departure_datetime|date:"M d, Y @ h:i A" }}
                                         {% if itinerary.departure_airport %}from {{ itinerary.departure_airport }}{% endif %}
                                     </p>
+                                    {% if itinerary.departure_airline or itinerary.departure_flight_number %}
+                                    <p class="text-muted mb-0 small">
+                                        {% if itinerary.departure_airline %}{{ itinerary.departure_airline }}{% endif %}
+                                        {% if itinerary.departure_airline and itinerary.departure_flight_number %}, {% endif %}
+                                        {% if itinerary.departure_flight_number %}Flight {{ itinerary.departure_flight_number }}{% endif %}
+                                    </p>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endif %}

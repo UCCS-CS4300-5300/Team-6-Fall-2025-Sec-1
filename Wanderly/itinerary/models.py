@@ -4,6 +4,7 @@ import secrets
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 def generate_access_code():
     """
@@ -40,8 +41,8 @@ class Itinerary(models.Model):
     hotel_check_out = models.DateTimeField(null=True, blank=True)
     wake_up_time = models.TimeField()
     bed_time = models.TimeField()
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(default=timezone.now)
     trip_purpose = models.CharField(max_length=32, choices=TRIP_PURPOSE_CHOICES, default="leisure")
     energy_level = models.CharField(max_length=16, choices=ENERGY_CHOICES, default="balanced")
     include_breakfast = models.BooleanField(default=True)
@@ -54,8 +55,13 @@ class Itinerary(models.Model):
     party_children = models.PositiveIntegerField(default=0)
     arrival_datetime = models.DateTimeField(null=True, blank=True)
     arrival_airport = models.CharField(max_length=64, blank=True)
+    arrival_airline = models.CharField(max_length=64, blank=True)
     departure_datetime = models.DateTimeField(null=True, blank=True)
     departure_airport = models.CharField(max_length=64, blank=True)
+    departure_airline = models.CharField(max_length=64, blank=True)
+    arrival_flight_number = models.CharField(max_length=16, blank=True)
+    departure_flight_number = models.CharField(max_length=16, blank=True)
+    auto_suggest_hotel = models.BooleanField(default=False)
     overall_budget_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     num_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(30)])
     ai_itinerary = models.JSONField(null=True, blank=True)
