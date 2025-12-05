@@ -49,7 +49,7 @@
               </div>
               <dl class="row mb-0">
                 <dt class="col-5 info-label">Trips Planned</dt>
-                <dd class="col-7 fw-semibold text-dark">0</dd>
+                <dd class="col-7 fw-semibold text-dark">{{ itinerary_count }}</dd>
 
                 <dt class="col-5 info-label mt-3">Last Login</dt>
                 <dd class="col-7 fw-semibold text-dark mt-3">
@@ -71,6 +71,31 @@
               <p class="text-muted small mb-0">Latest itineraries you've crafted with Wanderly.</p>
             </div>
             <div class="card-body">
+              {% if upcoming_trip %}
+              <div class="trip-card d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+                <div>
+                  <p class="mb-1 text-uppercase small fw-semibold text-muted">Destination</p>
+                  <h4 class="h5 mb-1 text-dark">{{ upcoming_trip.destination }}</h4>
+                  <p class="text-muted mb-1">
+                    {{ upcoming_trip.start_date|date:"M d, Y" }} &ndash; {{ upcoming_trip.end_date|date:"M d, Y" }}
+                  </p>
+                  <p class="text-muted mb-0">
+                    Party of {{ upcoming_trip.party_adults }}{% if upcoming_trip.party_children %} + {{ upcoming_trip.party_children }} kid{{ upcoming_trip.party_children|pluralize }}{% endif %}
+                  </p>
+                </div>
+                <div class="ms-md-auto text-md-end w-100 w-md-auto">
+                  <p class="text-muted small mb-2">
+                    Access Code: <span class="fw-semibold text-dark">{{ upcoming_trip.access_code }}</span>
+                  </p>
+                  <a href="{% url 'itinerary:itinerary_detail' upcoming_trip.access_code %}" class="btn btn-primary w-100 mb-2">
+                    View Itinerary
+                  </a>
+                  <a href="{% url 'itinerary:itinerary' %}" class="btn btn-outline-primary w-100">
+                    Plan Another Trip
+                  </a>
+                </div>
+              </div>
+              {% else %}
               <div class="trip-card d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
                 <div>
                   <p class="mb-1 text-uppercase small fw-semibold text-muted">Destination</p>
@@ -81,18 +106,53 @@
                   <a href="{% url 'itinerary:itinerary' %}" class="btn btn-primary">Plan a Trip</a>
                 </div>
               </div>
+              {% endif %}
             </div>
           </div>
 
-          <div class="section-card card cta-card mt-4">
-            <div class="card-body text-center text-md-start d-flex flex-column flex-md-row align-items-center gap-4 text-dark">
+          <div class="section-card card mt-4">
+            <div class="card-header d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
               <div>
-                <p class="text-uppercase small fw-semibold mb-2 opacity-75 text-dark">Coming Soon · Next Sprint</p>
-                <h3 class="h4 fw-bold mb-2 text-dark">My Itineraries</h3>
+                <h3 class="h5 fw-bold mb-1">My Itineraries</h3>
+                <p class="text-muted small mb-0">Your most recent plans in one place.</p>
               </div>
-              <div class="ms-md-auto">
-                <a href="{% url 'itinerary:itinerary_list' %}" class="btn btn-primary">My Itineraries</a>
+              <div class="ms-md-auto d-flex gap-2">
+                <a href="{% url 'itinerary:itinerary' %}" class="btn btn-outline-primary btn-sm">Create New</a>
+                <a href="{% url 'itinerary:itinerary_list' %}" class="btn btn-primary btn-sm">View All</a>
               </div>
+            </div>
+            <div class="card-body">
+              {% if recent_itineraries %}
+              <div class="list-group list-group-flush">
+                {% for trip in recent_itineraries %}
+                <div class="list-group-item py-3">
+                  <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
+                    <div>
+                      <p class="text-uppercase small fw-semibold text-muted mb-1">Destination</p>
+                      <h4 class="h5 mb-1 text-dark">{{ trip.destination }}</h4>
+                      <p class="text-muted mb-1">
+                        {{ trip.start_date|date:"M d, Y" }} &ndash; {{ trip.end_date|date:"M d, Y" }}
+                      </p>
+                      <p class="text-muted small mb-0">
+                        Access Code: <span class="fw-semibold text-dark">{{ trip.access_code }}</span>
+                      </p>
+                    </div>
+                    <div class="ms-md-auto text-md-end">
+                      <p class="text-muted small mb-2">
+                        Updated {{ trip.updated_at|date:"M d, Y" }}
+                      </p>
+                      <a href="{% url 'itinerary:itinerary_detail' trip.access_code %}" class="btn btn-primary btn-sm">Open</a>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="text-center py-4">
+                <p class="text-muted mb-2">You don't have any itineraries yet.</p>
+                <a href="{% url 'itinerary:itinerary' %}" class="btn btn-primary">Plan your first trip</a>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 """Creates itinerary models with the space for the form data"""
 import string
 import secrets
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -30,6 +31,13 @@ class Itinerary(models.Model):
         ("high", "High energy"),
     ]
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="itineraries",
+        null=True,
+        blank=True,
+    )
     destination = models.CharField(max_length=255)
     place_id = models.CharField(max_length=255, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
