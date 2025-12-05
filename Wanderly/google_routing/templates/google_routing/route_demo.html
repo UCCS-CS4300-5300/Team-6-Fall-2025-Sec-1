@@ -38,7 +38,7 @@
           <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
 
-        <form method="post" action="{% url 'compute_route' %}" id="routeForm" class="mb-3">
+        <form method="post" action="{% url 'google_routing:compute_route' %}" id="routeForm" class="mb-3">
           {% csrf_token %}
           <input type="hidden" name="n" id="nCount" value="{{ forms_list|length }}">
 
@@ -67,11 +67,11 @@
 
           <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-outline-primary"
-               href="{% url 'route_demo' %}?n={{ forms_list|length|add:'1' }}">
+              href="{% url 'google_routing:route_demo' %}?n={{ forms_list|length|add:'1' }}">
               + Add stop
             </a>
             <button type="submit" class="btn btn-primary">Compute route</button>
-            <a href="{% url 'route_demo' %}" class="btn btn-outline-secondary">Start over</a>
+           <a href="{% url 'google_routing:route_demo' %}" class="btn btn-outline-secondary">Start over</a>
           </div>
         </form>
 

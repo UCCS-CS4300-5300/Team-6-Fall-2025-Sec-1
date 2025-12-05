@@ -34,7 +34,10 @@ urlpatterns = [
     path('auth/', include('user_auth.urls')),
 
     # urls for the google routing
-    path('google_routing/', include('google_routing.urls')),
+    path(
+        'google_routing/',
+        include(('google_routing.urls', 'google_routing'), namespace='google_routing'),
+    ),
 
 
     # urls for Budget planner
