@@ -2,12 +2,16 @@
 import logging
 import json
 import re
-import requests
 from django.shortcuts import render
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from openai import OpenAI, OpenAIError
+from Wanderly.google_places import (
+    PlacesPayloadError,
+    fetch_places,
+    parse_text_query,
+)
 from .forms import MoodForm
 from .models import MoodResponse
 
@@ -116,38 +120,9 @@ any text outside the JSON.
 def text_search(request):
     """Search text for google autocomplete"""
     try:
-        data = json.loads(request.body)
-        text_query = data.get('textQuery', '')
-        if not text_query:
-            return JsonResponse({'error': 'textQuery is required'}, status=400)
-        # New Places API endpoint
-        url = 'https://places.googleapis.com/v1/places:searchText'
-        # Request payload with just the search text
-        payload = {
-            'textQuery': text_query,
-        }
-
-        # Headers with Google Places API key and field mask with properties to return
-        headers = {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
-            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,' \
-            'places.websiteUri,places.photos',
-        }
-
-        # Send POST request and check for success response
-        response = requests.post(url, json=payload, headers=headers, timeout = 60)
-        response.raise_for_status()
-        response_data = response.json()
-        # Process photos to add actual media URLs
-        places = response_data.get('places', [])
-        for place in places:
-            photos = place.get('photos', [])
-            place['photos'] = [
-                f"/place_photos/{photo['name']}"
-                for photo in photos if isinstance(photo, dict) and 'name' in photo
-            ]
+        text_query = parse_text_query(request.body)
+        places = fetch_places(text_query, timeout=60)
         return JsonResponse({'places': places})
     # Return error for invalid JSON format
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except PlacesPayloadError as exc:
+        return JsonResponse({'error': str(exc)}, status=exc.status_code)

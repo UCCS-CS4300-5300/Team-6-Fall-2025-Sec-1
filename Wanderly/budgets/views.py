@@ -1,3 +1,5 @@
+"""Views for collecting and persisting itinerary budgets."""
+
 import json
 import uuid
 from pathlib import Path
@@ -14,6 +16,7 @@ from .models import Budget, BudgetItem
 
 @login_required
 def itinerary_budget(request):
+    """Render and process the itinerary budget planner form."""
     if request.method == "POST":
         formset = BudgetItemFormSet(request.POST, prefix="items")
 
@@ -27,7 +30,9 @@ def itinerary_budget(request):
                     for form in formset:
                         if not form.has_changed():
                             continue
-                        item = form.save(budget=budget)
+                        item = form.save(commit=False)
+                        item.budget = budget
+                        item.save()
                         saved_items.append({
                             "category": item.category,
                             "custom_category": item.custom_category.strip(),
@@ -55,7 +60,7 @@ def itinerary_budget(request):
     else:
         formset = BudgetItemFormSet(prefix="items")
 
-    context = { 
+    context = {
         "formset": formset,
         "budget_other_value": BudgetItem.OTHER,
     }

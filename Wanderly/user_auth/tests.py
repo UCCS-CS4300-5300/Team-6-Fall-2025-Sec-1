@@ -13,6 +13,7 @@ class ResetPasswordViewTests(TestCase):
     """Exercise the reset password flow end-to-end."""
 
     def setUp(self):
+        """Create a sample user we can authenticate with."""
         self.user = get_user_model().objects.create_user(
             username="wanderer",
             email="wanderer@example.com",
@@ -56,6 +57,7 @@ class ForgotPasswordFlowTests(TestCase):
     """Test the email-based password reset process."""
 
     def setUp(self):
+        """Seed a user and remember the request URL."""
         self.user = get_user_model().objects.create_user(
             username="seeker",
             email="seeker@example.com",
@@ -64,12 +66,14 @@ class ForgotPasswordFlowTests(TestCase):
         self.request_url = reverse("forgot_password_request")
 
     def test_request_page_renders_form(self):
+        """GET /forgot-password/ renders the request template."""
         response = self.client.get(self.request_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "registration/forgotPassRequest.html")
         self.assertIn("form", response.context)
 
     def test_check_email_page_shows_masked_email_and_countdown(self):
+        """After submission, the check-email page shows masked info."""
         self.client.post(self.request_url, {"email": self.user.email})
         response = self.client.get(reverse("forgot_password_check_email"))
         self.assertEqual(response.status_code, 200)
@@ -78,6 +82,7 @@ class ForgotPasswordFlowTests(TestCase):
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_request_post_sends_email_and_redirects(self):
+        """Posting a valid email triggers an email and redirect."""
         response = self.client.post(self.request_url, {"email": self.user.email})
         self.assertRedirects(
             response, reverse("forgot_password_check_email"), fetch_redirect_response=False
@@ -87,6 +92,7 @@ class ForgotPasswordFlowTests(TestCase):
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_resend_sends_another_email(self):
+        """Submitting the resend endpoint fires a second email."""
         self.client.post(self.request_url, {"email": self.user.email})
         mail.outbox.clear()
         response = self.client.post(reverse("forgot_password_resend"))
@@ -96,6 +102,7 @@ class ForgotPasswordFlowTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
 
     def test_resend_without_session_redirects_to_request(self):
+        """If session data is missing we bounce back to the request page."""
         response = self.client.post(reverse("forgot_password_resend"))
         self.assertRedirects(
             response, reverse("forgot_password_request"), fetch_redirect_response=False
@@ -103,6 +110,7 @@ class ForgotPasswordFlowTests(TestCase):
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_reset_link_updates_password(self):
+        """Following the emailed link lets the user choose a new password."""
         self.client.post(self.request_url, {"email": self.user.email})
         self.assertEqual(len(mail.outbox), 1)
         body = mail.outbox[0].body
@@ -128,6 +136,7 @@ class ForgotPasswordFlowTests(TestCase):
         self.assertTrue(self.user.check_password("BrandNew!55"))
 
     def test_invalid_token_redirects_to_request(self):
+        """Invalid or expired links should send the user back to the start."""
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         response = self.client.get(reverse("forgot_password_set", args=[uid, "invalid-token"]))
         self.assertRedirects(
