@@ -20,100 +20,62 @@
         {% include "navbar.html" %}
     </nav>
 
-    <body>
-        <div class="container my-5">
-            <!-- Itinerary Header -->
-            <div class="itinerary-header">
-                <h2><i class="bi bi-airplane-fill"></i> Personalized Itineraries </h2>
-                <a href="{% url 'itinerary:itinerary' %}" class="btn-primary">Generate an Itinerary</a>
-            </div>
-
-            <!-- Itinerary Example 1 -->
-            <section class="itinerary-section">
-                <div class="itinerary-card">
-                    <div class="card-header">
-                        <div class="access-code-badge">AH793JDK</div>
-                        <h3>Relaxing Trip to Norman, Oklahoma</h3>
-                    </div>
-                    <div class="day-list">
-                        <div class="day-item">
-                            <div class="day-details">
-                                <h4> Day 1: Shop & Explore </h4>
-                                <p> Breakfast at Bandana's Bar-B-Q, Shopping at Sooner Mall,
-                                    Visit The Campus Corner, Lunch at The Refectory,
-                                    Shopping at local boutiques, Dinner at Hideaway Pizza,
-                                    Evening Shopping, Dessert at The Big Biscuit, Return to hotel
-                                </p>
-                                <div class="detail-badges">
-                                    <span class="badge">
-                                        <i class="bi bi-hourglass-split"></i> 07:00 AM - 09:30 PM
-                                    </span>
-                                    <span class="badge">
-                                        <i class="bi bi-cash"></i> $70
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="btn-secondary-container">
-                        <button type="button" class="btn-secondary" onclick="window.print()">
-                            Export Itinerary
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Itinerary Example 2 -->
-            <section class="itinerary-section">
-                <div class="itinerary-card">
-                    <div class="card-header">
-                        <div class="access-code-badge">L93KEDK9</div>
-                        <h3> Adventuring Through Denver, Colorado </h3>
-                    </div>
-                    <div class="day-list">
-                        <div class="day-item">
-                            <div class="day-details">
-                                <h4> Day 1: Arrival & Exploration </h4>
-                                <p> Breakfast at Denver Biscuit Company, Explore Denver Art Museum
-                                    Lunch at Union Station, Stroll around Larimer Square, Visit Denver Botanic Gardens
-                                    Dinner at Linger, Drink & Chat at The Infinite Monkey Theorem
-                                </p>
-                                <div class="detail-badges">
-                                    <span class="badge">
-                                        <i class="bi bi-hourglass-split"></i> 10:00 AM - 9:00 PM
-                                    </span>
-                                    <span class="badge">
-                                        <i class="bi bi-cash"></i> $165
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="day-item">
-                            <div class="day-details">
-                                <h4> Day 2: Adventure & Culture </h4>
-                                <p> Breakfast at Snooze, an A.M. Eatery, Denver Museum of Nature & Science
-                                    Lunch at The Plum Tavern, Visit Denver Zoo, Shopping in Cherry Creek Shopping District,
-                                    Dinner at Root Down, Evening at Coors Field
-                                </p>
-                                <div class="detail-badges">
-                                    <span class="badge">
-                                        <i class="bi bi-hourglass-split"></i> 10:00 AM - 09:00 PM
-                                    </span>
-                                    <span class="badge">
-                                        <i class="bi bi-cash"></i> $238
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="btn-secondary-container">
-                        <button type="button" class="btn-secondary" onclick="window.print()">
-                            Export Itinerary
-                        </button>
-                    </div>
-                </div>
-            </section>
-
+    
+    <div class="container my-5">
+        <!-- Itinerary Header -->
+        <div class="itinerary-header">
+            <h2><i class="bi bi-airplane-fill"></i> Personalized Itineraries </h2>
+            <a href="{% url 'itinerary:itinerary' %}" class="btn-primary">Generate an Itinerary</a>
         </div>
-    </body>
+        
+        {% if itineraries %}
+            {% for itinerary in itineraries %}
+                <section class="itinerary-section">
+                    <div class="itinerary-card">
+                        <div class="card-header">
+                            <div class="access-code-badge">{{ itinerary.access_code }}</div>
+                            <h3>{{ itinerary.destination }}</h3>
+                        </div>
+                        <div class="day-list">
+                            {% with first_day=itinerary.days.first %}
+                                {% if first_day %}
+                                    <div class="day-item">
+                                        <div class="day-details">
+                                            <h4>
+                                                Day {{ first_day.day_number }}: {{ first_day.date }}
+                                            </h4>
+                                            <p>
+                                                {{ first_day.notes|default:"No notes for this day yet." }}
+                                            </p>
+                                            <div class="detail-badges">
+                                                <span class="badge">
+                                                    <i class="bi bi-hourglass-split"></i>
+                                                    {{ itinerary.wake_up_time }} - {{ itinerary.bed_time }}
+                                                </span>
+                                                <!-- you can add a cost badge later if you aggregate budget -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <p>No day details saved yet.</p>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="btn-secondary-container">
+                            <!-- Better than printing the list page: go to detail page -->
+                            <a href="{% url 'itinerary:itinerary_detail' itinerary.access_code %}"
+                                class="btn-secondary">
+                                View / Export Itinerary
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            {% endfor %}
+        {% else %}
+            <p>You don't have any itineraries yet. Generate one to see it here!</p>
+        {% endif %}
+
+
+    </div>
+</body>
 </html>
