@@ -1,7 +1,6 @@
-""" System imports"""
+"""View handlers for Wanderly authentication flows."""
 import os
 
-""" Django imports """
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
@@ -22,11 +21,9 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.csrf import csrf_exempt
 
-""" Google OAuth imports """
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
-""" Local imports """
 from .forms import ChangePasswordForm, RegistrationForm, ResetPasswordForm
 
 # Get the user model

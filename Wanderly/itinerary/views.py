@@ -1,4 +1,5 @@
 """Controls the views and requests for the itinerary module."""
+# pylint: disable=too-many-lines
 import json
 import os
 from typing import List, Optional
@@ -174,7 +175,7 @@ def _format_day_notes(itinerary_obj: Itinerary) -> str:
     return f"User preferences for specific days:\n{joined}\n\n"
 
 
-def _fetch_flight_details(flight_number: str) -> Optional[dict]:
+def _fetch_flight_details(flight_number: str) -> Optional[dict]:  # pylint: disable=too-many-locals
     """Call AviationStack to fetch flight details for a given flight number."""
 
     # Dont call API if we lack a flight number or API key.
@@ -203,7 +204,7 @@ def _fetch_flight_details(flight_number: str) -> Optional[dict]:
     # AviationStack can return error dicts instead of HTTP errors, so handle that.
     if isinstance(payload, dict) and payload.get("error"):
         raise requests.RequestException(payload["error"].get("info", "API error"))
-    
+
     # Grab the data array and gracefully handle empty responses.
     flights = payload.get("data") or []
     if not flights:
@@ -227,7 +228,7 @@ def _fetch_flight_details(flight_number: str) -> Optional[dict]:
         # When the section is missing we return canonical empty values.
         if not section:
             return "", "", ""
-        
+
         # Pull out the short IATA code if present.
         airport_code = section.get("iata") or ""
 
@@ -240,7 +241,7 @@ def _fetch_flight_details(flight_number: str) -> Optional[dict]:
 
     # Parse the departure bundle into a tuple of values.
     departure_code, departure_name, departure_time = _extract(departure)
-    
+
     # Parse the arrival bundle into a tuple of values.
     arrival_code, arrival_name, arrival_time = _extract(arrival)
 
@@ -257,7 +258,7 @@ def _fetch_flight_details(flight_number: str) -> Optional[dict]:
     }
 
 
-def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
+def _autofill_flight_data(itinerary_obj: Itinerary) -> None:  # pylint: disable=too-many-locals
     """Populate arrival/departure fields by calling the flight API when needed."""
     # Track which fields were modified so we can issue a minimal save.
     updates = set()
@@ -269,7 +270,7 @@ def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
         # When the API returned nothing we do not touch the model.
         if not details:
             return
-        
+
         # Build the attribute names for this prefix (arrival/departure).
         airport_field = f"{prefix}_airport"
         datetime_field = f"{prefix}_datetime"
@@ -330,9 +331,10 @@ def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
         itinerary_obj.save(update_fields=list(updates))
 
 
+# pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     """Build the user message sent to the OpenAI model."""
-    
+
     # Extract core itinerary fields for easier access.
     destination = getattr(itinerary_obj, "destination", "")
     wake_time = getattr(itinerary_obj, "wake_up_time", "")
@@ -353,7 +355,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     date_range = ""
 
     # Build date range when both dates are present.
-    if (start_date) and (end_date):
+    if start_date and end_date:
         date_range = f"{start_date:%B %d, %Y} through {end_date:%B %d, %Y}"
 
     # Handle the end-date-only case.
@@ -375,18 +377,30 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
         meal_preferences.append("dinner")
     if meal_preferences:
         joined_meals = ", ".join(meal_preferences)
-        meals_line = f"{joined_meals} (schedule meal stops only for these selections)"
+        meals_line = (
+            f"{joined_meals} "
+            "(schedule meal stops only for these selections)"
+        )
     else:
-        meals_line = "No planned meals; skip dedicated meal stops unless explicitly requested elsewhere"
+        meals_line = (
+            "No planned meals; skip dedicated meal stops "
+            "unless explicitly requested elsewhere"
+        )
 
     # Summarize the flight plan into bullet points.
-    def _format_flight_line(direction: str, dt_value, airport_label: str, airline_label: str, flight_number: str) -> str:
+    def _format_flight_line(
+        direction: str,
+        dt_value,
+        airport_label: str,
+        airline_label: str,
+        flight_number: str,
+    ) -> str:
         """Return a descriptive bullet without performing additional API lookups."""
 
         # Skip empty flight entries.
         if not any([dt_value, airport_label, airline_label, flight_number]):
             return ""
-        
+
         # Build the flight line prefix.
         normalized_number = (flight_number or "").upper()
 
@@ -497,7 +511,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     ref_date = start_date or end_date
 
     # Build a seasonal hint when we have a reference date.
-    if (ref_date):
+    if ref_date:
         month = ref_date.month
         if month in (12, 1, 2):
             season_hint = f"Travel month: {ref_date:%B} (expect winter conditions)."
@@ -558,7 +572,7 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     # Exclude departure day when applicable.
     if has_departure_info and num_days:
         flight_excluded_days.add(num_days)
-    
+
     # Iterate over each Day to find wake/bed overrides.
     for day in Day.objects.filter(itinerary=itinerary_obj).order_by("day_number"):
         if day.day_number in flight_excluded_days:
@@ -567,7 +581,11 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
         # Only include days that have at least one override.
         if day.wake_override or day.bed_override:
             override_lines.append(
-                f"- Day {day.day_number}: wake at {day.wake_override or wake_time}, bed by {day.bed_override or bed_time}"
+                (
+                    f"- Day {day.day_number}: wake at "
+                    f"{day.wake_override or wake_time}, "
+                    f"bed by {day.bed_override or bed_time}"
+                )
             )
 
     # Build the final overrides block for the prompt.
@@ -588,11 +606,13 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     # Arrival flight guidance.
     if has_arrival_info:
         guidance_lines.append(
-            "Day 1 must begin with an \"Arrival Flight\" block summarizing the airline, flight number, "
-            "arrival airport, and arrival time (omit PNR). Ignore the typical wake/bed windows for this day."
+            "Day 1 must begin with an \"Arrival Flight\" block summarizing "
+            "the airline, flight number, arrival airport, and arrival time "
+            "(omit PNR). Ignore the typical wake/bed windows for this day."
         )
         guidance_lines.append(
-            "Even if overrides are configured, do not enforce wake/bed times on the arrival day; anchor the schedule around the flight."
+            "Even if overrides are configured, do not enforce wake/bed times "
+            "on the arrival day; anchor the schedule around the flight."
         )
 
     # Hotel check-in guidance.
@@ -613,19 +633,35 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     # Hotel suggestion guidance.
     elif needs_hotel_suggestion:
         guidance_lines.append(
-            "No hotel was provided, so choose a realistic hotel that fits the party size and budget ceiling, "
-            "mention it explicitly before the first full day, include a nightly price range in the cost_estimate field, "
-            "and respect its check-in/out windows."
+            "No hotel was provided, so choose a realistic hotel that fits "
+            "the party size and budget ceiling, mention it explicitly "
+            "before the first full day, include a nightly price range in the "
+            "cost_estimate field, and respect its check-in/out windows."
         )
 
     # Departure flight guidance.
     if has_departure_info:
         guidance_lines.append(
-            "On the final day ignore typical wake/bed times and instead shape the schedule around the departure flight, leaving a buffer of at least one hour beforehand."
+            "On the final day ignore typical wake/bed times and instead shape "
+            "the schedule around the departure flight, leaving a buffer of at "
+            "least one hour beforehand."
         )
 
     # Combine all additional guidance lines into a single block.
     additional_guidance = "\n".join(guidance_lines) or "None."
+
+    if has_arrival_info or has_departure_info:
+        tail_guidance = (
+            "- Do not schedule activities before the arrival flight lands or "
+            "within 1 hour of the departure flight; mention this buffer in "
+            "your plan if applicable."
+        )
+    else:
+        tail_guidance = (
+            "- Flights were not provided, so treat the trip as fully "
+            "land-based with no arrival/departure buffers."
+        )
+
 
     # Build and return the full prompt string.
     return f"""
@@ -665,7 +701,7 @@ Season / weather cue: {season_hint or 'Season unspecified'}
 - When arrival/departure flights exist, align Day 1 and the final day with those times.
 - Wake/bed overrides by day:
 {overrides_block}
-{"- Do not schedule activities before the arrival flight lands or within 1 hour of the departure flight; mention this buffer in your plan if applicable." if has_arrival_info or has_departure_info else "- Flights were not provided, so treat the trip as fully land-based with no arrival/departure buffers."}
+{tail_guidance}
 
 === Output Contract ===
 Respond with JSON shaped exactly like this example (real content, no comments):
@@ -703,24 +739,40 @@ Respond with JSON shaped exactly like this example (real content, no comments):
 
 Rules:
 1. Provide 4-6 activities per day spanning wake to bed times. Use per-day overrides to adjust times.
-2. Only set "requires_place": true when you reference a specific venue (restaurant, museum, tour operator, etc.).
-   Generic activities (walk downtown, rest at hotel) must have "requires_place": false and an empty "place_query".
-3. For any meal, coffee shop, nightlife, or ticketed attraction, list an actual venue name with city/neighborhood context inside "place_query".
-   If you cannot confidently cite a real place, mark "requires_place": false and say the stop is flexible or traveler-choice.
-4. Never fabricate venue names. If no venue is available, leave "place_query" empty and set "requires_place": false so the UI will hide ratings.
-5. Keep activities safe, legal, and culturally appropriate. Skip anything that could be closed or unrealistic.
-6. Align cost_estimate values with the traveler's budget and category emphasis, distributing spending through the trip.
-7. Only add meal stops for the meals the traveler selected; if they unchecked a meal, skip dedicated stops for it unless it is explicitly part of a must-do request.
-8. Use the provided flight numbers exactly as supplied and cite the real airline from that data; never invent placeholder airlines or flight codes.
-9. Any time you recommend a hotel (user-provided or Wanderly-suggested), include a realistic nightly price or price range in the cost_estimate field using the existing "$" formatting.
+2. Only set "requires_place": true when you reference a specific venue (restaurant, museum,
+   tour operator, etc.). Generic activities (walk downtown, rest at hotel) must have
+   "requires_place": false and an empty "place_query".
+3. For any meal, coffee shop, nightlife, or ticketed attraction, list an actual venue name with
+   city/neighborhood context inside "place_query". If you cannot confidently cite a real place,
+   mark "requires_place": false and say the stop is flexible or traveler-choice.
+4. Never fabricate venue names. If no venue is available, leave "place_query" empty and set
+   "requires_place": false so the UI hides the ratings panel.
+5. Keep activities safe, legal, and culturally appropriate.
+   Skip anything that could be closed or unrealistic.
+6. Align cost_estimate values with the traveler's budget distribution;
+   spread spending through the trip.
+7. Only add meal stops for meals the traveler selected. If they unchecked one,
+   skip dedicated stops unless it is part of a must-do request.
+8. Use the provided flight numbers exactly as supplied and cite the real airline
+   from that data; never invent placeholder flights.
+9. Any time you recommend a hotel, include a realistic nightly price or price
+   range in the cost_estimate field using the existing "$" formatting.
 10. Mention downtime or flexibility explicitly when the traveler asked for it.
-11. If information is missing (no flights, no hotel), explicitly note "Arrival time TBD" or "Hotel TBD" instead of inventing details.
+11. If information is missing (no flights, no hotel), explicitly note
+   "Arrival time TBD" or "Hotel TBD" instead of inventing details.
 12. Use the season/weather cue to avoid out-of-season recommendations.
-13. Reference the user's Activities & Notes when choosing venues-if they request a cuisine or vibe for a day, pick a restaurant/coffee shop that matches it and state the cuisine in the description.
-14. When arrival flight info exists, Day 1 must begin with the arrival block described above; keep it concise and non-sensitive.
-15. When hotel info exists, add a timed check-in block; if no hotel was supplied but the user asked Wanderly to pick one, choose a reasonable hotel within budget for their party and include it before the first set of activities, again including a price range in cost_estimate.
-16. Do not repeat the same dining venue across the itinerary unless the traveler explicitly demanded it; vary restaurants/bars/coffee shops day-to-day.
-17. Before returning the answer, double-check that your JSON matches the schema exactly and can be parsed without errors.
+13. Reference the user's Activities & Notes when choosing venues. Match
+   requested cuisine/vibes and state the cuisine style in the description.
+14. When arrival flight info exists, Day 1 must begin with the arrival block
+   described above; keep it concise and non-sensitive.
+15. When hotel info exists, add a timed check-in block. If no hotel was supplied
+   but the user asked Wanderly to pick one, choose a reasonable hotel within
+   budget for their party and include it before the first set of activities with
+   a price range in cost_estimate.
+16. Do not repeat the same dining venue across the itinerary unless the traveler
+   explicitly demanded it; vary restaurants/bars/coffee shops day-to-day.
+17. Before returning the answer, double-check that your JSON matches the schema
+   exactly and can be parsed without errors.
 """
 
 
@@ -747,7 +799,7 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
 
         # Return just the list of days, defaulting to [] when missing.
         return parsed.get("days", [])
-    
+
     except (OpenAIError, json.JSONDecodeError, KeyError, ValueError):
         # Any error during AI call or parsing results in a None return.
         return None
@@ -766,7 +818,7 @@ def itinerary(request):
 
     #
     if request.method == "POST":
-        
+
         # Bind POST data to the form for validation.
         form = ItineraryForm(request.POST)
 
@@ -821,7 +873,7 @@ def itinerary(request):
 
     return render(request, "itinerary.html", context)
 
-def itinerary_detail(request, access_code: str):
+def itinerary_detail(request, access_code: str):  # pylint: disable=too-many-locals
     """Display a generated itinerary."""
 
     # Fetch the itinerary or return 404 if not found.
@@ -843,7 +895,7 @@ def itinerary_detail(request, access_code: str):
         # Return blank strings when no time exists.
         if not value:
             return ""
-        
+
         # Format in 12-hour style and strip any leading zero.
         return value.strftime("%I:%M %p").lstrip("0")
 
@@ -924,7 +976,7 @@ def itinerary_detail(request, access_code: str):
     }
 
     # Surface a message when no AI-generated details exist.
-    if (not ai_itinerary_days):
+    if not ai_itinerary_days:
         # Surface a message when the AI output is missing/empty.
         messages.error(
             request,
@@ -952,7 +1004,7 @@ def _itinerary_error_response(request, is_ajax, message, status_code):
     if is_ajax:
         # Return a structured response the front-end can consume.
         return JsonResponse({"ok": False, "error": message}, status=status_code)
-    
+
     # Non-AJAX flows rely on Django messages + redirect to the form.
     messages.error(request, message)
     return redirect("itinerary:itinerary")
@@ -963,7 +1015,7 @@ def flight_lookup(request):
     """AJAX endpoint to fetch arrival/departure info from a flight number."""
     # Parse JSON payload
     try:
-        
+
         payload = json.loads(request.body or "{}")
 
     # Handle malformed JSON gracefully.
@@ -987,7 +1039,7 @@ def flight_lookup(request):
         return JsonResponse({"error": "Failed to contact flight lookup service"}, status=502)
 
     # Handle cases where no flight was found.
-    if (not details):
+    if not details:
         return JsonResponse({"error": "No flight found for that number"}, status=404)
 
     # Return the normalized details for JavaScript to consume.
