@@ -7,7 +7,7 @@ from itinerary.models import Itinerary
 @pytest.mark.django_db
 def test_itinerary_list_requires_login(client):
     """
-    Testing to  ake sure you cannot access /itinerary/list/
+    Testing to make sure you cannot access /itinerary/list/
     without being logged in, and making sure it redirects to 
     the login page.
     """
