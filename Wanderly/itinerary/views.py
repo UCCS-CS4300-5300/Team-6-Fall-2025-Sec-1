@@ -187,7 +187,7 @@ def itinerary(request):
             # Setting each itinerary obj to a user
             if request.user.is_authenticated:
                 itinerary_obj.user = request.user
-            
+
             itinerary_obj.save()
 
             _create_break_times(request, itinerary_obj)
