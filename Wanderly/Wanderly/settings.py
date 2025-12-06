@@ -29,7 +29,6 @@ if root_env.exists():
 # Ensure the GOOGLE_OAUTH_CLIENT_ID environment variable is set,
 # but allow a placeholder during tests
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
-GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
 
@@ -39,7 +38,7 @@ running_tests = (
     or os.environ.get('PYTEST_CURRENT_TEST')
 )
 
-if running_tests:
+if running_tests or running_lint or ENVIRONMENT != "production":
     GOOGLE_OAUTH_CLIENT_ID = GOOGLE_OAUTH_CLIENT_ID or 'test-google-client-id'
     GOOGLE_PLACES_API_KEY = GOOGLE_PLACES_API_KEY or 'test-api-key'
 else:
