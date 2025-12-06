@@ -1,9 +1,11 @@
 """Controls the views and requests for the itinerary module."""
 
 import json
+import os
 import sys
 import threading
 from typing import List, Optional
+import requests
 import requests
 
 from django.conf import settings
@@ -412,7 +414,15 @@ def find_itinerary(request):
         return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
 
 def find_itinerary(request):
-    """Lookup an itinerary by access code and redirect or return JSON."""
+    """
+    Lookup an itinerary by access code and redirect or return JSON.
+
+    Non-AJAX requests mirror the form behavior and redirect either to the
+    itinerary landing page or the detail page. AJAX requests return a JSON
+    payload with ``ok``/``error`` metadata.
+    """
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     redirect_home = redirect("itinerary:itinerary")
 
     # If there was no code return a response
@@ -431,14 +441,14 @@ def find_itinerary(request):
             404,
         )
 
-    itinerary_exists = Itinerary.objects.filter(access_code=access_code).exists()
-    if not itinerary_exists:
+    # Look up the itinerary by its access code.
+    itinerary_obj = Itinerary.objects.filter(access_code=access_code).first()  # pylint: disable=no-member
+    if itinerary_obj is None:
         return _missing_itinerary_response(is_ajax, redirect_home)
 
     detail_url = reverse("itinerary:itinerary_detail", args=[access_code])
     if is_ajax:
         return JsonResponse({"ok": True, "redirect_url": detail_url})
-
     return redirect(detail_url)
 
 
