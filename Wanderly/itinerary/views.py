@@ -13,6 +13,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -298,7 +300,13 @@ def itinerary(request):
         form = ItineraryForm(request.POST)
 
         if form.is_valid():
-            itinerary_obj = form.save()
+            itinerary_obj = form.save(commit=False)
+
+            # Setting each itinerary obj to a user
+            if request.user.is_authenticated:
+                itinerary_obj.user = request.user
+
+            itinerary_obj.save()
 
             _create_break_times(request, itinerary_obj)
             _create_budget_items(request, itinerary_obj)
@@ -384,10 +392,11 @@ def itinerary_detail(request, access_code: str):
 
     return render(request, "itinerary_detail.html", context)
 
+@login_required(login_url='sign_in')
 def itinerary_list(request):
-    ''' Load the list of current itineraries '''
-    return render(request, "itinerary_list.html")
-
+    ''' Load the list of current itineraries for current user.'''
+    itineraries = Itinerary.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "itinerary_list.html", {"itineraries": itineraries})
 
 def _itinerary_error_response(request, is_ajax, message, status_code):
     """Return a consistent error response for itinerary lookups."""
@@ -508,3 +517,17 @@ def place_reviews(request):
             for r in reviews
         ],
     })
+
+
+@login_required(login_url="sign_in")
+@require_http_methods(["POST"])
+def delete_itinerary(request, access_code: str):
+    """Delete an itinerary owned by the current user."""
+    itinerary_obj = get_object_or_404(
+        Itinerary,
+        access_code=access_code.upper(),
+        user=request.user,
+    )
+    itinerary_obj.delete()
+    messages.success(request, "Itinerary deleted successfully.")
+    return redirect("itinerary:itinerary_list")
