@@ -25,13 +25,15 @@
             Route Planning
           </a>
         </li>
-        <li>
-          <a class="nav-link text-black {% if request.path == itinerary_list_url %}active{% endif %}"
-             href="{{ itinerary_list_url }}"
-             aria-current="{% if request.path == itinerary_list_url %}page{% endif %}">
-            View Itineraries
-          </a>
-        </li>
+        {% if request.user.is_authenticated %}
+          <li>
+            <a class="nav-link text-black {% if request.path == itinerary_list_url %}active{% endif %}"
+              href="{{ itinerary_list_url }}"
+              aria-current="{% if request.path == itinerary_list_url %}page{% endif %}">
+              View Itineraries
+            </a>
+          </li>
+        {% endif %}
         {% if request.path == '/' %}
           <li class="nav-item">
             <button 
