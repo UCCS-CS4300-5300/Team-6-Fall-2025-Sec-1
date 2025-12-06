@@ -6,7 +6,6 @@ import sys
 import threading
 from typing import List, Optional
 import requests
-import requests
 
 from django.conf import settings
 from django.contrib import messages
@@ -14,8 +13,6 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -402,19 +399,6 @@ def _itinerary_error_response(request, is_ajax, message, status_code):
 
 def find_itinerary(request):
     """
-    Takes an access code from the user (currently the itinerary ID)
-    then redirect to the matching itinerary detail page.
-    """
-
-    # Checking to make sure the request is ajax to /itinerary/access/
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
-    # Making sure the request is post so only coming from the form
-    if request.method != "POST":
-        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
-
-def find_itinerary(request):
-    """
     Lookup an itinerary by access code and redirect or return JSON.
 
     Non-AJAX requests mirror the form behavior and redirect either to the
@@ -425,23 +409,13 @@ def find_itinerary(request):
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     redirect_home = redirect("itinerary:itinerary")
 
-    # If there was no code return a response
-    if not code:
-        return _itinerary_error_response(request, is_ajax, "Please enter an access code.", 400)
+    if request.method != "POST":
+        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
 
-    # Grab the itinerary object from the database using the itinerary_id
-    itinerary_obj = Itinerary.objects.filter(access_code=code).first() # pylint: disable=no-member
+    access_code = request.POST.get("access_code", "").strip()
+    if not access_code:
+        return _missing_access_code_response(is_ajax, redirect_home)
 
-    # If there is no itinerary with that id return a repsonse
-    if itinerary_obj is None:
-        return _itinerary_error_response(
-            request,
-            is_ajax,
-            "No itinerary found with that access code.",
-            404,
-        )
-
-    # Look up the itinerary by its access code.
     itinerary_obj = Itinerary.objects.filter(access_code=access_code).first()  # pylint: disable=no-member
     if itinerary_obj is None:
         return _missing_itinerary_response(is_ajax, redirect_home)
