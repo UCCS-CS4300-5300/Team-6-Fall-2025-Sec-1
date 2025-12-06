@@ -7,6 +7,7 @@ class ItineraryForm(forms.ModelForm):
     """Form for creating an itinerary"""
 
     class Meta:
+        """Meta class for ItineraryForm"""
         model = Itinerary
         fields = ['destination', 'place_id', 'latitude', 'longitude',
                   'wake_up_time', 'bed_time', 'num_days']

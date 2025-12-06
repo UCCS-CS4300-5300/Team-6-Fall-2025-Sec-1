@@ -84,6 +84,32 @@
                         </div>
                     </div>
 
+                    {% if accommodation_info %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div>
+                                    <h5 class="mb-2"><i class="bi bi-house-door"></i> Recommended Lodging</h5>
+                                    <p class="mb-1 fw-semibold">{{ accommodation_info.name }}</p>
+                                    {% if accommodation_info.address %}
+                                    <p class="mb-1 text-muted">{{ accommodation_info.address }}</p>
+                                    {% endif %}
+                                    {% if accommodation_info.price_per_night %}
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-cash"></i> {{ accommodation_info.price_per_night }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% if accommodation_info.notes %}
+                                <div class="ms-3 text-muted" style="max-width: 320px;">
+                                    {{ accommodation_info.notes }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <section class="itinerary-days-section">
                         {% if ai_itinerary_days %}
                             {% for day in ai_itinerary_days %}
