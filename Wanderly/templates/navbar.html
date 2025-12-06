@@ -1,4 +1,5 @@
 {% url 'itinerary:itinerary_list' as itinerary_list_url %}
+{% url 'itinerary:itinerary' as itinerary_create_url %}
 <nav class="navbar navbar-expand-lg navbar-light site-navbar">
   <div class="container">
     <a class="navbar-brand text-decoration-none" href="/">
@@ -25,13 +26,23 @@
             Route Planning
           </a>
         </li>
-        <li>
-          <a class="nav-link text-black {% if request.path == itinerary_list_url %}active{% endif %}"
-             href="{{ itinerary_list_url }}"
-             aria-current="{% if request.path == itinerary_list_url %}page{% endif %}">
-            View Itineraries
-          </a>
-        </li>
+        {% if request.user.is_authenticated %}
+          <li>
+            <a class="nav-link text-black {% if request.path == itinerary_list_url %}active{% endif %}"
+              href="{{ itinerary_list_url }}"
+              aria-current="{% if request.path == itinerary_list_url %}page{% endif %}">
+              View Itineraries
+            </a>
+          </li>
+        {% else %}
+          <li>
+            <a class="nav-link text-black {% if request.path == itinerary_create_url %}active{% endif %}"
+              href="{{ itinerary_create_url }}"
+              aria-current="{% if request.path == itinerary_create_url %}page{% endif %}">
+              Generate Itinerary
+            </a>
+          </li>
+        {% endif %}
         {% if request.path == '/' %}
           <li class="nav-item">
             <button 
