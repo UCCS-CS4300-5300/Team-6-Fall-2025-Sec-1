@@ -40,7 +40,7 @@ running_tests = (
 
 running_lint = any("pylint" in arg for arg in sys.argv)
 
-if running_tests or running_lint or ENVIRONMENT != "production":
+if running_tests or running_lint:
     GOOGLE_OAUTH_CLIENT_ID = GOOGLE_OAUTH_CLIENT_ID or 'test-google-client-id'
     GOOGLE_PLACES_API_KEY = GOOGLE_PLACES_API_KEY or 'test-api-key'
 else:
