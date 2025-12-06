@@ -176,7 +176,7 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
         # The calling view is responsible for displaying a user-facing error.
         return None
 
-@login_required
+@login_required(login_url='sign_in')
 def itinerary(request):
     """View for creating and displaying itineraries."""
     if request.method == "POST":
@@ -241,7 +241,7 @@ def itinerary_detail(request, access_code: str):
 
     return render(request, "itinerary_detail.html", context)
 
-@login_required
+@login_required(login_url='sign_in')
 def itinerary_list(request):
     ''' Load the list of current itineraries for current user.'''
     itineraries = Itinerary.objects.filter(user=request.user).order_by("-created_at")
