@@ -1,9 +1,14 @@
+"""Forms for collecting user time preferences."""
+
 from django import forms
 
+from .constants import TIME_PREFERENCE_FIELDS
 from .models import TimePreference
 
 
 class TimePreferenceForm(forms.ModelForm):
+    """ModelForm for scheduling preferences."""
+
     enable_meals = forms.BooleanField(
         required=False,
         label="Include meal times",
@@ -12,40 +17,54 @@ class TimePreferenceForm(forms.ModelForm):
 
     class Meta:
         model = TimePreference
-        fields = [
-            "wake_up_time",
-            "sleep_time",
-            "enable_meals",
-            "breakfast_time",
-            "lunch_time",
-            "dinner_time",
-            "break_frequency",
-            "break_duration",
-            "schedule_strictness",
-            "preferred_start_time",
-            "preferred_end_time",
-        ]
+        fields = list(TIME_PREFERENCE_FIELDS)
         widgets = {
-            "wake_up_time": forms.TimeInput(attrs={"type": "time", "class": "form-control form-control-lg"}),
-            "sleep_time": forms.TimeInput(attrs={"type": "time", "class": "form-control form-control-lg"}),
-            "breakfast_time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
-            "lunch_time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
-            "dinner_time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
+            "wake_up_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control form-control-lg"}
+            ),
+            "sleep_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control form-control-lg"}
+            ),
+            "breakfast_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control"}
+            ),
+            "lunch_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control"}
+            ),
+            "dinner_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control"}
+            ),
             "break_frequency": forms.Select(attrs={"class": "form-select"}),
             "break_duration": forms.Select(attrs={"class": "form-select"}),
             "schedule_strictness": forms.Select(attrs={"class": "form-select"}),
-            "preferred_start_time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
-            "preferred_end_time": forms.TimeInput(attrs={"type": "time", "class": "form-control"}),
+            "preferred_start_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control"}
+            ),
+            "preferred_end_time": forms.TimeInput(
+                attrs={"type": "time", "class": "form-control"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # mark meal fields optional
-        for field_name in ("wake_up_time", "sleep_time", "breakfast_time", "lunch_time", "dinner_time",
-                           "preferred_start_time", "preferred_end_time"):
+        optional_time_fields = (
+            "wake_up_time",
+            "sleep_time",
+            "breakfast_time",
+            "lunch_time",
+            "dinner_time",
+            "preferred_start_time",
+            "preferred_end_time",
+        )
+        for field_name in optional_time_fields:
             self.fields[field_name].required = False
 
-        for choice_field in ("break_frequency", "break_duration", "schedule_strictness"):
+        for choice_field in (
+            "break_frequency",
+            "break_duration",
+            "schedule_strictness",
+        ):
             field = self.fields[choice_field]
             field.required = False
             choices = list(field.choices)
@@ -53,7 +72,6 @@ class TimePreferenceForm(forms.ModelForm):
                 choices[0] = ("", "---------")
             field.choices = choices
             field.widget.choices = choices
-
 
     def clean(self):
         cleaned = super().clean()
@@ -69,7 +87,11 @@ class TimePreferenceForm(forms.ModelForm):
 
         return cleaned
 
-    def save(self, user, commit=True):
+    def save(self, commit=True, **kwargs):
+        """Persist the instance while attaching the user from kwargs."""
+        user = kwargs.pop("user", None)
+        if user is None:
+            raise ValueError("user must be provided when saving time preferences.")
         instance: TimePreference = super().save(commit=False)
         instance.user = user
         if not self.cleaned_data.get("enable_meals"):

@@ -1,3 +1,5 @@
+"""Unit tests for the budgets app."""
+
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -8,7 +10,10 @@ from .models import Budget, BudgetItem
 
 
 class BudgetModelTests(TestCase):
+    """Exercise the Budget model."""
+
     def test_budget_creation(self):
+        """Users can create a budget tied to their account."""
         user = get_user_model().objects.create_user(
             username="creator",
             email="creator@example.com",
@@ -23,8 +28,11 @@ class BudgetModelTests(TestCase):
 
 
 class BudgetItemFormTests(TestCase):
+    """Validate the BudgetItem form behaviors."""
+
     def test_budget_item_form_validation(self):
-        # Missing custom category when "Other" is selected → invalid
+        """Ensure category-specific rules are enforced."""
+        # Missing custom category when "Other" is selected is invalid
         missing_custom = BudgetItemForm(
             data={
                 "category": BudgetItem.OTHER,

@@ -13,6 +13,7 @@ def generate_access_code():
     ac_alphabet = string.ascii_uppercase + string.digits
     return "".join(secrets.choice(ac_alphabet) for _ in range(8))
 
+
 class Itinerary(models.Model):
     """Main itinerary model storing trip information"""
     destination = models.CharField(max_length=255)
@@ -33,7 +34,8 @@ class Itinerary(models.Model):
         null=True,
     )
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Model metadata for itineraries."""
         verbose_name_plural = "Itineraries"
         ordering = ['-created_at']
 
@@ -46,7 +48,7 @@ class Itinerary(models.Model):
             try:
                 while True:
                     code = generate_access_code()
-                    if not Itinerary.objects.filter(access_code=code).exists():
+                    if not Itinerary.objects.filter(access_code=code).exists():  # pylint: disable=no-member
                         self.access_code = code
                         break
             except Exception as exc:
@@ -56,16 +58,14 @@ class Itinerary(models.Model):
                 ) from exc
         super().save(*args, **kwargs)
 
-
-
-
 class BreakTime(models.Model):
     """Break times during the day"""
     itinerary = models.ForeignKey(Itinerary, on_delete=models.CASCADE, related_name='break_times')
     start_time = models.TimeField()
     end_time = models.TimeField()
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Ordering for break times."""
         ordering = ['start_time']
 
     def __str__(self):
@@ -88,7 +88,8 @@ class BudgetItem(models.Model):
     custom_category = models.CharField(max_length=100, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Ordering for budget items."""
         ordering = ['category']
 
     def __str__(self):
@@ -104,7 +105,8 @@ class Day(models.Model):
     date = models.DateField()
     notes = models.TextField(blank=True)
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Ordering and uniqueness for days."""
         ordering = ['day_number']
         unique_together = ['itinerary', 'day_number']
 

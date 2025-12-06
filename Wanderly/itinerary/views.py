@@ -4,6 +4,7 @@ import json
 import sys
 import threading
 from typing import List, Optional
+import requests
 
 from django.conf import settings
 from django.contrib import messages
@@ -11,6 +12,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -387,23 +390,46 @@ def itinerary_list(request):
     return render(request, "itinerary_list.html")
 
 
-def _is_ajax(request) -> bool:
-    """Return True when the request was made via AJAX/fetch."""
-    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+def _itinerary_error_response(request, is_ajax, message, status_code):
+    """Return a consistent error response for itinerary lookups."""
+    if is_ajax:
+        return JsonResponse({"ok": False, "error": message}, status=status_code)
+    messages.error(request, message)
+    return redirect("itinerary:itinerary")
 
+
+def find_itinerary(request):
+    """
+    Takes an access code from the user (currently the itinerary ID)
+    then redirect to the matching itinerary detail page.
+    """
+
+    # Checking to make sure the request is ajax to /itinerary/access/
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    # Making sure the request is post so only coming from the form
+    if request.method != "POST":
+        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
 
 def find_itinerary(request):
     """Lookup an itinerary by access code and redirect or return JSON."""
     redirect_home = redirect("itinerary:itinerary")
 
-    if request.method != "POST":
-        return redirect_home
+    # If there was no code return a response
+    if not code:
+        return _itinerary_error_response(request, is_ajax, "Please enter an access code.", 400)
 
-    access_code = (request.POST.get("access_code") or "").strip()
-    is_ajax = _is_ajax(request)
+    # Grab the itinerary object from the database using the itinerary_id
+    itinerary_obj = Itinerary.objects.filter(access_code=code).first() # pylint: disable=no-member
 
-    if not access_code:
-        return _missing_access_code_response(is_ajax, redirect_home)
+    # If there is no itinerary with that id return a repsonse
+    if itinerary_obj is None:
+        return _itinerary_error_response(
+            request,
+            is_ajax,
+            "No itinerary found with that access code.",
+            404,
+        )
 
     itinerary_exists = Itinerary.objects.filter(access_code=access_code).exists()
     if not itinerary_exists:
@@ -438,28 +464,63 @@ def _missing_itinerary_response(is_ajax: bool, redirect_home):
 
 @require_POST
 def place_reviews(request):
-    """
-    Stub endpoint for place reviews.
-    Returns a safe placeholder payload while real integration is wired up.
-    """
+    """Fetch ratings and reviews for a place using Google Places API."""
+
+    # Parse JSON payload
     try:
         payload = json.loads(request.body.decode() or "{}")
     except json.JSONDecodeError:
         payload = {}
 
-    query = (payload.get("query") or request.POST.get("query") or "").strip()
+    # Validate required field
+    query = payload.get("query", "").strip()
     if not query:
-        return JsonResponse(
-            {"ok": False, "error": "Missing place query."},
-            status=400,
+        return JsonResponse({"error": "query required"}, status=400)
+
+    # Set up headers for Google Places API request
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": os.environ['GOOGLE_PLACES_RATINGS_API_KEY'],
+        "X-Goog-FieldMask": (
+            "places.id,places.displayName,places.rating,"
+            "places.userRatingCount,places.reviews"
+        ),
+    }
+
+    # Call Google Places API text search endpoint
+    try:
+        text_resp = requests.post(
+            "https://places.googleapis.com/v1/places:searchText",
+            headers=headers,
+            json={"textQuery": query},
+            timeout=10,
         )
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "name": query,
-            "rating": None,
-            "count": 0,
-            "reviews": [],
-        }
-    )
+        # Raise error for bad responses
+        text_resp.raise_for_status()
+
+        # Parse response JSON
+        place_data = text_resp.json()
+
+    # Handle request exceptions
+    except requests.RequestException:
+        return JsonResponse({"error": "Failed to contact Google Places"}, status=502)
+
+    # Extract place info and reviews
+    place = (place_data.get("places") or [{}])[0]
+    reviews = place.get("reviews", [])[:5]  # include positive & negative
+
+    # Format and return response
+    return JsonResponse({
+        "name": place.get("displayName", {}).get("text"),
+        "rating": place.get("rating"),
+        "count": place.get("userRatingCount"),
+        "reviews": [
+            {
+                "text": r.get("text", {}).get("text"),
+                "rating": r.get("rating"),
+                "author": r.get("authorAttribution", {}).get("displayName"),
+            }
+            for r in reviews
+        ],
+    })

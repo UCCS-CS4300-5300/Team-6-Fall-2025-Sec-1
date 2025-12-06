@@ -1,5 +1,7 @@
+""" Views for user profile app """
 from django.shortcuts import render
 
 
-def userProfile(request):
+def user_profile(request):
+    """ Route to render user profile page """
     return render(request, "profile/profile.html")
