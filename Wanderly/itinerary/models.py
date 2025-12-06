@@ -56,7 +56,7 @@ class Itinerary(models.Model):
                 ) from exc
         super().save(*args, **kwargs)
 
-    
+
 
 
 class BreakTime(models.Model):
