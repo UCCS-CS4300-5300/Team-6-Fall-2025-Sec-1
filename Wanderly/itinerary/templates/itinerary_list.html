@@ -61,12 +61,22 @@
                                 {% endif %}
                             {% endwith %}
                         </div>
-                        <div class="btn-secondary-container">
-                            <!-- Better than printing the list page: go to detail page -->
+                        <div class="btn-secondary-container d-flex gap-2">
                             <a href="{% url 'itinerary:itinerary_detail' itinerary.access_code %}"
-                                class="btn-secondary">
+                               class="btn-secondary">
                                 View / Export Itinerary
                             </a>
+                        
+                            <form method="post"
+                                  action="{% url 'itinerary:delete_itinerary' itinerary.access_code %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn-secondary btn-delete"
+                                        onclick="return confirm('Delete this itinerary? This cannot be undone.');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </section>

@@ -360,3 +360,17 @@ def place_reviews(request):
             for r in reviews
         ],
     })
+
+
+@login_required(login_url="sign_in")
+@require_http_methods(["POST"])
+def delete_itinerary(request, access_code: str):
+    """Delete an itinerary owned by the current user."""
+    itinerary_obj = get_object_or_404(
+        Itinerary,
+        access_code=access_code.upper(),
+        user=request.user,
+    )
+    itinerary_obj.delete()
+    messages.success(request, "Itinerary deleted successfully.")
+    return redirect("itinerary:itinerary_list")
