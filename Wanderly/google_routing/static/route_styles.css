@@ -1,0 +1,65 @@
+/* Root Styles */
+:root {
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --text-color: #faf6ed;
+}
+
+footer {
+    background: #2A1C22;
+    bottom: 0;
+    width: 100%;
+    color: var(--text-color);
+    position: fixed;
+}  
+
+.info-section { 
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    color: var(--text-color); 
+}
+
+.secondary-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}  
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    border: none; padding: .75rem 2rem; font-weight: 500;
+}
+
+.btn-outline-primary:hover { 
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    color:var(--text-color); 
+}
+
+.rounded-xxl { 
+    background: transparent; 
+    border: 0; 
+    border-radius: 30px; 
+    overflow: hidden; 
+}
+
+/* Input Card */
+.rounded-xxl .card-body.gradient { 
+    background: rgba(237, 164, 0, 0.4);
+    border-radius: inherit; 
+    background-clip: padding-box;
+}
+
+.stop-row .form-control { 
+    height: 50px; 
+    border-radius: 30px; 
+    padding-left: 16px; 
+}
+
+#map-img { 
+    max-width:100%; 
+    border-radius: 16px; 
+}
+
+/* Required Text */
+.required {
+    color: #585858;
+}
