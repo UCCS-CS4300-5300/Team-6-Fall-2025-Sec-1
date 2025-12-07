@@ -31,7 +31,6 @@ if root_env.exists():
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 # Ensure the GOOGLE_PLACES_API_KEY environment variable is set, but allow a placeholder during tests
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
-AVIATIONSTACK_API_KEY = os.environ.get('AVIATIONSTACK_API_KEY', '')
 
 running_tests = (
     'test' in sys.argv
