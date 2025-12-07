@@ -5,6 +5,7 @@
   --nav-hover: rgba(124, 3, 194, 0.212);     
   --nav-border: #374151;      
   --nav-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  --nav-primary: #eda400;
 }
 
 .site-navbar {
@@ -89,4 +90,9 @@
 
 .navbar-brand:hover .navbar-logo {
   transform: scale(1.05);
+}
+
+.navbar-toggler-icon {
+  background-color: var(--nav-primary);
+  border-radius: 0.2rem;
 }
