@@ -362,6 +362,23 @@ button.btn-text:hover {
     font-size: 1.5rem;
 }
 
+.mini-stat {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+
+.day-annotations {
+    background: #f9fafb;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.badge-mustdo {
+    background: #fff3cd;
+    color: #8a6d3b;
+}
+
 .header-subtitle {
     color: var(--text-light);
     margin: 0;
@@ -396,7 +413,16 @@ button.btn-text:hover {
     padding: 1.25rem 1.5rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.day-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .day-badge {
@@ -414,6 +440,49 @@ button.btn-text:hover {
     font-size: 1.35rem;
     font-weight: 600;
     color: white !important;
+}
+
+.route-day-btn {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: #fff;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-transform: uppercase;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.route-day-btn:hover,
+.route-day-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.route-day-btn:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+.flight-fetch-btn {
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    text-transform: none;
+    box-shadow: 0 0.35rem 0.9rem rgba(79, 70, 229, 0.25);
+}
+
+.flight-fetch-btn:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .activities-list {
@@ -602,23 +671,94 @@ button.btn-text:hover {
 }
 
 /* Print styles */
+@page {
+    margin: 0.5in;
+}
+
 @media print {
-    .itinerary-header,
-    .itinerary-actions,
+    body {
+        background: #fff !important;
+        color: #111 !important;
+        font-size: 11pt;
+        line-height: 1.4;
+    }
+
     .navbar,
+    .info-section,
+    .itinerary-actions,
+    .reviews-btn,
+    .btn,
     form,
-    .info-section {
+    .collapse-toggle {
         display: none !important;
     }
 
-    .day-itinerary-card {
-        box-shadow: none;
-        page-break-inside: avoid;
-        margin-bottom: 1rem;
+    .container,
+    .row,
+    .col-lg-9 {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
-    .activity-item:hover {
-        background-color: transparent;
+    .card,
+    .day-itinerary-card,
+    .mini-stat {
+        background: #fff !important;
+        border: 1px solid #dadce0;
+        box-shadow: none;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-body,
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .card-header,
+    .day-header {
+        background: #f3f4f6 !important;
+        color: #111 !important;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.6rem 0.9rem;
+    }
+
+    .day-itinerary-card,
+    .activity-item {
+        page-break-inside: avoid;
+    }
+
+    .itinerary-days-section {
+        column-count: 2;
+        column-gap: 0.4in;
+    }
+
+    .day-itinerary-card {
+        break-inside: avoid-column;
+        margin-bottom: 0.4in;
+    }
+
+    .activities-list {
+        padding: 0.75rem;
+        border-top: 1px solid #ececec;
+    }
+
+    .activity-rating {
+        border: 1px solid #dedede;
+        background: #fafafa;
+    }
+
+    .itinerary-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .mini-stat {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    .print-visible {
+        display: block !important;
     }
 }
 
@@ -682,9 +822,9 @@ button.btn-text:hover {
         width: 100%;
     }
 
-    .btn-primary-custom,
-    .btn-secondary-custom {
-        width: 100%;
-        justify-content: center;
-    }
+.btn-primary-custom,
+.btn-secondary-custom {
+    width: 100%;
+    justify-content: center;
+}
 }

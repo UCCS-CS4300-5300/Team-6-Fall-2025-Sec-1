@@ -28,7 +28,7 @@ def _fake_routes_ok():
     }
 
 def test_route_demo_renders(client):
-    resp = client.get(reverse("route_demo"))
+    resp = client.get(reverse("google_routing:route_demo"))
     assert resp.status_code == 200
     html = resp.content.decode()
     assert "Multi-Stop Route Planner" in html  # or another stable marker
@@ -36,14 +36,14 @@ def test_route_demo_renders(client):
 
 def test_compute_route_requires_post(client):
     # With @require_POST, GET should be 405
-    resp = client.get(reverse("compute_route"))
+    resp = client.get(reverse("google_routing:compute_route"))
     assert resp.status_code == 405
 
 @patch("google_routing.views.requests.get")
 def test_geocoding_failure_shows_error(mock_get, client):
     mock_get.return_value = Mock(status_code=200, json=_fake_geocode_fail)
     data = {"n":"2","f0-address":"Bad Addr","f1-address":"Denver, CO"}
-    resp = client.post(reverse("compute_route"), data=data)
+    resp = client.post(reverse("google_routing:compute_route"), data=data)
     assert resp.status_code in (400, 200)
     assert ("Could not geocode" in resp.content.decode()
             or "Geocoding" in resp.content.decode())
@@ -59,7 +59,7 @@ def test_happy_path_renders_distance_duration_and_map(mock_post, mock_get, clien
         "f0-address": "Colorado Springs, CO",
         "f1-address": "Denver, CO",
     }
-    resp = client.post(reverse("compute_route"), data=data)
+    resp = client.post(reverse("google_routing:compute_route"), data=data)
     assert resp.status_code == 200
     body = resp.content.decode()
     assert "20.0 mi" in body
@@ -72,7 +72,7 @@ def test_routes_failure_propagates_error(mock_post, mock_get, client):
     mock_get.return_value = Mock(status_code=200, json=_fake_geocode_ok)
     mock_post.return_value = Mock(status_code=400, text="Bad Request")
     data = {"n":"2","f0-address":"Colorado Springs, CO","f1-address":"Denver, CO"}
-    resp = client.post(reverse("compute_route"), data=data)
+    resp = client.post(reverse("google_routing:compute_route"), data=data)
     assert resp.status_code == 400
     assert "Routes API error" in resp.content.decode()
 

@@ -48,7 +48,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: Wanderly.settings
         run: | 
           pylint --load-plugins pylint_django . \
-              --disable=wrong-import-position,pointless-string-statement \
+              --disable=pointless-string-statement \
               --ignore=tests,tools \
               --ignore-patterns="__init__\.py|asgi\.py|manage\.py|settings\.py|conftest\.py" \
               | tee pylint-report.txt

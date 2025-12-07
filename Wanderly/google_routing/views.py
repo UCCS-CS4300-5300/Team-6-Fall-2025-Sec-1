@@ -91,7 +91,17 @@ def route_demo(request):
         n = 2
     n = max(2, min(n, 10))  # sane bounds
 
-    forms_list = [AddressForm(prefix=f"f{i}") for i in range(n)]
+    stops = [s.strip() for s in request.GET.getlist("stops") if s.strip()]
+    if len(stops) > 10:
+        stops = stops[:10]
+    if stops:
+        n = max(n, min(len(stops), 10))
+
+    forms_list = []
+    for i in range(n):
+        initial = {"address": stops[i]} if i < len(stops) else None
+        forms_list.append(AddressForm(prefix=f"f{i}", initial=initial))
+
     return render(
         request,
         "google_routing/route_demo.html",
@@ -101,9 +111,101 @@ def route_demo(request):
         },
     )
 
+
+def _bind_address_forms(request, count: int) -> tuple[list[AddressForm], list[str]]:
+    """Bind POSTed address forms and return the cleaned addresses."""
+    forms = [AddressForm(request.POST, prefix=f"f{i}") for i in range(count)]
+    addresses = []
+    for form in forms:
+        if form.is_valid():
+            value = form.cleaned_data.get("address")
+            if value:
+                addresses.append(value)
+    return forms, addresses
+
+
+def _geocode_addresses(addresses: list[str]) -> tuple[list[str] | None, str | None]:
+    """Turn each address into a place_id; return failing address when geocoding fails."""
+    place_ids = []
+    api_key = settings.GOOGLE_ROUTES_SERVER_KEY or settings.GOOGLE_MAPS_BROWSER_KEY
+    for address in addresses:
+        pid = _geocode_place_id(address, api_key)
+        if not pid:
+            return None, address
+        place_ids.append(pid)
+    return place_ids, None
+
+
+def _request_route_data(place_ids: list[str]) -> tuple[dict | None, str | None, int]:
+    """Call the Routes API and return the first route, or an error."""
+    payload = {
+        "origin": {"placeId": place_ids[0]},
+        "destination": {"placeId": place_ids[-1]},
+        "travelMode": "DRIVE",
+        "routingPreference": "TRAFFIC_AWARE",
+        "optimizeWaypointOrder": True,
+        "intermediates": [{"placeId": pid} for pid in place_ids[1:-1]],
+        "polylineEncoding": "ENCODED_POLYLINE",
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": settings.GOOGLE_ROUTES_SERVER_KEY,
+        "X-Goog-FieldMask": (
+            "routes.polyline.encodedPolyline,"
+            "routes.legs.startLocation,routes.legs.endLocation,"
+            "routes.optimizedIntermediateWaypointIndex,"
+            "routes.distanceMeters,routes.duration"
+        ),
+    }
+    response = requests.post(ROUTES_ENDPOINT, headers=headers, json=payload, timeout=20)
+    if response.status_code != 200:
+        return None, f"Routes API error: {response.text}", response.status_code
+
+    routes = response.json().get("routes", [])
+    if not routes:
+        return None, "No route returned.", 404
+    return routes[0], None, 200
+
+
+def _extract_leg_markers(legs: list[dict]) -> list[tuple[float, float]]:
+    """Return coordinates for the first and last legs."""
+    markers = []
+    if legs:
+        start = legs[0].get("startLocation", {}).get("latLng", {})
+        end = legs[-1].get("endLocation", {}).get("latLng", {})
+        if start:
+            markers.append((start.get("latitude"), start.get("longitude")))
+        if end:
+            markers.append((end.get("latitude"), end.get("longitude")))
+    return [marker for marker in markers if all(marker)]
+
+
+def _build_route_result(route: dict) -> dict:
+    """Prepare the route details for template rendering."""
+    encoded = route.get("polyline", {}).get("encodedPolyline", "")
+    return {
+        "distance_m": meters_to_miles(route.get("distanceMeters")),
+        "duration": seconds_to_human(route.get("duration")),
+        "optimized_idx": route.get("optimizedIntermediateWaypointIndex", []),
+        "static_map_src": _build_static_map_url(
+            encoded,
+            _extract_leg_markers(route.get("legs", [])),
+        ),
+    }
+
+
+def _render_route_page(request, forms_list, *, error=None, status=200, result=None):
+    """Render the shared template with optional error or result payloads."""
+    context = {"forms_list": forms_list}
+    if error:
+        context["error"] = error
+    if result:
+        context["result"] = result
+    return render(request, "google_routing/route_demo.html", context, status=status)
+
+
 @require_POST
 @csrf_exempt
-# pylint: disable=too-many-locals
 def compute_route(request):
     """
     Handles the plain HTML form POST (no JS).
@@ -120,128 +222,35 @@ def compute_route(request):
         n = 2
     n = max(2, min(n, 10))
 
-    # Rebuild the same number of forms and bind POST data
-    forms_list = [AddressForm(request.POST, prefix=f"f{i}") for i in range(n)]
-    addresses = []
-    for f in forms_list:
-        if f.is_valid() and f.cleaned_data.get("address"):
-            addresses.append(f.cleaned_data["address"])
-
+    forms_list, addresses = _bind_address_forms(request, n)
     if len(addresses) < 2:
-        # Re-render with error
-        return render(
+        return _render_route_page(
             request,
-            "google_routing/route_demo.html",
-            {
-                "forms_list": forms_list,
-                "error": "Please enter at least an origin and a destination.",
-            },
+            forms_list,
+            error="Please enter at least an origin and a destination.",
             status=400,
         )
 
-    # 1) Geocode → place_ids
-    place_ids = []
-    for addr in addresses:
-        pid = _geocode_place_id(
-            addr,
-            settings.GOOGLE_ROUTES_SERVER_KEY or settings.GOOGLE_MAPS_BROWSER_KEY
-        )
-        if not pid:
-            return render(
-                request,
-                "google_routing/route_demo.html",
-                {
-                    "forms_list": forms_list,
-                    "error": f"Could not geocode: {addr}",
-                },
-                status=400,
-            )
-        place_ids.append(pid)
-
-    # Also collect lat/lng for markers (reuse geocode results to avoid extra calls)
-    # If you want precise marker positions, modify _geocode_place_id to also return lat/lng.
-
-    # 2) Routes API
-    origin_pid = place_ids[0]
-    destination_pid = place_ids[-1]
-    intermediates = [{"placeId": pid} for pid in place_ids[1:-1]]
-
-    payload = {
-        "origin": {"placeId": origin_pid},
-        "destination": {"placeId": destination_pid},
-        "travelMode": "DRIVE",
-        "routingPreference": "TRAFFIC_AWARE",
-        "optimizeWaypointOrder": True,
-        "intermediates": intermediates,
-        "polylineEncoding": "ENCODED_POLYLINE",
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": settings.GOOGLE_ROUTES_SERVER_KEY,
-        "X-Goog-FieldMask": (
-            "routes.polyline.encodedPolyline,"
-            "routes.legs.startLocation,routes.legs.endLocation,"
-            "routes.optimizedIntermediateWaypointIndex,"
-            "routes.distanceMeters,routes.duration"
-        ),
-    }
-    r = requests.post(ROUTES_ENDPOINT, headers=headers, json=payload, timeout=20)
-    if r.status_code != 200:
-        return render(
+    place_ids, failed_address = _geocode_addresses(addresses)
+    if place_ids is None:
+        return _render_route_page(
             request,
-            "google_routing/route_demo.html",
-            {
-                "forms_list": forms_list,
-                "error": f"Routes API error: {r.text}",
-            },
-            status=r.status_code,
+            forms_list,
+            error=f"Could not geocode: {failed_address}",
+            status=400,
         )
 
-    data = r.json()
-    routes = data.get("routes", [])
-    if not routes:
-        return render(
+    route, error_message, status_code = _request_route_data(place_ids)
+    if route is None:
+        return _render_route_page(
             request,
-            "google_routing/route_demo.html",
-            {"forms_list": forms_list, "error": "No route returned."},
-            status=404,
+            forms_list,
+            error=error_message,
+            status=status_code,
         )
 
-    route = routes[0]
-    encoded = route.get("polyline", {}).get("encodedPolyline", "")
-    distance_m = route.get("distanceMeters")
-    duration = route.get("duration")
-    optimized_idx = route.get("optimizedIntermediateWaypointIndex", [])
-
-    # Marker positions from legs (start/end of first/last leg); enough for quick pins
-    markers = []
-    legs = route.get("legs", [])
-    if legs:
-        # Start of first leg = origin
-        s = legs[0].get("startLocation", {}).get("latLng", {})
-        if s:
-            markers.append((s.get("latitude"), s.get("longitude")))
-        # End of last leg = destination
-        e = legs[-1].get("endLocation", {}).get("latLng", {})
-        if e:
-            markers.append((e.get("latitude"), e.get("longitude")))
-
-    static_map_src = _build_static_map_url(encoded, [m for m in markers if all(m)])
-
-    miles = meters_to_miles(distance_m)
-    human_readable_duration = seconds_to_human(duration)
-    print(f"{miles}: miles. {human_readable_duration}: duration")
-    # Re-render page with results
-    return render(
+    return _render_route_page(
         request,
-        "google_routing/route_demo.html",
-        {
-            "forms_list": forms_list,
-            "result": {
-                "distance_m": miles,
-                "duration": human_readable_duration,
-                "optimized_idx": optimized_idx,
-                "static_map_src": static_map_src,
-            },
-        },
+        forms_list,
+        result=_build_route_result(route),
     )

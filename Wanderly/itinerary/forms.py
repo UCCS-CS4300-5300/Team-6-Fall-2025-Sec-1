@@ -9,8 +9,42 @@ class ItineraryForm(forms.ModelForm):
     class Meta:
         """Meta class for ItineraryForm"""
         model = Itinerary
-        fields = ['destination', 'place_id', 'latitude', 'longitude',
-                  'wake_up_time', 'bed_time', 'num_days']
+        fields = [
+            'destination',
+            'place_id',
+            'latitude',
+            'longitude',
+            'wake_up_time',
+            'bed_time',
+            'energy_level',
+            'hotel_address',
+            'hotel_name',
+            'hotel_place_id',
+            'hotel_check_in',
+            'hotel_check_out',
+            'include_breakfast',
+            'include_lunch',
+            'include_dinner',
+            'dietary_notes',
+            'mobility_notes',
+            'downtime_required',
+            'start_date',
+            'end_date',
+            'trip_purpose',
+            'party_adults',
+            'party_children',
+            'arrival_flight_number',
+            'arrival_datetime',
+            'arrival_airport',
+            'arrival_airline',
+            'departure_flight_number',
+            'departure_datetime',
+            'departure_airport',
+            'departure_airline',
+            'overall_budget_max',
+            'auto_suggest_hotel',
+            'num_days',
+        ]
         widgets = {
             'destination': forms.TextInput(attrs={
                 'class': 'form-control js-places',
@@ -30,14 +64,141 @@ class ItineraryForm(forms.ModelForm):
                 'type': 'time',
                 'id': 'bed_time',
             }),
-            'num_days': forms.NumberInput(attrs={
+            'hotel_address': forms.TextInput(attrs={
+                'class': 'form-control js-places',
+                'placeholder': 'Search for your hotel name or address',
+                'data-places': '1',
+                'data-types': 'establishment',
+                'data-place-id-target': '#id_hotel_place_id',
+                'data-name-target': '#id_hotel_name',
+                'id': 'hotel_lookup',
+            }),
+            'hotel_name': forms.HiddenInput(attrs={'id': 'id_hotel_name'}),
+            'hotel_place_id': forms.HiddenInput(attrs={'id': 'id_hotel_place_id'}),
+            'hotel_check_in': forms.DateTimeInput(attrs={
                 'class': 'form-control',
-                'id': 'num_days',
+                'type': 'datetime-local',
+                'id': 'hotel_check_in',
+            }),
+            'hotel_check_out': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'id': 'hotel_check_out',
+            }),
+            'energy_level': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'energy_level',
+            }),
+            'include_breakfast': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'include_breakfast',
+                'checked': True,
+            }),
+            'include_lunch': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'include_lunch',
+                'checked': True,
+            }),
+            'include_dinner': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'include_dinner',
+                'checked': True,
+            }),
+            'dietary_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Dietary preferences, allergies, etc.'
+            }),
+            'mobility_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Mobility or accessibility considerations'
+            }),
+            'downtime_required': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'downtime_required'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'id': 'trip_start_date',
+            }),
+            'end_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'id': 'trip_end_date',
+            }),
+            'trip_purpose': forms.Select(attrs={
+                'class': 'form-select',
+                'id': 'trip_purpose',
+            }),
+            'party_adults': forms.NumberInput(attrs={
+                'class': 'form-control',
                 'min': 1,
-                'max': 30,
+                'id': 'party_adults',
+            }),
+            'party_children': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'id': 'party_children',
+            }),
+            'arrival_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'id': 'arrival_datetime',
+            }),
+            'arrival_airport': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., JFK',
+                'id': 'arrival_airport',
+            }),
+            'arrival_airline': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Delta Air Lines',
+                'id': 'arrival_airline',
+            }),
+            'arrival_flight_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., DL123',
+                'id': 'arrival_flight_number',
+            }),
+            'departure_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'id': 'departure_datetime',
+            }),
+            'departure_airport': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., LAX',
+                'id': 'departure_airport',
+            }),
+            'departure_airline': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Southwest',
+                'id': 'departure_airline',
+            }),
+            'departure_flight_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., DL456',
+                'id': 'departure_flight_number',
+            }),
+            'auto_suggest_hotel': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'id': 'auto_suggest_hotel',
+            }),
+            'num_days': forms.HiddenInput(attrs={
+                'id': 'num_days',
                 'value': 1,
             }),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
+        if start and end and end < start:
+            self.add_error("end_date", "End date must be on or after the start date.")
+        return cleaned
 
 
 class BreakTimeForm(forms.ModelForm):
