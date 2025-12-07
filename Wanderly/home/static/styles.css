@@ -67,6 +67,15 @@ footer {
     background: var(--soft-gradient-start-color);
 }
 
+#carousel {
+    max-width: 100%;
+}
+
+#carousel .carousel-inner,
+#carousel .carousel-item {
+    min-height: 33rem;
+}
+
 .carousel-button {
     color: var(--primary-color);
 }
@@ -107,6 +116,14 @@ footer {
 
 .discover-container {
     margin: 1rem 0rem 5rem 0rem;
+}
+
+.no-image-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
 }
 
 .place-img {
