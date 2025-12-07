@@ -1,6 +1,11 @@
 :root {
-    --bs-primary: #667eea;
-    --bs-border-radius: 1rem;
+    --primary-color: #eda400;
+    --border-radius: 1rem;
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --soft-gradient-start-color: #e8b33f;
+    --soft-gradient-end-color: #8f5189;
+    --text-color: #faf6ed;
 }
 
 h1 {
@@ -52,8 +57,23 @@ footer {
     font-weight: 500;
 }
 
+.btn-secondary {
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: var(--soft-gradient-start-color);
+}
+
+.carousel-button {
+    color: var(--primary-color);
+}
+
 .carousel-container {
     margin: 0 auto;
+    color: var(--primary-color);
 }
 
 .carousel-caption {
@@ -66,17 +86,22 @@ footer {
 }
 
 .carousel-inner img {
-    height: 33rem;
+    width: 100%;
+    height: auto;
+    max-height: 33rem;
     object-fit: cover;
     object-position: center;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
-.card.rounded {
+.rounded-card {
     border-radius: 1rem;
 }
 
 .card-body {
-    background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);
+    background: linear-gradient(135deg, var(--soft-gradient-start-color) 0%, var(--soft-gradient-end-color) 100%);
+    color: var(--text-color);
     border-radius: 0 0 1rem 1rem;
 }
 
@@ -88,10 +113,6 @@ footer {
     width: 100%;
     height: 200px;
     object-fit: cover;
-}
-
-.website-button:hover {
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
 }
 
 .image-container img {
@@ -111,7 +132,15 @@ footer {
 }
 
 .access-code-modal {
-    background: linear-gradient(to bottom, #eae8ff, #d0cefd);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #91438a 100%);
+}
+
+.access-code-button {
+    background: var(--primary-color);
+}
+
+.access-code-button:hover {
+    background: #ebbf5e;
 }
 
 .access-code-modal .modal-header,
