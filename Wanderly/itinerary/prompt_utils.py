@@ -234,7 +234,9 @@ def _hotel_plan_summary(itinerary_obj: Itinerary) -> tuple[str, bool, bool]:
             f"within the ${itinerary_obj.overall_budget_max or 'Flexible'} budget."
         )
     else:
-        summary = "Hotel TBD"
+        summary = (
+            "Traveler will arrange their own lodging; do not recommend or invent a hotel."
+        )
     return summary, has_details, needs_suggestion
 
 
@@ -323,5 +325,10 @@ def _collect_additional_guidance(
             "On the final day ignore typical wake/bed times and instead shape "
             "the schedule around the departure flight, leaving a buffer of at "
             "least one hour beforehand."
+        )
+    if not has_hotel_details and not needs_hotel_suggestion:
+        guidance_lines.append(
+            "The traveler will secure their own lodging; leave the accommodation "
+            "object null and avoid naming or recommending any hotel."
         )
     return "\n".join(guidance_lines) or "None."

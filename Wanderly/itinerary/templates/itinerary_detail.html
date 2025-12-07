@@ -188,6 +188,28 @@
                             <h6 class="text-muted mb-2">Day Notes</h6>
                             <p class="mb-0 text-muted">No per-day notes were provided.</p>
                             {% endif %}
+
+                            <div
+                                id="generation-status"
+                                class="alert alert-info mt-4{% if not is_generating %} d-none{% endif %}"
+                                data-is-generating="{{ is_generating|yesno:'true,false' }}"
+                                data-status-url="{% url 'itinerary:itinerary_status' itinerary.access_code %}"
+                                role="status"
+                            >
+                                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                                    <div>
+                                        <h6 class="mb-1 text-info fw-semibold">
+                                            Wanderly is refining this itinerary.
+                                        </h6>
+                                        <p class="mb-0 small text-muted" data-status-text>
+                                            This page will refresh automatically once all activities are ready.
+                                        </p>
+                                    </div>
+                                    <div class="progress flex-grow-1 generation-progress" style="min-width: 220px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated generation-progress-bar" style="width: 10%;"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -226,10 +248,6 @@
                                         <div class="day-badge">Day {{ day.day_number }}</div>
                                         <h3>{{ day.title }}</h3>
                                     </div>
-                                    <button type="button" class="route-day-btn" data-route-day-btn>
-                                        <i class="bi bi-signpost-split"></i>
-                                        Map This Day
-                                    </button>
                                 </div>
                             {% if day.form_day %}
                             <div class="day-annotations px-3 py-2">
@@ -318,10 +336,6 @@
                                 </div>
                             </div>
                             {% endfor %}
-                        {% else %}
-                        <div class="alert alert-warning">
-                            No AI itinerary is available for this trip.
-                        </div>
                         {% endif %}
                     </section>
 
@@ -361,13 +375,69 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             (function () {
-                const routingBaseUrl = "{% url 'google_routing:route_demo' %}";
                 const csrfTokenInput = document.getElementById("itineraryCsrfToken");
                 const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+                const generationStatus = document.getElementById("generation-status");
                 const reviewsModalEl = document.getElementById("reviewsModal");
                 const reviewsModal = new bootstrap.Modal(reviewsModalEl);
                 const reviewsPlaceTitle = document.getElementById("reviewsPlaceTitle");
                 const reviewsList = document.getElementById("reviewsList");
+
+                function initGenerationStatus() {
+                    if (!generationStatus) {
+                        return;
+                    }
+                    const isGenerating = generationStatus.dataset.isGenerating === "true";
+                    if (!isGenerating) {
+                        generationStatus.classList.add("d-none");
+                        return;
+                    }
+                    generationStatus.classList.remove("d-none");
+                    startStatusPolling();
+                }
+
+                function startStatusPolling() {
+                    const statusUrl = generationStatus.dataset.statusUrl;
+                    if (!statusUrl) {
+                        return;
+                    }
+                    const progressBar = generationStatus.querySelector(".generation-progress-bar");
+                    const statusText = generationStatus.querySelector("[data-status-text]");
+                    let progress = 10;
+                    const progressInterval = setInterval(() => {
+                        progress = Math.min(95, progress + (Math.random() * 9));
+                        if (progressBar) {
+                            progressBar.style.width = `${progress}%`;
+                        }
+                    }, 2200);
+
+                    const poll = () => {
+                        fetch(statusUrl, { headers: { Accept: "application/json" } })
+                            .then((response) => (response.ok ? response.json() : Promise.reject(new Error("status error"))))
+                            .then((data) => {
+                                if (data && data.is_generating === false) {
+                                    clearInterval(progressInterval);
+                                    if (progressBar) {
+                                        progressBar.style.width = "100%";
+                                    }
+                                    if (statusText) {
+                                        statusText.textContent = "Wrapping up — refreshing with your final plan…";
+                                    }
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 900);
+                                } else {
+                                    setTimeout(poll, 4000);
+                                }
+                            })
+                            .catch(() => {
+                                setTimeout(poll, 6000);
+                            });
+                    };
+                    poll();
+                }
+
+                initGenerationStatus();
 
                 function renderStars(rating) {
                     const stars = [];
@@ -409,11 +479,13 @@
                     const ratingEl = item.querySelector("[data-rating]");
                     const reviewsButton = item.querySelector("[data-review-btn]");
                     if (ratingEl) {
-                        ratingEl.innerHTML = `<span class="text-muted">${message}</span>`;
+                        ratingEl.classList.add("d-none");
+                        ratingEl.innerHTML = "";
                     }
                     if (reviewsButton) {
                         reviewsButton.disabled = true;
-                        reviewsButton.textContent = "No Reviews";
+                        reviewsButton.classList.add("d-none");
+                        reviewsButton.textContent = message || "No Reviews";
                     }
                 }
 
@@ -440,6 +512,7 @@
                     if (!ratingEl) {
                         return;
                     }
+                    ratingEl.classList.remove("d-none");
 
                     const reviews = Array.isArray(data.reviews) ? data.reviews : [];
                     item.dataset.placeName = data.name || item.dataset.placeQuery;
@@ -449,7 +522,8 @@
                     item.dataset.reviews = JSON.stringify(reviews);
 
                     if (!data.rating) {
-                        ratingEl.innerHTML = '<span class="text-muted">Rating unavailable</span>';
+                        ratingEl.classList.add("d-none");
+                        ratingEl.innerHTML = "";
                     } else {
                         const ratingMarkup = `
                             <div>${renderStars(data.rating)}</div>
@@ -457,14 +531,16 @@
                             <div class="text-muted small">${data.count || 0} reviews</div>
                         `;
                         ratingEl.innerHTML = ratingMarkup;
+                        ratingEl.classList.remove("d-none");
                     }
 
                     if (reviewsButton) {
                         if (!reviews.length) {
                             reviewsButton.disabled = true;
-                            reviewsButton.textContent = "No Reviews";
+                            reviewsButton.classList.add("d-none");
                         } else {
                             reviewsButton.disabled = false;
+                            reviewsButton.classList.remove("d-none");
                             reviewsButton.textContent = "View Reviews";
                         }
                     }
@@ -558,33 +634,6 @@
                     });
                 });
 
-                document.querySelectorAll("[data-route-day-btn]").forEach((button) => {
-                    button.addEventListener("click", () => {
-                        const card = button.closest("[data-day-card]");
-                        if (!card) {
-                            return;
-                        }
-                        const stops = [];
-                        card.querySelectorAll(".activity-item").forEach((item) => {
-                            if ((item.dataset.requiresPlace || "false") === "false") {
-                                return;
-                            }
-                            const resolved = (item.dataset.placeAddress || item.dataset.placeName || item.dataset.placeQuery || "").trim();
-                            if (resolved) {
-                                stops.push(resolved);
-                            }
-                        });
-                        if (stops.length < 2) {
-                            window.alert("Need at least two places with addresses to build a route for this day.");
-                            return;
-                        }
-                        const params = new URLSearchParams();
-                        params.set("n", Math.max(2, stops.length));
-                        stops.forEach((stop) => params.append("stops", stop));
-                        const url = `${routingBaseUrl}?${params.toString()}`;
-                        window.open(url, "_blank");
-                    });
-                });
             })();
         </script>
     </body>

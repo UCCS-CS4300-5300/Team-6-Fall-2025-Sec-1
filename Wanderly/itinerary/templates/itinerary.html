@@ -147,21 +147,13 @@
                             </div>
                             <div class="collapse show section-collapse" id="section-flight-details">
                                 <div class="card-body">
-                                    <div class="row g-3 align-items-end">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="arrival_flight_number">Arrival Flight Number</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                                                <input type="text" class="form-control" id="arrival_flight_number" name="arrival_flight_number" placeholder="e.g., DL123" autocomplete="off">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <button type="button" class="btn btn-primary w-100 lookup-flight-btn flight-fetch-btn" id="lookup-arrival-flight">
-                                                Fetch Arrival Info
-                                            </button>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="arrival_flight_number">Arrival Flight Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                            <input type="text" class="form-control" id="arrival_flight_number" name="arrival_flight_number" placeholder="e.g., DL123" autocomplete="off">
                                         </div>
                                     </div>
-                                    <small class="text-muted d-block mt-1" id="arrival_flight_feedback"></small>
                                     <div class="row g-3 mt-3">
                                         <div class="col-md-6">
                                             <label class="form-label" for="arrival_datetime">Arrival Flight</label>
@@ -179,21 +171,13 @@
                                             <input type="text" class="form-control" id="arrival_airline" name="arrival_airline" placeholder="e.g., Delta Air Lines">
                                         </div>
                                     </div>
-                                    <div class="row g-3 mt-4 align-items-end">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="departure_flight_number">Departure Flight Number</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                                                <input type="text" class="form-control" id="departure_flight_number" name="departure_flight_number" placeholder="e.g., AA456" autocomplete="off">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <button type="button" class="btn btn-primary w-100 lookup-flight-btn flight-fetch-btn" id="lookup-departure-flight">
-                                                Fetch Departure Info
-                                            </button>
+                                    <div class="mb-3 mt-4">
+                                        <label class="form-label" for="departure_flight_number">Departure Flight Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                            <input type="text" class="form-control" id="departure_flight_number" name="departure_flight_number" placeholder="e.g., AA456" autocomplete="off">
                                         </div>
                                     </div>
-                                    <small class="text-muted d-block mt-1" id="departure_flight_feedback"></small>
                                     <div class="row g-3 mt-3">
                                         <div class="col-md-6">
                                             <label class="form-label" for="departure_datetime">Departure Flight</label>
@@ -421,18 +405,6 @@
             </div>
         </div>
 
-        <div id="generation-overlay" class="generation-overlay" aria-live="polite" aria-hidden="true">
-            <div class="generation-panel">
-                <div class="spinner-border text-primary mb-3" role="status" aria-hidden="true"></div>
-                <div class="loading-message">
-                    <p class="fw-semibold mb-1">Crafting your itinerary...</p>
-                    <p class="text-muted mb-3">We’re talking with the travel assistant. This usually takes 5–15 seconds.</p>
-                    <div class="progress" role="progressbar" aria-label="Itinerary generation progress" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated generation-progress-bar"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -445,19 +417,7 @@
                 tooltipTriggerList.forEach((tooltipTriggerEl) => {
                     new bootstrap.Tooltip(tooltipTriggerEl);
                 });
-                const flightLookupUrl = "{% url 'itinerary:flight_lookup' %}";
-                const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-                const csrfToken = csrfInput ? csrfInput.value : "";
-
                 const itineraryForm = document.getElementById('itinerary-form');
-                const loadingOverlay = document.getElementById('generation-overlay');
-                if (itineraryForm && loadingOverlay) {
-                    itineraryForm.addEventListener('submit', () => {
-                        loadingOverlay.classList.add('is-visible');
-                        loadingOverlay.setAttribute('aria-hidden', 'false');
-                    });
-                }
-
                 const wakeInput = document.getElementById('wake_up_time');
                 const bedInput = document.getElementById('bed_time');
                 const startDateInput = document.getElementById('trip_start_date');
@@ -619,18 +579,6 @@
                     return `${hours}h ${mins}m awake`;
                 }
 
-                function setDateFromIso(picker, fallbackInput, isoString) {
-                    if (!isoString) {
-                        return;
-                    }
-                    const parsed = new Date(isoString);
-                    if (picker && !Number.isNaN(parsed.valueOf())) {
-                        picker.setDate(parsed, true);
-                    } else if (fallbackInput) {
-                        fallbackInput.value = isoString;
-                    }
-                }
-
                 function updateSuggestHotelState() {
                     if (!autoSuggestHotelCheckbox) {
                         return;
@@ -644,18 +592,6 @@
                 if (hotelLookupInput) {
                     hotelLookupInput.addEventListener('input', updateSuggestHotelState);
                     updateSuggestHotelState();
-                }
-
-                function setDateFromIso(picker, fallbackInput, isoString) {
-                    if (!isoString) {
-                        return;
-                    }
-                    const parsed = new Date(isoString);
-                    if (picker && !Number.isNaN(parsed.valueOf())) {
-                        picker.setDate(parsed, true);
-                    } else if (fallbackInput) {
-                        fallbackInput.value = isoString;
-                    }
                 }
 
                 function updateDaySummary(dayIndex) {
@@ -973,84 +909,6 @@
                     collapseEl.addEventListener('shown.bs.collapse', () => updateSectionToggle(collapseEl.id, true));
                     collapseEl.addEventListener('hidden.bs.collapse', () => updateSectionToggle(collapseEl.id, false));
                 });
-
-                function attachFlightLookup(buttonId, inputId, prefix) {
-                    const button = document.getElementById(buttonId);
-                    const input = document.getElementById(inputId);
-                    const airportInput = document.getElementById(`${prefix}_airport`);
-                    const airlineInput = document.getElementById(`${prefix}_airline`);
-                    const datetimeInput = document.getElementById(`${prefix}_datetime`);
-                    const feedback = document.getElementById(`${prefix}_flight_feedback`);
-                    if (!button || !input) {
-                        return;
-                    }
-                    button.addEventListener('click', () => {
-                        const flightNumber = input.value.trim();
-                        if (!flightNumber) {
-                            window.alert('Please enter a flight number first.');
-                            return;
-                        }
-                        const originalText = button.textContent;
-                        button.disabled = true;
-                        button.textContent = 'Fetching...';
-                        fetch(flightLookupUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': csrfToken,
-                            },
-                            body: JSON.stringify({ flight_number: flightNumber }),
-                        })
-                            .then((response) => {
-                                if (response.ok) {
-                                    return response.json();
-                                }
-                                return response.json().then((data) => {
-                                    throw new Error(data.error || 'Unable to fetch flight details.');
-                                });
-                            })
-                        .then((data) => {
-                            input.value = data.flight_number || flightNumber;
-                            if (prefix === 'arrival') {
-                                setDateFromIso(pickerRefs.arrival, datetimeInput, data.arrival_time);
-                                if (airportInput && data.arrival_airport) {
-                                    airportInput.value = data.arrival_airport;
-                                }
-                                if (airlineInput && data.airline) {
-                                    airlineInput.value = data.airline;
-                                }
-                            } else {
-                                setDateFromIso(pickerRefs.departure, datetimeInput, data.departure_time);
-                                if (airportInput && data.departure_airport) {
-                                    airportInput.value = data.departure_airport;
-                                }
-                                if (airlineInput && data.airline) {
-                                    airlineInput.value = data.airline;
-                                }
-                            }
-                                if (feedback) {
-                                    const airline = data.airline || '';
-                                    const airportLabel = prefix === 'arrival' ? data.arrival_airport : data.departure_airport;
-                                    feedback.textContent = airline || airportLabel
-                                        ? `${airline}${airline && airportLabel ? ' • ' : ''}${airportLabel || ''}`
-                                        : 'Flight details applied.';
-                                }
-                            })
-                            .catch((error) => {
-                                if (feedback) {
-                                    feedback.textContent = error.message;
-                                }
-                                window.alert(error.message);
-                            })
-                            .finally(() => {
-                                button.disabled = false;
-                                button.textContent = originalText;
-                            });
-                    });
-                }
-
-                attachFlightLookup('lookup-arrival-flight', 'arrival_flight_number', 'arrival');
-                attachFlightLookup('lookup-departure-flight', 'departure_flight_number', 'departure');
 
                 document.querySelectorAll('.quick-time-btn').forEach((btn) => {
                     const targetSelector = btn.getAttribute('data-target');

@@ -250,71 +250,11 @@ class ItineraryViewTests(TestCase):
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("Please correct the errors below" in str(msg) for msg in messages))
 
-    @patch("itinerary.views._fetch_flight_details")
-    @patch("itinerary.views.OpenAI")
-    def test_post_autofills_flight_details(self, mock_openai, mock_fetch):
-        """Populate arrival data when a flight number is supplied."""
-        # Configure OpenAI mock.
-        self._mock_openai(mock_openai)
-
-        # Stub flight details returned by AviationStack.
-        mock_fetch.return_value = {
-            "flight_number": "UA123",
-            "airline": "United Airlines",
-            "arrival_airport": "DEN",
-            "arrival_airport_name": "Denver International",
-            "arrival_time": "2025-01-01T15:00:00Z",
-            "departure_airport": "ORD",
-            "departure_airport_name": "Chicago O'Hare",
-            "departure_time": "2025-01-01T11:00:00Z",
-        }
-
-        # Submit itinerary containing a flight number.
-        data = self.valid_post_data.copy()
-        data["arrival_flight_number"] = "UA123"
-        self.client.post(self.url, data)
-
-        # Verify the itinerary includes API-derived flight data.
-        itinerary = Itinerary.objects.get()
-        self.assertTrue(mock_fetch.called)
-        self.assertIn("Denver International (DEN)", itinerary.arrival_airport)
-        self.assertEqual(itinerary.arrival_airline, "United Airlines")
-        self.assertIsNotNone(itinerary.arrival_datetime)
-
-
 class AncillaryViewTests(TestCase):
     """Validate supplementary AJAX and helper views."""
 
     def setUp(self):
         self.client = Client()
-
-    @patch("itinerary.views._fetch_flight_details")
-    def test_flight_lookup_returns_details(self, mock_fetch):
-        """Return normalized flight details when lookup succeeds."""
-        # Stub lookup data.
-        mock_fetch.return_value = {
-            "flight_number": "UA123",
-            "airline": "United",
-            "arrival_airport": "DEN",
-            "arrival_airport_name": "Denver International",
-            "arrival_time": "2025-01-01T15:00:00Z",
-            "departure_airport": "ORD",
-            "departure_airport_name": "Chicago O'Hare",
-            "departure_time": "2025-01-01T11:00:00Z",
-        }
-
-        # Issue AJAX request with flight number payload.
-        response = self.client.post(
-            reverse("itinerary:flight_lookup"),
-            data=json.dumps({"flight_number": "UA123"}),
-            content_type="application/json",
-        )
-
-        # Confirm JSON payload echoes the mock data.
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["airline"], "United")
-        self.assertEqual(payload["arrival_airport"], "DEN")
 
     def test_find_itinerary_redirects_on_success(self):
         """Resolve a known access code and redirect to detail view."""

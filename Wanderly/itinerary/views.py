@@ -14,7 +14,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
-from django.utils.dateparse import parse_datetime
 from django.contrib.auth.decorators import login_required
 from openai import OpenAI, OpenAIError
 
@@ -118,150 +117,6 @@ def _create_days(request, itinerary_obj: Itinerary) -> None:
             must_do=must_do,
         )
 
-def _fetch_flight_details(flight_number: str) -> Optional[dict]:
-    """Call AviationStack to fetch flight details for a given flight number."""
-
-    # Dont call API if we lack a flight number or API key.
-    if not flight_number or not os.environ['AVIATIONSTACK_API_KEY']:
-        return None
-
-    # Build and send the request to AviationStack.
-    params = {
-        "access_key": os.environ['AVIATIONSTACK_API_KEY'],
-        "flight_iata": flight_number.strip().upper(),
-    }
-
-    # Perform the HTTP GET request to the AviationStack API.
-    response = requests.get(
-        "http://api.aviationstack.com/v1/flights",
-        params=params,
-        timeout=15,
-    )
-
-    # Raise an error for bad responses.
-    response.raise_for_status()
-
-    # Parse the JSON payload and handle API-level errors.
-    payload = response.json()
-
-    # Handle API-level errors indicated in the payload.
-    if isinstance(payload, dict) and payload.get("error"):
-        raise requests.RequestException(payload["error"].get("info", "API error"))
-
-    # Extract flight details from the response.
-    flights = payload.get("data") or []
-
-    # Return None when no matching flights were found.
-    if not flights:
-        return None
-
-    # Inspect the first matching flight record.
-    flight = flights[0]
-
-    # Normalize the airline name and flight number.
-    airline = (flight.get("airline") or {}).get("name") or ""
-    number = (flight.get("flight") or {}).get("iata") or flight_number
-
-    # Helper to extract details from a flight section.
-    def _extract(section_name: str) -> dict:
-        """Return code, name, and timestamp for a flight section."""
-        section = flight.get(section_name) or {}
-        return {
-            "code": section.get("iata") or "",
-            "name": section.get("airport") or "",
-            "time": section.get("scheduled") or section.get("estimated") or "",
-        }
-
-    # Extract departure and arrival info.
-    departure_info = _extract("departure")
-    arrival_info = _extract("arrival")
-
-    # Return the normalized flight details.
-    return {
-        "flight_number": number,
-        "airline": airline,
-        "departure_airport": departure_info["code"],
-        "departure_airport_name": departure_info["name"],
-        "departure_time": departure_info["time"],
-        "arrival_airport": arrival_info["code"],
-        "arrival_airport_name": arrival_info["name"],
-        "arrival_time": arrival_info["time"],
-    }
-
-
-def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
-    """Populate arrival/departure fields by calling the flight API when needed."""
-    # Track which fields were modified so we can issue a minimal save.
-    updates = set()
-
-    # Helper to assign fetched flight details to the itinerary object.
-    def assign(details, prefix: str):
-        """Copy normalized API values onto the itinerary object."""
-
-        # When the API returned nothing we do not touch the model.
-        if not details:
-            return
-
-        # Build the attribute names for this prefix (arrival/departure).
-        airport_field = f"{prefix}_airport"
-        datetime_field = f"{prefix}_datetime"
-        airline_field = f"{prefix}_airline"
-
-        # Extract the airport name and code from the API response.
-        name = details.get(f"{prefix}_airport_name") or ""
-        code = details.get(f"{prefix}_airport") or ""
-
-        # Default to whichever value is available.
-        airport_value = ""
-        if name and code:
-            airport_value = f"{name} ({code})"
-        else:
-            airport_value = name or code
-
-        # Pull out the ISO timestamp string returned by AviationStack.
-        time_value = details.get(f"{prefix}_time")
-
-        # Persist the airport string when one exists.
-        if airport_value:
-            setattr(itinerary_obj, airport_field, airport_value)
-            updates.add(airport_field)
-
-        # Parse the ISO timestamp into a Python datetime for storage.
-        if time_value:
-            parsed = parse_datetime(time_value)
-            if parsed:
-                setattr(itinerary_obj, datetime_field, parsed)
-                updates.add(datetime_field)
-
-        # Persist the airline name if available.
-        airline_value = details.get("airline") or ""
-        if airline_value:
-            setattr(itinerary_obj, airline_field, airline_value)
-            updates.add(airline_field)
-
-    try:
-        # Attempt to auto-populate arrival info when the user only supplied a flight number.
-        if itinerary_obj.arrival_flight_number and (
-            not itinerary_obj.arrival_datetime or not itinerary_obj.arrival_airport
-        ):
-            assign(_fetch_flight_details(itinerary_obj.arrival_flight_number), "arrival")
-    except requests.RequestException:
-        pass
-
-    try:
-        # Attempt to auto-populate departure info when only the flight number is known.
-        if itinerary_obj.departure_flight_number and (
-            not itinerary_obj.departure_datetime or not itinerary_obj.departure_airport
-        ):
-            assign(_fetch_flight_details(itinerary_obj.departure_flight_number), "departure")
-    except requests.RequestException:
-        pass
-
-    # Only hit the database when at least one field was updated.
-    if updates:
-        itinerary_obj.save(update_fields=list(updates))
-
-
 def _build_location_context(itinerary_obj: Itinerary) -> str:
     """Build location context lines for the AI prompt."""
     destination = getattr(itinerary_obj, "destination", "")
@@ -321,17 +176,20 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     wake_time = getattr(itinerary_obj, "wake_up_time", "")
     bed_time = getattr(itinerary_obj, "bed_time", "")
     num_days = getattr(itinerary_obj, "num_days", 1)
-    start_date = getattr(itinerary_obj, "start_date", None)
-    end_date = getattr(itinerary_obj, "end_date", None)
-    date_range = _format_date_range(start_date, end_date)
-    meals_line = _meals_line(itinerary_obj)
+    date_range = _format_date_range(
+        getattr(itinerary_obj, "start_date", None),
+        getattr(itinerary_obj, "end_date", None),
+    )
     flight_ctx = _flight_prompt_details(itinerary_obj, num_days)
     hotel_summary, has_hotel_details, needs_hotel_suggestion = _hotel_plan_summary(
         itinerary_obj
     )
 
     # Build additional prompt sections.
-    season_hint = _season_hint(start_date, end_date)
+    season_hint = _season_hint(
+        getattr(itinerary_obj, "start_date", None),
+        getattr(itinerary_obj, "end_date", None),
+    )
     overrides_block = _build_overrides_block(
         itinerary_obj,
         wake_time,
@@ -340,13 +198,27 @@ def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     )
 
     # Collect any additional guidance the user provided.
-    additional_guidance = _collect_additional_guidance(
-        itinerary_obj,
-        flight_ctx["has_arrival"],
-        flight_ctx["has_departure"],
-        has_hotel_details,
-        needs_hotel_suggestion,
-    )
+    def build_additional_guidance():
+        return _collect_additional_guidance(
+            itinerary_obj,
+            flight_ctx["has_arrival"],
+            flight_ctx["has_departure"],
+            has_hotel_details,
+            needs_hotel_suggestion,
+        )
+
+    def build_accommodation_contract():
+        if has_hotel_details or needs_hotel_suggestion:
+            return """  "accommodation": {{
+    "name": "Hotel name (real)",
+    "address": "Street, City, Country",
+    "price_per_night": "$150-$180",
+    "notes": "One sentence on why it fits the budget/location."
+  }},"""
+        return '  "accommodation": null,'
+
+    additional_guidance = build_additional_guidance()
+    accommodation_contract = build_accommodation_contract()
 
     # Build and return the full prompt string using the helper output.
     return f"""
@@ -365,7 +237,7 @@ Wake time: {wake_time}
 Bed time: {bed_time}
 Flight-day wake/bed note: {flight_ctx['wake_note'] or 'Not applicable'}
 Break windows: {_format_break_times(itinerary_obj)}
-Meals to include: {meals_line}
+Meals to include: {_meals_line(itinerary_obj)}
 Dietary notes: {itinerary_obj.dietary_notes or 'None'}
 Mobility notes: {itinerary_obj.mobility_notes or 'None'}
 
@@ -391,12 +263,7 @@ Season / weather cue: {season_hint or 'Season unspecified'}
 === Output Contract ===
 Respond with JSON shaped exactly like this example (real content, no comments):
 {{
-  "accommodation": {{
-    "name": "Hotel name (real)",
-    "address": "Street, City, Country",
-    "price_per_night": "$150-$180",
-    "notes": "One sentence on why it fits the budget/location."
-  }},
+{accommodation_contract}
   "days": [
     {{
       "day_number": 1,
@@ -460,9 +327,11 @@ Rules:
    but the user asked Wanderly to pick one, choose a reasonable hotel within
    budget for their party and include it before the first set of activities with
    a price range in cost_estimate.
-16. Do not repeat the same dining venue across the itinerary unless the traveler
-   explicitly demanded it; vary restaurants/bars/coffee shops day-to-day.
-17. Before returning the answer, double-check that your JSON matches the schema
+16. If the traveler did not provide hotel details and did not ask for a recommendation,
+    set "accommodation": null and do not invent or describe any lodging.
+17. Do not repeat the same dining venue across the itinerary unless the traveler
+    explicitly demanded it; vary restaurants/bars/coffee shops day-to-day.
+18. Before returning the answer, double-check that your JSON matches the schema
    exactly and can be parsed without errors.
 """
 
@@ -560,7 +429,27 @@ def _enrich_ai_days(itinerary_obj: Itinerary, trip_days: list[Day]) -> list[dict
         # Normalize each activity's place_query and requires_place fields.
         for activity in copied.get("activities", []):
             place_query = (activity.get("place_query") or "").strip()
-            requires_place = bool(place_query) and place_query.lower() != "not req"
+            explicit_flag = activity.get("requires_place")
+
+            # Respect the AI-provided requires_place flag when present.
+            if explicit_flag is not None:
+                requires_place = bool(explicit_flag) and bool(place_query)
+            else:
+                requires_place = bool(place_query) and place_query.lower() != "not req"
+
+            # Hide ratings for obviously generic references.
+            generic_tokens = {
+                "near hotel",
+                "near the hotel",
+                "downtown",
+                "historic area",
+                "city center",
+                "around town",
+            }
+            lower_query = place_query.lower()
+            if any(token in lower_query for token in generic_tokens):
+                requires_place = False
+
             activity["place_query"] = place_query if requires_place else ""
             activity["requires_place"] = requires_place
 
@@ -639,9 +528,6 @@ def itinerary(request):
             _create_break_times(request, itinerary_obj)
             _create_budget_items(request, itinerary_obj)
             _create_days(request, itinerary_obj)
-
-            # If flight numbers were provided, try to auto-populate airports/times.
-            _autofill_flight_data(itinerary_obj)
 
             if _should_generate_inline():
                 ai_payload = _generate_ai_itinerary(itinerary_obj)
@@ -767,42 +653,6 @@ def _itinerary_error_response(request, is_ajax, message, status_code):
     return redirect("itinerary:itinerary")
 
 
-@require_http_methods(["POST"])
-def flight_lookup(request):
-    """AJAX endpoint to fetch arrival/departure info from a flight number."""
-    # Parse JSON payload
-    try:
-
-        payload = json.loads(request.body or "{}")
-
-    # Handle malformed JSON gracefully.
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
-
-    # Pull the trimmed flight number string from the payload.
-    flight_number = (payload.get("flight_number") or "").strip()
-
-    # Reject empty flight numbers immediately.
-    if not flight_number:
-        return JsonResponse({"error": "flight_number is required"}, status=400)
-
-    # Call the helper to fetch flight details.
-    try:
-        # Perform the AviationStack lookup using the helper.
-        details = _fetch_flight_details(flight_number)
-
-    # Handle request exceptions from the helper.
-    except requests.RequestException:
-        return JsonResponse({"error": "Failed to contact flight lookup service"}, status=502)
-
-    # Handle cases where no flight was found.
-    if not details:
-        return JsonResponse({"error": "No flight found for that number"}, status=404)
-
-    # Return the normalized details for JavaScript to consume.
-    return JsonResponse(details)
-
-
 def find_itinerary(request):
     """
     Lookup an itinerary by access code and redirect or return JSON.
@@ -812,70 +662,37 @@ def find_itinerary(request):
     payload with ``ok``/``error`` metadata.
     """
 
-    # Determine whether the caller expects a JSON response.
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    redirect_home = redirect("itinerary:itinerary")
 
-    # Only the POST route is supported for access lookups.
+    error_info: Optional[tuple[str, int]] = None
+    itinerary_obj = None
+
     if request.method != "POST":
-        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
+        error_info = ("Invalid request method.", 405)
+    else:
+        code = request.POST.get("access_code", "").strip()
+        if not code:
+            error_info = ("Please enter an access code.", 400)
+        else:
+            itinerary_obj = Itinerary.objects.filter(access_code=code).first()
+            if itinerary_obj is None:
+                error_info = ("No itinerary found with that access code.", 404)
 
-    # Pull the trimmed code from the submitted form data.
-    code = request.POST.get("access_code", "").strip()
+    if error_info:
+        message, status = error_info
+        return _itinerary_error_response(request, is_ajax, message, status)
 
-    # Reject empty codes immediately.
-    if not code:
-        return _itinerary_error_response(request, is_ajax, "Please enter an access code.", 400)
-
-    # Attempt to look up the itinerary by its public access code.
-    itinerary_obj = Itinerary.objects.filter(access_code=code).first()
-
-    # Surface a friendly error if the code does not exist.
-    if itinerary_obj is None:
-        return _itinerary_error_response(
-            request,
-            is_ajax,
-            "No itinerary found with that access code.",
-            404,
-        )
-
-    # Redirect to the detail view upon success.
     detail_url = reverse("itinerary:itinerary_detail", args=[itinerary_obj.access_code])
-    if request.method != "POST":
-        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
-
-    access_code = request.POST.get("access_code", "").strip()
-    if not access_code:
-        return _missing_access_code_response(is_ajax, redirect_home)
-
-    itinerary_obj = Itinerary.objects.filter(access_code=access_code).first()  # pylint: disable=no-member
-    if itinerary_obj is None:
-        return _missing_itinerary_response(is_ajax, redirect_home)
-
-    detail_url = reverse("itinerary:itinerary_detail", args=[access_code])
     if is_ajax:
         return JsonResponse({"ok": True, "redirect_url": detail_url})
     return redirect(detail_url)
 
 
-def _missing_access_code_response(is_ajax: bool, redirect_home):
-    """Return appropriate response when access code is missing."""
-    if is_ajax:
-        return JsonResponse(
-            {"ok": False, "error": "Please enter an access code."},
-            status=400,
-        )
-    return redirect_home
-
-
-def _missing_itinerary_response(is_ajax: bool, redirect_home):
-    """Return appropriate response when itinerary lookup fails."""
-    if is_ajax:
-        return JsonResponse(
-            {"ok": False, "error": "No itinerary found for that code."},
-            status=404,
-        )
-    return redirect_home
+@require_http_methods(["GET"])
+def itinerary_status(request, access_code: str):
+    """Return JSON indicating whether the itinerary is still generating."""
+    itinerary_obj = get_object_or_404(Itinerary, access_code=access_code.upper())
+    return JsonResponse({"is_generating": itinerary_obj.ai_itinerary is None})
 
 
 @require_POST
