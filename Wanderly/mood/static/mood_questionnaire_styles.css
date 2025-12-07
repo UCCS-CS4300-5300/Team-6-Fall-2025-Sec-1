@@ -1,0 +1,114 @@
+/* Root Styles */
+:root {
+  --gradient-start-color: #eda400;
+  --gradient-end-color: #91438a;
+  --text-color: #faf6ed;
+}
+
+footer {
+  background: #2A1C22;
+  color: #faf6ed;
+}
+
+/* Radio button styling */
+.likert-scale {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+  
+.likert-scale .form-check {
+  flex: 0 0 auto;
+}
+
+.likert-scale .form-check-input {
+  cursor: pointer;
+}
+
+.likert-scale .form-check-label {
+  cursor: pointer;
+  margin-left: 0.25rem;
+}
+
+/* Scale labels */
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.likert-scale {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: .5rem
+}
+
+.likert-scale .form-check {
+  flex: 0 0 auto
+}
+
+.likert-scale .form-check-input,
+.likert-scale .form-check-label {
+  cursor: pointer
+}
+
+.likert-scale .form-check-label {
+  margin-left: .25rem
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: .875rem;
+  color: #6c757d;
+  margin-top: .25rem;
+  margin-bottom: 1rem
+}
+
+.interest-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: .75rem;
+  margin-top: .5rem
+}
+
+.interest-checkboxes .form-check {
+  margin-bottom: 0
+}
+
+.interest-checkboxes .form-check-input,
+.interest-checkboxes .form-check-label {
+  cursor: pointer
+}
+
+.interest-checkboxes .form-check-label {
+  margin-left: .5rem
+}
+
+.info-section {
+  background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+  color: var(--text-color)
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+  border: none;
+  padding: .75rem 2rem;
+  font-weight: 500
+}
+
+.btn-primary:hover {
+  opacity: .9;
+  background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+}
+
+.back-button {
+  padding: 1rem;
+  color: var(--text-color);
+  font-size: 1.25rem
+}

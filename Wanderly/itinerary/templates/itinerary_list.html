@@ -15,77 +15,92 @@
 </head>
 
 <body>
-    <!-- Navbar Container -->
-    <nav>
-        {% include "navbar.html" %}
-    </nav>
+    {% include "navbar.html" %}
 
-    
-    <div class="container my-5">
-        <!-- Itinerary Header -->
-        <div class="itinerary-header">
-            <h2><i class="bi bi-airplane-fill"></i> Personalized Itineraries </h2>
-            <a href="{% url 'itinerary:itinerary' %}" class="btn-primary">Generate an Itinerary</a>
+    <!-- Header -->
+    <header class="info-section">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3">Personalized Itineraries</h1>
+                    <p class="lead mb-0">View the details of previously generated itineraries</p>
+                </div>
+                <div class="col-md-3 text-end">
+                    <a href="{% url 'itinerary:itinerary' %}" class="btn-primary">Generate an Itinerary</a>
+                </div>
+            </div>
         </div>
-        
+    </header>
+
+    <div class="container my-5">
         {% if itineraries %}
-            {% for itinerary in itineraries %}
-                <section class="itinerary-section">
-                    <div class="itinerary-card">
-                        <div class="card-header">
-                            <div class="access-code-badge">{{ itinerary.access_code }}</div>
-                            <h3>{{ itinerary.destination }}</h3>
-                        </div>
-                        <div class="day-list">
-                            {% with first_day=itinerary.days.first %}
-                                {% if first_day %}
-                                    <div class="day-item">
-                                        <div class="day-details">
-                                            <h4>
-                                                Day {{ first_day.day_number }}: {{ first_day.date }}
-                                            </h4>
-                                            <p>
-                                                {{ first_day.notes|default:"No notes for this day yet." }}
-                                            </p>
-                                            <div class="detail-badges">
-                                                <span class="badge">
-                                                    <i class="bi bi-hourglass-split"></i>
-                                                    {{ itinerary.wake_up_time }} - {{ itinerary.bed_time }}
-                                                </span>
-                                                <!-- you can add a cost badge later if you aggregate budget -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <p>No day details saved yet.</p>
-                                {% endif %}
-                            {% endwith %}
-                        </div>
-                        <div class="btn-secondary-container d-flex gap-2">
-                            <a href="{% url 'itinerary:itinerary_detail' itinerary.access_code %}"
-                               class="btn-secondary">
-                                View / Export Itinerary
-                            </a>
-                        
-                            <form method="post"
-                                  action="{% url 'itinerary:delete_itinerary' itinerary.access_code %}"
-                                  class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit"
-                                        class="btn-secondary btn-delete"
-                                        onclick="return confirm('Delete this itinerary? This cannot be undone.');">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+        {% for itinerary in itineraries %}
+        <section class="itinerary-section">
+            <div class="itinerary-card">
+                <div class="card-header">
+                    <div class="access-code-badge">{{ itinerary.access_code }}</div>
+                    <h3>{{ itinerary.destination }}</h3>
+                </div>
+                <div class="day-list">
+                    {% with first_day=itinerary.days.first %}
+                    {% if first_day %}
+                    <div class="day-item">
+                        <div class="day-details">
+                            <h4>
+                                Day {{ first_day.day_number }}: {{ first_day.date }}
+                            </h4>
+                            <p>
+                                {{ first_day.notes|default:"No notes for this day yet." }}
+                            </p>
+                            <div class="detail-badges">
+                                <span class="badge">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    {{ itinerary.wake_up_time }} - {{ itinerary.bed_time }}
+                                </span>
+                                <!-- you can add a cost badge later if you aggregate budget -->
+                            </div>
                         </div>
                     </div>
-                </section>
-            {% endfor %}
+                    {% else %}
+                    <p>No day details saved yet.</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="btn-secondary-container d-flex gap-2">
+                    <a href="{% url 'itinerary:itinerary_detail' itinerary.access_code %}" class="btn-secondary">
+                        View / Export Itinerary
+                    </a>
+
+                    <form method="post" action="{% url 'itinerary:delete_itinerary' itinerary.access_code %}"
+                        class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-secondary btn-delete"
+                            onclick="return confirm('Delete this itinerary? This cannot be undone.');">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+        {% endfor %}
         {% else %}
-            <p>You don't have any itineraries yet. Generate one to see it here!</p>
+        <p>You don't have any itineraries yet. Generate one to see it here!</p>
         {% endif %}
-
-
     </div>
+
+    <!-- Footer -->
+    <footer class="py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center gy-3">
+                <div class="col-md-6 text-center text-md-start">
+                    <span>&copy; 2025 Wanderly. All rights reserved.</span>
+                </div>
+                <div class="col-md-6">
+                </div>
+            </div>
+        </div>
+    </footer>
+
 </body>
+
 </html>

@@ -8,7 +8,8 @@ h1 {
 }
 
 footer {
-    background: rgba(19, 4, 107, 0.75);
+    background: #2A1C22;
+    color: #faf6ed;
 }
 
 .search-container {
@@ -45,7 +46,7 @@ footer {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    background: linear-gradient(135deg, #eda400 0%, #91438a 100%);
     border: none;
     padding: 0.75rem 2rem;
     font-weight: 500;

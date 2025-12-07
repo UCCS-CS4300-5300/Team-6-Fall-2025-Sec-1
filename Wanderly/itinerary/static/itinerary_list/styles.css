@@ -1,12 +1,28 @@
 :root {
-    --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-color: #eda400;
+    --primary-hover: #b37e09;
     --text-light: #6b7280;
     --text-dark: #111827;
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --text-color: #faf6ed;
     --border-radius: 10px;
 }
 
+footer {
+    background: #2A1C22;
+    bottom: 0;
+    width: 100%;
+    color: var(--text-color);
+    position: fixed;
+}
+
 /* Header */
+.info-section { 
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    color: var(--text-color); 
+}
+
 .itinerary-header {
     display: flex;
     justify-content: space-between;
@@ -52,7 +68,7 @@
     align-items: center;
     gap: 1rem;
     padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary-color), #5b52d4);
+    background: var(--gradient-start-color);
     color: #fff;
 }
 
@@ -121,9 +137,10 @@
 
 /* Button Styling */
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), #5b52d4);
+    background: white;
     border: none;
-    color: white;
+    font-weight: bold;
+    color: #8c2383;
     padding: 0.75rem 2rem;
     border-radius: var(--border-radius);
     text-decoration: none;
@@ -131,8 +148,7 @@
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
-    color: #fff;
+    color: #d48c2f;
 }
 
 .btn-secondary-container {
