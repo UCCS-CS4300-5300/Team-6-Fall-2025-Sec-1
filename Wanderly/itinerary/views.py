@@ -1,16 +1,21 @@
 """Controls the views and requests for the itinerary module."""
+
 import json
 import os
-from typing import Optional
+import sys
+import threading
+from typing import List, Optional
 import requests
 
 from django.conf import settings
-from django.http import JsonResponse
-from django.urls import reverse
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
 from django.utils.dateparse import parse_datetime
+from django.contrib.auth.decorators import login_required
 from openai import OpenAI, OpenAIError
 
 from .forms import ItineraryForm
@@ -257,6 +262,58 @@ def _autofill_flight_data(itinerary_obj: Itinerary) -> None:
         itinerary_obj.save(update_fields=list(updates))
 
 
+def _build_location_context(itinerary_obj: Itinerary) -> str:
+    """Build location context lines for the AI prompt."""
+    destination = getattr(itinerary_obj, "destination", "")
+    place_id = getattr(itinerary_obj, "place_id", "")
+    latitude = getattr(itinerary_obj, "latitude", None)
+    longitude = getattr(itinerary_obj, "longitude", None)
+
+    location_context_parts: List[str] = []
+    if destination:
+        location_context_parts.append(f"- Destination: {destination}")
+    if place_id:
+        location_context_parts.append(f"- Place ID: {place_id}")
+    if latitude is not None and longitude is not None:
+        location_context_parts.append(f"- Coordinates: {latitude}, {longitude}")
+    return "\n".join(location_context_parts) or "- Destination not provided"
+
+
+def _build_budget_guidance(itinerary_obj: Itinerary, num_days: int) -> str:
+    """Build budget guidance lines for the AI prompt."""
+    budget_items_qs = BudgetItem.objects.filter(itinerary=itinerary_obj)
+    budget_lines: List[str] = []
+    for item in budget_items_qs:
+        label = (
+            item.custom_category
+            if item.category == "Other" and item.custom_category
+            else item.category
+        )
+        per_day_amount = (
+            float(item.amount) / float(num_days)
+            if num_days
+            else float(item.amount)
+        )
+        if label.lower() == "accommodation":
+            guidance = (
+                f"- {label}: ${item.amount} target nightly max "
+                f"(if this is a trip total, stay near ${per_day_amount:.2f} per night)."
+            )
+        else:
+            guidance = (
+                f"- {label}: ${item.amount} total "
+                f"(~${per_day_amount:.2f} per day)."
+            )
+        budget_lines.append(guidance)
+
+    if budget_lines:
+        return "\n".join(budget_lines)
+    return (
+        "- Flexible budget: No explicit budgets provided. Default to affordable, "
+        "mainstream options."
+    )
+
+
 def _build_ai_prompt(itinerary_obj: Itinerary) -> str:
     """Build the user message sent to the OpenAI model."""
 
@@ -334,6 +391,12 @@ Season / weather cue: {season_hint or 'Season unspecified'}
 === Output Contract ===
 Respond with JSON shaped exactly like this example (real content, no comments):
 {{
+  "accommodation": {{
+    "name": "Hotel name (real)",
+    "address": "Street, City, Country",
+    "price_per_night": "$150-$180",
+    "notes": "One sentence on why it fits the budget/location."
+  }},
   "days": [
     {{
       "day_number": 1,
@@ -404,8 +467,8 @@ Rules:
 """
 
 
-def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
-    """Call OpenAI to generate an itinerary. Return a list of days or None."""
+def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[dict]:
+    """Call OpenAI to generate an itinerary. Return structured payload or None."""
 
     # Instantiate the client with the configured API key.
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -416,21 +479,50 @@ def _generate_ai_itinerary(itinerary_obj: Itinerary) -> Optional[list]:
     try:
         # Ask the model for a JSON object; OpenAI enforces structured output.
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5.1",
             messages=[{"role": "user", "content": user_message}],
             response_format={"type": "json_object"},
         )
 
         # Pull the JSON payload and parse it into a Python dict.
         ai_response = response.choices[0].message.content
-        parsed = json.loads(ai_response)
-
-        # Return just the list of days, defaulting to [] when missing.
-        return parsed.get("days", [])
+        return json.loads(ai_response)
 
     except (OpenAIError, json.JSONDecodeError, KeyError, ValueError):
         # Any error during AI call or parsing results in a None return.
         return None
+
+
+def _normalize_ai_payload(payload: Optional[dict]):
+    """Normalize AI payload for storage while preserving backward compatibility."""
+    if payload is None:
+        return None
+    if isinstance(payload, dict):
+        if set(payload.keys()) == {"days"}:
+            return payload.get("days")
+        return payload
+    return payload
+
+
+def _generate_and_persist_async(itinerary_id: int) -> None:
+    """Background worker to generate and persist an AI itinerary."""
+    try:
+        itinerary_obj = Itinerary.objects.get(pk=itinerary_id)
+    except Itinerary.DoesNotExist:
+        return
+
+    payload = _generate_ai_itinerary(itinerary_obj)
+    if payload is None:
+        return
+
+    normalized = _normalize_ai_payload(payload)
+    itinerary_obj.ai_itinerary = normalized
+    itinerary_obj.save(update_fields=["ai_itinerary"])
+
+
+def _should_generate_inline() -> bool:
+    """Return True when running under test to avoid threaded DB access."""
+    return "pytest" in sys.modules
 
 
 def _format_time_label(value):
@@ -444,7 +536,11 @@ def _enrich_ai_days(itinerary_obj: Itinerary, trip_days: list[Day]) -> list[dict
     """Attach per-day metadata and normalize activities for template rendering."""
 
     # Enrich each AI-generated day with its corresponding Day model.
-    ai_itinerary_days = itinerary_obj.ai_itinerary or []
+    ai_payload = itinerary_obj.ai_itinerary or []
+    if isinstance(ai_payload, dict):
+        ai_itinerary_days = ai_payload.get("days", [])
+    else:
+        ai_itinerary_days = ai_payload
 
     # Build a lookup of Day objects by day number for easy access.
     day_lookup = {day.day_number: day for day in trip_days}
@@ -547,25 +643,38 @@ def itinerary(request):
             # If flight numbers were provided, try to auto-populate airports/times.
             _autofill_flight_data(itinerary_obj)
 
-            # Kick off AI generation and store the structured result if present.
-            ai_itinerary_days = _generate_ai_itinerary(itinerary_obj)
+            if _should_generate_inline():
+                ai_payload = _generate_ai_itinerary(itinerary_obj)
+                if ai_payload is None:
+                    messages.error(
+                        request,
+                        "We were unable to generate an AI-powered itinerary at this time.",
+                        extra_tags="itinerary",
+                    )
+                else:
+                    normalized = _normalize_ai_payload(ai_payload)
+                    itinerary_obj.ai_itinerary = normalized
+                    itinerary_obj.save(update_fields=["ai_itinerary"])
+                    messages.success(
+                        request,
+                        "Itinerary created successfully. AI details generated.",
+                        extra_tags="itinerary",
+                    )
+            else:
+                # Kick off AI generation in the background so the request is fast.
+                threading.Thread(
+                    target=_generate_and_persist_async,
+                    args=(itinerary_obj.id,),
+                    daemon=True,
+                ).start()
 
-            # Handle the case where AI generation failed.
-            if ai_itinerary_days is None:
-                messages.error(
+                messages.success(
                     request,
-                    "We were unable to generate an AI-powered itinerary at this time.",
+                    "Itinerary created successfully. We're generating the AI details in the "
+                    "background; refresh the detail page in a few moments.",
                     extra_tags="itinerary",
                 )
-            else:
-                # Save the generated itinerary days onto the model.
-                itinerary_obj.ai_itinerary = ai_itinerary_days
-                itinerary_obj.save(update_fields=["ai_itinerary"])
 
-            # Redirect to the detail view upon success.
-            messages.success(request, "Itinerary created successfully!", extra_tags="itinerary")
-
-            # Redirect to the itinerary detail page.
             return redirect("itinerary:itinerary_detail", itinerary_obj.access_code)
 
         # Validation failed: fall through and re-render with errors.
@@ -582,47 +691,61 @@ def itinerary(request):
     return render(request, "itinerary.html", context)
 
 def itinerary_detail(request, access_code: str):
-    """Display a generated itinerary."""
-
-    # Fetch the itinerary or return 404 if not found.
+    """Display a generated itinerary via access code."""
     itinerary_obj = get_object_or_404(Itinerary, access_code=access_code.upper())
 
-    # Load all persisted Day rows once for reuse.
+    raw_payload = itinerary_obj.ai_itinerary
+    is_generating = raw_payload is None
+
+    if isinstance(raw_payload, dict):
+        structured_payload = raw_payload
+    elif isinstance(raw_payload, list):
+        structured_payload = {"days": raw_payload}
+    else:
+        structured_payload = {}
+
+    ai_itinerary_days = structured_payload.get("days", [])
+    accommodation_info = structured_payload.get("accommodation")
+    accommodation_budget = itinerary_obj.budget_items.filter(category="Accommodation").first()
+
     trip_days = list(itinerary_obj.days.all())
-
-    # Enrich AI itinerary days for template rendering.
     enriched_days = _enrich_ai_days(itinerary_obj, trip_days)
-
-    # Build helper data for rendering the per-day annotations panel.
     day_notes_display = _build_day_notes_display(itinerary_obj, trip_days)
 
-    # Bundle everything needed by the template layer.
     context = {
         "itinerary": itinerary_obj,
         "ai_itinerary_days": enriched_days,
+        "accommodation_info": accommodation_info,
+        "accommodation_budget": accommodation_budget,
         "break_times": itinerary_obj.break_times.all(),
         "budget_items": itinerary_obj.budget_items.all(),
         "trip_days": trip_days,
         "day_notes_display": day_notes_display,
+        "is_generating": is_generating,
     }
 
-    # Surface a message when no AI-generated details exist.
-    if not itinerary_obj.ai_itinerary:
-        # Surface a message when the AI output is missing/empty.
-        messages.error(
+    if is_generating:
+        messages.info(
             request,
-            "This itinerary is missing generated details.",
+            "We're still generating the AI itinerary. This page will refresh automatically "
+            "when it's ready.",
+            extra_tags="itinerary",
+        )
+    elif not ai_itinerary_days:
+        messages.warning(
+            request,
+            "We couldn't find an AI itinerary for this trip yet. Please wait a moment and "
+            "try again.",
             extra_tags="itinerary",
         )
 
-    # Render the finalized page with enriched day data.
     return render(request, "itinerary_detail.html", context)
 
-
+@login_required(login_url='sign_in')
 def itinerary_list(request):
-    """Load the list of current itineraries."""
-    return render(request, "itinerary_list.html")
-
+    ''' Load the list of current itineraries for current user.'''
+    itineraries = Itinerary.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "itinerary_list.html", {"itineraries": itineraries})
 
 def _itinerary_error_response(request, is_ajax, message, status_code):
     """
@@ -682,12 +805,16 @@ def flight_lookup(request):
 
 def find_itinerary(request):
     """
-    Takes an access code from the user (currently the itinerary ID)
-    then redirect to the matching itinerary detail page.
+    Lookup an itinerary by access code and redirect or return JSON.
+
+    Non-AJAX requests mirror the form behavior and redirect either to the
+    itinerary landing page or the detail page. AJAX requests return a JSON
+    payload with ``ok``/``error`` metadata.
     """
 
     # Determine whether the caller expects a JSON response.
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    redirect_home = redirect("itinerary:itinerary")
 
     # Only the POST route is supported for access lookups.
     if request.method != "POST":
@@ -714,24 +841,52 @@ def find_itinerary(request):
 
     # Redirect to the detail view upon success.
     detail_url = reverse("itinerary:itinerary_detail", args=[itinerary_obj.access_code])
+    if request.method != "POST":
+        return _itinerary_error_response(request, is_ajax, "Invalid request method.", 405)
 
+    access_code = request.POST.get("access_code", "").strip()
+    if not access_code:
+        return _missing_access_code_response(is_ajax, redirect_home)
+
+    itinerary_obj = Itinerary.objects.filter(access_code=access_code).first()  # pylint: disable=no-member
+    if itinerary_obj is None:
+        return _missing_itinerary_response(is_ajax, redirect_home)
+
+    detail_url = reverse("itinerary:itinerary_detail", args=[access_code])
     if is_ajax:
         return JsonResponse({"ok": True, "redirect_url": detail_url})
-
     return redirect(detail_url)
 
 
-# ------------- Reviews -------------
+def _missing_access_code_response(is_ajax: bool, redirect_home):
+    """Return appropriate response when access code is missing."""
+    if is_ajax:
+        return JsonResponse(
+            {"ok": False, "error": "Please enter an access code."},
+            status=400,
+        )
+    return redirect_home
 
-@require_http_methods(["POST"])
+
+def _missing_itinerary_response(is_ajax: bool, redirect_home):
+    """Return appropriate response when itinerary lookup fails."""
+    if is_ajax:
+        return JsonResponse(
+            {"ok": False, "error": "No itinerary found for that code."},
+            status=404,
+        )
+    return redirect_home
+
+
+@require_POST
 def place_reviews(request):
     """Fetch ratings and reviews for a place using Google Places API."""
 
     # Parse JSON payload
     try:
-        payload = json.loads(request.body or "{}")
+        payload = json.loads(request.body.decode() or "{}")
     except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+        payload = {}
 
     # Validate required field
     query = payload.get("query", "").strip()
@@ -797,3 +952,17 @@ def place_reviews(request):
             for r in reviews
         ],
     })
+
+
+@login_required(login_url="sign_in")
+@require_http_methods(["POST"])
+def delete_itinerary(request, access_code: str):
+    """Delete an itinerary owned by the current user."""
+    itinerary_obj = get_object_or_404(
+        Itinerary,
+        access_code=access_code.upper(),
+        user=request.user,
+    )
+    itinerary_obj.delete()
+    messages.success(request, "Itinerary deleted successfully.")
+    return redirect("itinerary:itinerary_list")
