@@ -1,10 +1,11 @@
 """Creates itinerary models with the space for the form data"""
 import string
 import secrets
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.conf import settings
+from django.utils import timezone
 
 def generate_access_code():
     """
@@ -17,6 +18,19 @@ def generate_access_code():
 
 class Itinerary(models.Model):
     """Main itinerary model storing trip information"""
+    TRIP_PURPOSE_CHOICES = [
+        ("leisure", "Leisure"),
+        ("family", "Family"),
+        ("adventure", "Adventure"),
+        ("relaxed", "Relaxed"),
+        ("business", "Business"),
+    ]
+    ENERGY_CHOICES = [
+        ("easy", "Easy-going"),
+        ("balanced", "Balanced"),
+        ("high", "High energy"),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -28,8 +42,35 @@ class Itinerary(models.Model):
     place_id = models.CharField(max_length=255, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    hotel_address = models.CharField(max_length=255, blank=True)
+    hotel_name = models.CharField(max_length=255, blank=True)
+    hotel_place_id = models.CharField(max_length=255, blank=True)
+    hotel_check_in = models.DateTimeField(null=True, blank=True)
+    hotel_check_out = models.DateTimeField(null=True, blank=True)
     wake_up_time = models.TimeField()
     bed_time = models.TimeField()
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(default=timezone.now)
+    trip_purpose = models.CharField(max_length=32, choices=TRIP_PURPOSE_CHOICES, default="leisure")
+    energy_level = models.CharField(max_length=16, choices=ENERGY_CHOICES, default="balanced")
+    include_breakfast = models.BooleanField(default=True)
+    include_lunch = models.BooleanField(default=True)
+    include_dinner = models.BooleanField(default=True)
+    dietary_notes = models.TextField(blank=True)
+    mobility_notes = models.TextField(blank=True)
+    downtime_required = models.BooleanField(default=False)
+    party_adults = models.PositiveIntegerField(default=1)
+    party_children = models.PositiveIntegerField(default=0)
+    arrival_datetime = models.DateTimeField(null=True, blank=True)
+    arrival_airport = models.CharField(max_length=64, blank=True)
+    arrival_airline = models.CharField(max_length=64, blank=True)
+    departure_datetime = models.DateTimeField(null=True, blank=True)
+    departure_airport = models.CharField(max_length=64, blank=True)
+    departure_airline = models.CharField(max_length=64, blank=True)
+    arrival_flight_number = models.CharField(max_length=16, blank=True)
+    departure_flight_number = models.CharField(max_length=16, blank=True)
+    auto_suggest_hotel = models.BooleanField(default=False)
+    overall_budget_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     num_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(30)])
     ai_itinerary = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -42,7 +83,7 @@ class Itinerary(models.Model):
         null=True,
     )
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Model metadata for itineraries."""
         verbose_name_plural = "Itineraries"
         ordering = ['-created_at']
@@ -50,13 +91,22 @@ class Itinerary(models.Model):
     def __str__(self):
         return f"{self.destination} - {self.num_days} days"
 
+    def clean(self):
+        """Ensure dates are valid."""
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError("End date must be on or after the start date.")
+
     def save(self, *args, **kwargs):
         """Make sure each itinerary has a different access code"""
+        if self.start_date and self.end_date:
+            day_span = (self.end_date - self.start_date).days + 1
+            self.num_days = max(1, min(day_span, 30))
+
         if not self.access_code:
             try:
                 while True:
                     code = generate_access_code()
-                    if not Itinerary.objects.filter(access_code=code).exists():  # pylint: disable=no-member
+                    if not Itinerary.objects.filter(access_code=code).exists():
                         self.access_code = code
                         break
             except Exception as exc:
@@ -71,8 +121,9 @@ class BreakTime(models.Model):
     itinerary = models.ForeignKey(Itinerary, on_delete=models.CASCADE, related_name='break_times')
     start_time = models.TimeField()
     end_time = models.TimeField()
+    purpose = models.CharField(max_length=64, blank=True)
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering for break times."""
         ordering = ['start_time']
 
@@ -96,7 +147,7 @@ class BudgetItem(models.Model):
     custom_category = models.CharField(max_length=100, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering for budget items."""
         ordering = ['category']
 
@@ -112,8 +163,12 @@ class Day(models.Model):
     day_number = models.IntegerField(validators=[MinValueValidator(1)])
     date = models.DateField()
     notes = models.TextField(blank=True)
+    wake_override = models.TimeField(null=True, blank=True)
+    bed_override = models.TimeField(null=True, blank=True)
+    constraints = models.TextField(blank=True)
+    must_do = models.TextField(blank=True)
 
-    class Meta:  # pylint: disable=too-few-public-methods
+    class Meta:
         """Ordering and uniqueness for days."""
         ordering = ['day_number']
         unique_together = ['itinerary', 'day_number']

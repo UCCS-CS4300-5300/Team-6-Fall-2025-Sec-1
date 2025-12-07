@@ -28,6 +28,9 @@ urlpatterns = [
     path('forgot-password/complete/', forgot_password_complete, name='forgot_password_complete'),
     path('auth-receiver/', auth_receiver, name='auth_receiver'),
     path('reset-password/', reset_password, name='reset_password'),
-    # urls for the google routing
-    path('google_routing/', include('google_routing.urls')),
+    # urls for the google routing (exposed within /auth/ as well)
+    path(
+        'google_routing/',
+        include(('google_routing.urls', 'google_routing'), namespace='auth_google_routing'),
+    ),
 ]

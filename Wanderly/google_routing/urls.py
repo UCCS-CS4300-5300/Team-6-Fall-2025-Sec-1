@@ -6,6 +6,8 @@ the map information.
 from django.urls import path
 from . import views
 
+app_name = "google_routing"
+
 urlpatterns = [
     # Main page for the in-class demo
     # Will later be used to display map info
