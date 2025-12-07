@@ -139,7 +139,7 @@
             if (!carouselInner || !indicatorsContainer) return;
 
             try {
-                const places = await text_search("Today's Top Tourist Destinations in America");
+                const places = await text_search("Top Tourist Attractions in America");
 
                 carouselInner.innerHTML = "";
                 indicatorsContainer.innerHTML = "";
@@ -151,10 +151,8 @@
                         carouselItem.classList.add("carousel-item");
                         if (index === 0) carouselItem.classList.add("active");
 
-                        let randomNumber = getRandomInt(0, place.photos.length-1);
-
                         const img = document.createElement("img");
-                        img.src = place.photos[randomNumber];
+                        img.src = place.photos[0];
                         img.alt = place.displayName?.text || "Tourist Attraction";
                         img.classList.add("d-block", "w-100");
 
@@ -182,12 +180,6 @@
                 console.error(err);
             }
         });
-
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
 
         // Run search function when the search input is submitted
         document.getElementById("searchForm").addEventListener("submit", async function (e) {
