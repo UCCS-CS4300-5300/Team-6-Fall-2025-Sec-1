@@ -1,273 +1,265 @@
 {% load static places_auto %}
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Wanderly AI Mood Questionnaire</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<head>
+  <meta charset="UTF-8">
+  <title>Wanderly AI Mood Questionnaire</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+  <!-- bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <style>
-      .likert-scale{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
-      .likert-scale .form-check{flex:0 0 auto}
-      .likert-scale .form-check-input,.likert-scale .form-check-label{cursor:pointer}
-      .likert-scale .form-check-label{margin-left:.25rem}
-      .scale-labels{display:flex;justify-content:space-between;font-size:.875rem;color:#6c757d;margin-top:.25rem;margin-bottom:1rem}
-      .interest-checkboxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.75rem;margin-top:.5rem}
-      .interest-checkboxes .form-check{margin-bottom:0}
-      .interest-checkboxes .form-check-input,.interest-checkboxes .form-check-label{cursor:pointer}
-      .interest-checkboxes .form-check-label{margin-left:.5rem}
-      .info-section{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
-      .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;padding:.75rem 2rem;font-weight:500}
-      .btn-primary:hover{opacity:.9;background:linear-gradient(135deg,#5568d3 0%,#65408b 100%)}
-      .back-button{padding:1rem;color:#fff;font-size:1.25rem}
-    </style>
-    
-  </head>
+  <link rel="stylesheet" href="{% static 'mood_questionnaire_styles.css' %}">
+  <link rel="stylesheet" href="{% static 'navbar.css' %}">
+</head>
 
-  <body>
-    <!-- Navbar -->
-    {% include "navbar.html" %}
+<body>
+  <!-- Navbar -->
+  {% include "navbar.html" %}
 
-    <!-- Hero / info band -->
-    <header class="info-section">
-      <div class="container py-5">
-        <div class="row align-items-center g-5">
-          <div class="col-lg-6 text-center text-lg-start">
-            <h1 class="display-5 fw-bold mb-3">Wanderly AI Mood Questionnaire</h1>
-            <p class="lead mb-4">
-              Wanderly uses AI to match your mood and interests to nearby activities.
-            </p>
-          </div>
+  <!-- Hero / info band -->
+  <header class="info-section">
+    <div class="container py-5">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6 text-center text-lg-start">
+          <h1 class="display-5 fw-bold mb-3">Wanderly AI Mood Questionnaire</h1>
+          <p class="lead mb-4">
+            Wanderly uses AI to match your mood and interests to nearby activities.
+          </p>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Questionnaire -->
-    <section class="questionnaire">
-      <div class="container py-5">
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
+  <!-- Questionnaire -->
+  <section class="questionnaire">
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-            <h2 class="h3 mb-3">Mood Questionnaire</h2>
-            <p class="mb-4">Fill out the questionnaire below to help Wanderly understand your mood and interests.</p>
+          <h2 class="h3 mb-3">Mood Questionnaire</h2>
+          <p class="mb-4">Fill out the questionnaire below to help Wanderly understand your mood and interests.</p>
 
-            <form method="post" novalidate>
-              {% csrf_token %}
+          <form method="post" novalidate>
+            {% csrf_token %}
 
-              <!-- Location Search -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold" for="id_destination">Where are you traveling to?</label>
-                <input
-                  type="text"
-                  id="id_destination"
-                  name="destination"
-                  class="form-control js-places"
-                  placeholder="Enter a city or location..."
-                  data-places="1"
-                  data-types="geocode"
-                  data-country="us"
-                  data-place-id-target="#id_place_id"
-                  data-lat-target="#id_lat"
-                  data-lng-target="#id_lng"
-                  required
-                />
-                <input type="hidden" id="id_place_id" name="place_id">
-                <input type="hidden" id="id_lat" name="lat">
-                <input type="hidden" id="id_lng" name="lng">
+            <!-- Location Search -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold" for="id_destination">Where are you traveling to?</label>
+              <input type="text" id="id_destination" name="destination" class="form-control js-places"
+                placeholder="Enter a city or location..." data-places="1" data-types="geocode" data-country="us"
+                data-place-id-target="#id_place_id" data-lat-target="#id_lat" data-lng-target="#id_lng" required />
+              <input type="hidden" id="id_place_id" name="place_id">
+              <input type="hidden" id="id_lat" name="lat">
+              <input type="hidden" id="id_lng" name="lng">
+            </div>
+
+            <!-- Adventurous Question -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">How adventurous are you feeling?</label>
+              <div class="likert-scale">
+                {% for i in "12345" %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="adventurous" id="adventurous_{{ i }}"
+                    value="{{ i }}" required>
+                  <label class="form-check-label" for="adventurous_{{ i }}">{{ i }}</label>
+                </div>
+                {% endfor %}
               </div>
+              <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
+                <span>Not at all</span>
+                <span>Very adventurous</span>
+              </div>
+            </div>
 
-              <!-- Adventurous Question -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">How adventurous are you feeling?</label>
-                <div class="likert-scale">
-                  {% for i in "12345" %}
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="adventurous" id="adventurous_{{ i }}" value="{{ i }}" required>
-                    <label class="form-check-label" for="adventurous_{{ i }}">{{ i }}</label>
-                  </div>
-                  {% endfor %}
+            <!-- Energy Question -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">What is your energy level?</label>
+              <div class="likert-scale">
+                {% for i in "12345" %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="energy" id="energy_{{ i }}" value="{{ i }}"
+                    required>
+                  <label class="form-check-label" for="energy_{{ i }}">{{ i }}</label>
                 </div>
-                <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
-                  <span>Not at all</span>
-                  <span>Very adventurous</span>
+                {% endfor %}
+              </div>
+              <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
+                <span>Low energy</span>
+                <span>High energy</span>
+              </div>
+            </div>
+
+            <!-- Multiple Choice Question -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Select some things you are interested in</label>
+              <div class="interest-checkboxes">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_hiking"
+                    value="hiking">
+                  <label class="form-check-label" for="interest_hiking">Hiking</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_water"
+                    value="water_adventures">
+                  <label class="form-check-label" for="interest_water">Water adventures</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_sightseeing"
+                    value="sight_seeing">
+                  <label class="form-check-label" for="interest_sightseeing">Sight seeing</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_museums"
+                    value="museums">
+                  <label class="form-check-label" for="interest_museums">Museums</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_foods"
+                    value="try_new_foods">
+                  <label class="form-check-label" for="interest_foods">Try new foods</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_events"
+                    value="concert_sporting">
+                  <label class="form-check-label" for="interest_events">Attend a concert/sporting event</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_market"
+                    value="local_market">
+                  <label class="form-check-label" for="interest_market">Visit a local market</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_shopping"
+                    value="shopping">
+                  <label class="form-check-label" for="interest_shopping">Shopping</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_photography"
+                    value="photography">
+                  <label class="form-check-label" for="interest_photography">Photography/scenic spots</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_nightlife"
+                    value="nightlife">
+                  <label class="form-check-label" for="interest_nightlife">Nightlife/bars</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_cafes"
+                    value="cafes">
+                  <label class="form-check-label" for="interest_cafes">Coffee shops/cafes</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_parks"
+                    value="parks_nature">
+                  <label class="form-check-label" for="interest_parks">Parks/nature</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_art"
+                    value="art_galleries">
+                  <label class="form-check-label" for="interest_art">Art galleries</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_historical"
+                    value="historical_sites">
+                  <label class="form-check-label" for="interest_historical">Historical sites</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_entertainment"
+                    value="live_entertainment">
+                  <label class="form-check-label" for="interest_entertainment">Live music/theater</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_fitness"
+                    value="fitness_sports">
+                  <label class="form-check-label" for="interest_fitness">Fitness/sports activities</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_wildlife"
+                    value="wildlife">
+                  <label class="form-check-label" for="interest_wildlife">Wildlife/zoos/aquariums</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_beach"
+                    value="beach">
+                  <label class="form-check-label" for="interest_beach">Beach activities</label>
                 </div>
               </div>
+            </div>
 
-              <!-- Energy Question -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">What is your energy level?</label>
-                <div class="likert-scale">
-                  {% for i in "12345" %}
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="energy" id="energy_{{ i }}" value="{{ i }}" required>
-                    <label class="form-check-label" for="energy_{{ i }}">{{ i }}</label>
-                  </div>
-                  {% endfor %}
-                </div>
-                <div class="scale-labels d-flex justify-content-between text-muted small mt-1 mb-3">
-                  <span>Low energy</span>
-                  <span>High energy</span>
-                </div>
-              </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
 
-              <!-- Multiple Choice Question -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">Select some things you are interested in</label>
-                <div class="interest-checkboxes">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_hiking" value="hiking">
-                    <label class="form-check-label" for="interest_hiking">Hiking</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_water" value="water_adventures">
-                    <label class="form-check-label" for="interest_water">Water adventures</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_sightseeing" value="sight_seeing">
-                    <label class="form-check-label" for="interest_sightseeing">Sight seeing</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_museums" value="museums">
-                    <label class="form-check-label" for="interest_museums">Museums</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_foods" value="try_new_foods">
-                    <label class="form-check-label" for="interest_foods">Try new foods</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_events" value="concert_sporting">
-                    <label class="form-check-label" for="interest_events">Attend a concert/sporting event</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_market" value="local_market">
-                    <label class="form-check-label" for="interest_market">Visit a local market</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_shopping" value="shopping">
-                    <label class="form-check-label" for="interest_shopping">Shopping</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_photography" value="photography">
-                    <label class="form-check-label" for="interest_photography">Photography/scenic spots</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_nightlife" value="nightlife">
-                    <label class="form-check-label" for="interest_nightlife">Nightlife/bars</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_cafes" value="cafes">
-                    <label class="form-check-label" for="interest_cafes">Coffee shops/cafes</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_parks" value="parks_nature">
-                    <label class="form-check-label" for="interest_parks">Parks/nature</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_art" value="art_galleries">
-                    <label class="form-check-label" for="interest_art">Art galleries</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_historical" value="historical_sites">
-                    <label class="form-check-label" for="interest_historical">Historical sites</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_entertainment" value="live_entertainment">
-                    <label class="form-check-label" for="interest_entertainment">Live music/theater</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_fitness" value="fitness_sports">
-                    <label class="form-check-label" for="interest_fitness">Fitness/sports activities</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_wildlife" value="wildlife">
-                    <label class="form-check-label" for="interest_wildlife">Wildlife/zoos/aquariums</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="what_do_you_enjoy" id="interest_beach" value="beach">
-                    <label class="form-check-label" for="interest_beach">Beach activities</label>
-                  </div>
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-
-          </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <footer class="bg-white border-top py-4 mt-5">
-      <div class="container">
-        <div class="row align-items-center gy-3">
-          <div class="col-md-6 text-center text-md-start">
-            <span class="text-muted">&copy; 2025 Wanderly. All rights reserved.</span>
-          </div>
-          <div class="col-md-6">
-            <ul class="nav justify-content-center justify-content-md-end">
-              <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">About</a></li>
-              <li class="nav-item"><a class="nav-link px-2 text-muted" href="#">Privacy Policy</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </footer>
+  <!-- Footer -->
+   <footer class="py-4 mt-5">
+     <div class="container">
+     <div class="row align-items-center gy-3">
+         <div class="col-md-6 text-center text-md-start">
+         <span>&copy; 2025 Wanderly. All rights reserved.</span>
+         </div>
+         <div class="col-md-6">
+         </div>
+     </div>
+     </div>
+ </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Debug form submission
-      document.addEventListener("DOMContentLoaded", function() {
-          const form = document.querySelector('form[method="post"]');
-          
-          if (form) {
-              form.addEventListener('submit', function(e) {
-                  console.log('Form submission triggered');
-                  
-                  // Check if hidden fields have values
-                  const placeId = document.getElementById('id_place_id').value;
-                  const lat = document.getElementById('id_lat').value;
-                  const lng = document.getElementById('id_lng').value;
-                  
-                  console.log('Place ID:', placeId);
-                  console.log('Latitude:', lat);
-                  console.log('Longitude:', lng);
-                  
-                  // Check for validation errors
-                  const invalidFields = form.querySelectorAll(':invalid');
-                  if (invalidFields.length > 0) {
-                      console.log('Invalid fields:', invalidFields);
-                      invalidFields.forEach(field => {
-                          console.log('- Invalid field:', field.name || field.id, field.validationMessage);
-                      });
-                  }
-                  
-                  // If location field is empty, prevent submission
-                  const locationInput = document.getElementById('id_destination');
-                  if (!locationInput.value.trim()) {
-                      e.preventDefault();
-                      alert('Please enter a location');
-                      return false;
-                  }
-                  
-                  // If hidden fields are empty, warn user
-                  if (!placeId || !lat || !lng) {
-                      console.warn('Warning: Location coordinates not captured. Make sure to select from dropdown.');
-                      // Uncomment below to require selection from dropdown
-                      // e.preventDefault();
-                      // alert('Please select a location from the dropdown suggestions');
-                      // return false;
-                  }
-              });
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Debug form submission
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.querySelector('form[method="post"]');
+
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          console.log('Form submission triggered');
+
+          // Check if hidden fields have values
+          const placeId = document.getElementById('id_place_id').value;
+          const lat = document.getElementById('id_lat').value;
+          const lng = document.getElementById('id_lng').value;
+
+          console.log('Place ID:', placeId);
+          console.log('Latitude:', lat);
+          console.log('Longitude:', lng);
+
+          // Check for validation errors
+          const invalidFields = form.querySelectorAll(':invalid');
+          if (invalidFields.length > 0) {
+            console.log('Invalid fields:', invalidFields);
+            invalidFields.forEach(field => {
+              console.log('- Invalid field:', field.name || field.id, field.validationMessage);
+            });
           }
-      });
+
+          // If location field is empty, prevent submission
+          const locationInput = document.getElementById('id_destination');
+          if (!locationInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter a location');
+            return false;
+          }
+
+          // If hidden fields are empty, warn user
+          if (!placeId || !lat || !lng) {
+            console.warn('Warning: Location coordinates not captured. Make sure to select from dropdown.');
+            // Uncomment below to require selection from dropdown
+            // e.preventDefault();
+            // alert('Please select a location from the dropdown suggestions');
+            // return false;
+          }
+        });
+      }
+    });
   </script>
   {% places_js %}
-  </body>
+</body>
+
 </html>

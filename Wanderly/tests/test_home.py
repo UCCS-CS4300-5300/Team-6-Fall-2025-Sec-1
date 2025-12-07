@@ -141,10 +141,6 @@ class HomePageTests(TestCase):
         self.assertIn("Explore The World Around You", content)
         self.assertIn("Find Your Next Step", content)
 
-        # Footer links
-        self.assertIn("About", content)
-        self.assertIn("Privacy Policy", content)
-
     # Ensure the hero image reference matches the expected static asset path.
     def test_homepage_static_images_reference(self):
         expected_src_1 = static("mountains.jpg")

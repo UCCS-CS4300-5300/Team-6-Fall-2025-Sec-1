@@ -1,3 +1,23 @@
+/* Root Styles */
+:root {
+    --primary-color: #eda400;
+    --primary-hover: #b37e09;
+    --text-light: #6b7280;
+    --text-dark: #111827;
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --text-color: #faf6ed;
+    --border-radius: 10px;
+}
+
+footer {
+    background: #2A1C22;
+    bottom: 0;
+    width: 100%;
+    color: var(--text-color);
+    position: fixed;
+}  
+
 /* Profile Page Styles */
 .profile-page {
     background: linear-gradient(180deg, #faf0ff 0%, #fefcff 100%);
@@ -5,7 +25,7 @@
 }
 
 .profile-hero {
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
     color: #fff;
     border-bottom-left-radius: 36px;
     border-bottom-right-radius: 36px;
@@ -16,7 +36,7 @@
     border: none;
     border-radius: 28px;
     box-shadow: 0 18px 40px rgba(62, 20, 159, 0.18);
-    background: linear-gradient(145deg, rgba(227, 191, 227, 0.95), rgba(185, 163, 227, 0.85));
+    background: rgba(237, 164, 0, 0.4);
 }
 
 .profile-card .card-body {
@@ -27,7 +47,7 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.08em;
-    color: rgba(62, 20, 159, 0.8);
+    color: #2A1C22;
     margin-bottom: 0.25rem;
 }
 
@@ -38,7 +58,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: #3e149f;
+    color: #2A1C22;
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -46,14 +66,15 @@
 .section-card {
     border-radius: 24px;
     border: none;
-    background: linear-gradient(135deg, rgba(227, 191, 227, 0.35), rgba(185, 163, 227, 0.35));
+    background: rgba(237, 164, 0, 0.4);
     box-shadow: 0 14px 30px rgba(62, 20, 159, 0.12);
 }
 
 .section-card .card-header {
     border: none;
-    background: transparent;
-    padding: 1.5rem 1.5rem 0;
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    padding: 2rem;
+    border-radius: 24px 24px 0 0;
 }
 
 .section-card .card-body {
@@ -61,14 +82,11 @@
 }
 
 .trip-card {
-    border-radius: 18px;
-    border: 1px solid rgba(62, 20, 159, 0.15);
     padding: 1rem;
-    background: rgba(227, 191, 227, 0.45);
 }
 
 .cta-card {
-    background: linear-gradient(135deg, rgba(218, 48, 104, 0.35), rgba(62, 20, 159, 0.45));
+    background: rgba(237, 164, 0, 0.4);
     color: #111;
 }
 
@@ -77,7 +95,7 @@
 }
 
 .profile-page .btn-primary {
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
     border: none;
     padding: 0.85rem 2rem;
     font-weight: 600;
@@ -95,7 +113,7 @@
     letter-spacing: 0.03em;
     border: none;
     color: #fff;
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     box-shadow: 0 10px 25px rgba(62, 20, 159, 0.25);
 }

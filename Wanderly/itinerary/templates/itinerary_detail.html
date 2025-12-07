@@ -1,15 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Itinerary Details</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-        <link rel="stylesheet" href="{% static 'navbar.css' %}">
-        <link rel="stylesheet" href="{% static 'itinerary/styles.css' %}">
-    </head>
+<head>
+    <title>Itinerary Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <body>
         {% include "navbar.html" %}
@@ -99,49 +94,31 @@
                         </div>
                         {% endif %}
                     </div>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'itinerary/styles.css' %}">
+</head>
 
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <h6 class="text-muted mb-1">Wake Time</h6>
-                                    <p class="mb-0">{{ itinerary.wake_up_time|time:"g:i A" }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="text-muted mb-1">Bed Time</h6>
-                                    <p class="mb-0">{{ itinerary.bed_time|time:"g:i A" }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="text-muted mb-1">Break Times</h6>
-                                    {% if break_times %}
-                                    <ul class="mb-0 ps-3">
-                                        {% for bt in break_times %}
-                                        <li>{{ bt.start_time|time:"g:i A" }} - {{ bt.end_time|time:"g:i A" }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% else %}
-                                    <p class="mb-0">None</p>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <h6 class="text-muted mb-1">Budget</h6>
-                                    {% if budget_items %}
-                                    <ul class="mb-0 ps-3">
-                                        {% for item in budget_items %}
-                                        <li>
-                                            {% if item.category == "Other" and item.custom_category %}
-                                                {{ item.custom_category }}
-                                            {% else %}
-                                                {{ item.category }}
-                                            {% endif %}
-                                            : ${{ item.amount }}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% else %}
-                                    <p class="mb-0">Flexible</p>
-                                    {% endif %}
-                                </div>
+<body>
+    {% include "navbar.html" %}
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="itinerary-header">
+                    <h2><i class="bi bi-calendar-check"></i> Itinerary for {{ itinerary.destination }}</h2>
+                    <h2><i class="bi bi-calendar-check"></i> Access Code: {{ itinerary.access_code }}</h2>
+                    <p class="header-subtitle">
+                        AI-crafted plan for {{ itinerary.num_days }} day{{ itinerary.num_days|pluralize }}
+                    </p>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-1">Wake Time</h6>
+                                <p class="mb-0">{{ itinerary.wake_up_time|time:"g:i A" }}</p>
                             </div>
 
                             <div class="row g-3 mt-3">
@@ -187,6 +164,79 @@
                             <hr />
                             <h6 class="text-muted mb-2">Day Notes</h6>
                             <p class="mb-0 text-muted">No per-day notes were provided.</p>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-1">Bed Time</h6>
+                                <p class="mb-0">{{ itinerary.bed_time|time:"g:i A" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-1">Break Times</h6>
+                                {% if break_times %}
+                                <ul class="mb-0 ps-3">
+                                    {% for bt in break_times %}
+                                    <li>{{ bt.start_time|time:"g:i A" }} - {{ bt.end_time|time:"g:i A" }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="mb-0">None</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-1">Budget</h6>
+                                {% if budget_items %}
+                                <ul class="mb-0 ps-3">
+                                    {% for item in budget_items %}
+                                    <li>
+                                        {% if item.category == "Other" and item.custom_category %}
+                                        {{ item.custom_category }}
+                                        {% else %}
+                                        {{ item.category }}
+                                        {% endif %}
+                                        : ${{ item.amount }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="mb-0">Flexible</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if trip_days %}
+                        <hr />
+                        <h6 class="text-muted mb-2">Day Notes</h6>
+                        <ul class="mb-0 ps-3">
+                            {% for day in trip_days %}
+                            {% if day.notes %}
+                            <li>
+                                Day {{ day.day_number }} ({{ day.date }}): {{ day.notes }}
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if accommodation_info %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div>
+                                <h5 class="mb-2"><i class="bi bi-house-door"></i> Recommended Lodging</h5>
+                                <p class="mb-1 fw-semibold">{{ accommodation_info.name }}</p>
+                                {% if accommodation_info.address %}
+                                <p class="mb-1 text-muted">{{ accommodation_info.address }}</p>
+                                {% endif %}
+                                {% if accommodation_info.price_per_night %}
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-cash"></i> {{ accommodation_info.price_per_night }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% if accommodation_info.notes %}
+                            <div class="ms-3 text-muted" style="max-width: 320px;">
+                                {{ accommodation_info.notes }}
+                            </div>
                             {% endif %}
 
                             <div
@@ -212,32 +262,17 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                {% endif %}
 
-                    {% if accommodation_info %}
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start justify-content-between">
-                                <div>
-                                    <h5 class="mb-2"><i class="bi bi-house-door"></i> Recommended Lodging</h5>
-                                    <p class="mb-1 fw-semibold">{{ accommodation_info.name }}</p>
-                                    {% if accommodation_info.address %}
-                                    <p class="mb-1 text-muted">{{ accommodation_info.address }}</p>
-                                    {% endif %}
-                                    {% if accommodation_info.price_per_night %}
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-cash"></i> {{ accommodation_info.price_per_night }}
-                                    </span>
-                                    {% endif %}
-                                </div>
-                                {% if accommodation_info.notes %}
-                                <div class="ms-3 text-muted" style="max-width: 320px;">
-                                    {{ accommodation_info.notes }}
-                                </div>
-                                {% endif %}
-                            </div>
+                <section class="itinerary-days-section">
+                    {% if ai_itinerary_days %}
+                    {% for day in ai_itinerary_days %}
+                    <div class="day-itinerary-card">
+                        <div class="day-header">
+                            <div class="day-badge">Day {{ day.day_number }}</div>
+                            <h3>{{ day.title }}</h3>
                         </div>
-                    </div>
-                    {% endif %}
 
                     <section class="itinerary-days-section">
                         {% if ai_itinerary_days %}
@@ -330,9 +365,39 @@
                                                  View Reviews
                                              </button>
                                              {% endif %}
+                        <div class="activities-list">
+                            {% for activity in day.activities %}
+                            <div class="activity-item"
+                                data-place-query="{{ activity.name }} {{ itinerary.destination }}">
+                                <div class="activity-time">
+                                    <i class="bi bi-clock"></i>
+                                    <span>{{ activity.time }}</span>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4>{{ activity.name }}</h4>
+                                            <p>{{ activity.description }}</p>
+                                        </div>
+                                        <div class="activity-rating badge bg-light text-dark" data-rating>
+                                            <span class="text-muted">Loading...</span>
                                         </div>
                                     </div>
-                                    {% endfor %}
+                                    <div class="activity-meta">
+                                        {% if activity.duration %}
+                                        <span class="meta-badge">
+                                            <i class="bi bi-hourglass-split"></i> {{ activity.duration }}
+                                        </span>
+                                        {% endif %}
+                                        {% if activity.cost_estimate %}
+                                        <span class="meta-badge">
+                                            <i class="bi bi-cash"></i> {{ activity.cost_estimate }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <button type="button" class="btn reviews-btn mt-2" data-review-btn disabled>
+                                        View Reviews
+                                    </button>
                                 </div>
                             </div>
                             {% endfor %}
@@ -346,31 +411,49 @@
                         <a href="{% url 'itinerary:itinerary' %}" class="btn-secondary-custom">
                             <i class="bi bi-arrow-left"></i> Create Another
                         </a>
+                        </div>
                     </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="alert alert-warning">
+                        No AI itinerary is available for this trip.
+                    </div>
+                    {% endif %}
+                </section>
+
+                <div class="itinerary-actions mt-4">
+                    <button type="button" class="btn-primary-custom" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Itinerary
+                    </button>
+                    <a href="{% url 'itinerary:itinerary' %}" class="btn-secondary-custom">
+                        <i class="bi bi-arrow-left"></i> Create Another
+                    </a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <input type="hidden" id="itineraryCsrfToken" value="{{ csrf_token }}">
+    <input type="hidden" id="itineraryCsrfToken" value="{{ csrf_token }}">
 
-        <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-describedby="reviewsModalDescription" aria-hidden="true" role="dialog" aria-modal="true">
-          <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel"
+        aria-describedby="reviewsModalDescription" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="reviewsModalLabel">Place Reviews</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p id="reviewsModalDescription" class="visually-hidden">Recent reviews for the selected place</p>
-                <h6 id="reviewsPlaceTitle" class="fw-bold mb-3"></h6>
-                <div id="reviewsList"></div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              </div>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewsModalLabel">Place Reviews</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="reviewsModalDescription" class="visually-hidden">Recent reviews for the selected place</p>
+                    <h6 id="reviewsPlaceTitle" class="fw-bold mb-3"></h6>
+                    <div id="reviewsList"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-          </div>
         </div>
+    </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
@@ -524,8 +607,81 @@
                     if (!data.rating) {
                         ratingEl.classList.add("d-none");
                         ratingEl.innerHTML = "";
+    <!-- Footer -->
+    <footer class="py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center gy-3">
+                <div class="col-md-6 text-center text-md-start">
+                    <span>&copy; 2025 Wanderly. All rights reserved.</span>
+                </div>
+                <div class="col-md-6">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const csrfTokenInput = document.getElementById("itineraryCsrfToken");
+            const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+            const reviewsModalEl = document.getElementById("reviewsModal");
+            const reviewsModal = new bootstrap.Modal(reviewsModalEl);
+            const reviewsPlaceTitle = document.getElementById("reviewsPlaceTitle");
+            const reviewsList = document.getElementById("reviewsList");
+
+            function renderStars(rating) {
+                const stars = [];
+                const fullStars = Math.floor(rating);
+                const hasHalf = rating - fullStars >= 0.5;
+                for (let i = 0; i < 5; i += 1) {
+                    if (i < fullStars) {
+                        stars.push('<span class="star">&#9733;</span>');
+                    } else if (i === fullStars && hasHalf) {
+                        stars.push('<span class="star">&#9734;</span>');
                     } else {
-                        const ratingMarkup = `
+                        stars.push('<span class="star text-muted">&#9734;</span>');
+                    }
+                }
+                return stars.join("");
+            }
+
+            function setUnavailableState(item, message) {
+                const ratingEl = item.querySelector("[data-rating]");
+                const reviewsButton = item.querySelector("[data-review-btn]");
+                if (ratingEl) {
+                    ratingEl.innerHTML = `<span class="text-muted">${message}</span>`;
+                }
+                if (reviewsButton) {
+                    reviewsButton.disabled = true;
+                    reviewsButton.textContent = "No Reviews";
+                }
+            }
+
+            function handleReviewsResponse(item, data) {
+                if (!item) {
+                    return;
+                }
+
+                if (!data || typeof data !== "object") {
+                    setUnavailableState(item, "Rating unavailable");
+                    return;
+                }
+
+                const ratingEl = item.querySelector("[data-rating]");
+                const reviewsButton = item.querySelector("[data-review-btn]");
+                if (!ratingEl) {
+                    return;
+                }
+
+                const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+                item.dataset.placeName = data.name || item.dataset.placeQuery;
+                item.dataset.reviews = JSON.stringify(reviews);
+
+                if (!data.rating) {
+                    ratingEl.innerHTML = '<span class="text-muted">Rating unavailable</span>';
+                } else {
+                    const ratingMarkup = `
                             <div>${renderStars(data.rating)}</div>
                             <div class="mt-1 text-dark fw-semibold">${data.rating.toFixed(1)}</div>
                             <div class="text-muted small">${data.count || 0} reviews</div>
@@ -586,40 +742,55 @@
                     const requiresPlace = item.dataset.requiresPlace !== "false";
                     const query = (item.dataset.placeQuery || '').trim();
                     if (!requiresPlace || !query) {
+                    ratingEl.innerHTML = ratingMarkup;
+                }
+
+                if (!reviews.length) {
+                    reviewsButton.disabled = true;
+                    reviewsButton.textContent = "No Reviews";
+                } else {
+                    reviewsButton.disabled = false;
+                    reviewsButton.textContent = "View Reviews";
+                }
+            }
+
+            document.querySelectorAll(".activity-item").forEach((item) => {
+                const query = item.dataset.placeQuery;
+                if (!query) {
+                    return;
+                }
+
+                fetch("{% url 'itinerary:place_reviews' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ query }),
+                })
+                    .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Bad response from server"))))
+                    .then((data) => handleReviewsResponse(item, data))
+                    .catch(() => {
+                        setUnavailableState(item, "Unable to load rating");
+                    });
+            });
+
+            document.querySelectorAll("[data-review-btn]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const wrapper = button.closest(".activity-item");
+                    if (!wrapper) {
                         return;
                     }
+                    const name = wrapper.dataset.placeName || "Recent Reviews";
+                    const reviews = JSON.parse(wrapper.dataset.reviews || "[]");
 
-                    fetch("{% url 'itinerary:place_reviews' %}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": csrfToken,
-                        },
-                        body: JSON.stringify({ query }),
-                    })
-                        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Bad response from server"))))
-                        .then((data) => handleReviewsResponse(item, data))
-                        .catch(() => {
-                            setUnavailableState(item, "Unable to load rating");
-                        });
-                });
-
-                document.querySelectorAll("[data-review-btn]").forEach((button) => {
-                    button.addEventListener("click", () => {
-                        const wrapper = button.closest(".activity-item");
-                        if (!wrapper) {
-                            return;
-                        }
-                        const name = wrapper.dataset.placeName || "Recent Reviews";
-                        const reviews = JSON.parse(wrapper.dataset.reviews || "[]");
-
-                        reviewsPlaceTitle.textContent = name;
-                        if (!reviews.length) {
-                            reviewsList.innerHTML = '<p class="text-muted mb-0">No reviews available.</p>';
-                        } else {
-                            reviewsList.innerHTML = reviews
-                                .slice(0, 6)
-                                .map((review) => `
+                    reviewsPlaceTitle.textContent = name;
+                    if (!reviews.length) {
+                        reviewsList.innerHTML = '<p class="text-muted mb-0">No reviews available.</p>';
+                    } else {
+                        reviewsList.innerHTML = reviews
+                            .slice(0, 6)
+                            .map((review) => `
                                     <div class="mb-3 border-bottom pb-2">
                                         <div class="d-flex justify-content-between">
                                             <strong>${review.author || "Traveler"}</strong>
@@ -628,13 +799,18 @@
                                         <p class="mb-0 mt-2">${review.text || "No review text provided."}</p>
                                     </div>
                                 `)
-                                .join("");
-                        }
-                        reviewsModal.show();
-                    });
+                            .join("");
+                    }
+                    reviewsModal.show();
                 });
 
             })();
         </script>
     </body>
+</html>
+            });
+        })();
+    </script>
+</body>
+
 </html>

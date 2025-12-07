@@ -1,0 +1,183 @@
+/* Root Styles */
+:root {
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --text-color: #faf6ed;
+}  
+
+footer {
+  background: #2A1C22;
+  color: #faf6ed;
+}
+
+.results-header {
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    color: white;
+}
+
+.back-button {
+    padding: 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.back-button:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+.mood-summary {
+  background: #f8f9fa;
+  border-left: 4px solid var(--gradient-start-color);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 0.5rem;
+}
+
+.mood-summary h3 {
+  color: var(--gradient-start-color);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.mood-stat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.mood-stat strong {
+  color: #333;
+}
+
+.mood-stat span {
+  color: var(--gradient-start-color);
+  font-weight: 600;
+}
+
+.interests-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.interest-badge {
+  background: var(--gradient-start-color);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.recommendations-section {
+  margin-top: 3rem;
+}
+
+.recommendations-section h2 {
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #333;
+  text-align: center;
+}
+
+.activity-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activity-card:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  border-color: var(--gradient-start-color);
+  transform: translateY(-2px);
+}
+
+.activity-card h3 {
+  color: var(--gradient-start-color);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.activity-card p {
+  color: #555;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.activity-label {
+  display: inline-block;
+  background: #f0f0f0;
+  color: #666;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gradient-start-color);
+}
+
+.error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.btn-primary-custom {
+  background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+  opacity: 0.9;
+  text-decoration: none;
+  color: white;
+}
+
+.btn-secondary-custom {
+  background: white;
+  border: 2px solid var(--gradient-start-color);
+  color: var(--gradient-start-color);
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary-custom:hover {
+  background: var(--gradient-start-color);
+  color: white;
+  text-decoration: none;
+}

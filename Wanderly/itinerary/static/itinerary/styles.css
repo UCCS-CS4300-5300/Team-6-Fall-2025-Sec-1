@@ -1,21 +1,29 @@
-/* Wanderly Itinerary Page Styles */
+/* Wanderly Itinerary Page Styles - Updated to New Theme */
 
 /* CSS Variables */
 :root {
-    --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-color: #eda400;
+    --primary-hover: #b37e09;
     --secondary-color: #6b7280;
     --success-color: #10b981;
     --danger-color: #ef4444;
     --text-dark: #111827;
     --text-medium: #374151;
     --text-light: #6b7280;
-    --border-color: #0041c4;
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --text-color: #faf6ed;
     --bg-light: #f9fafb;
     --bg-white: #ffffff;
+    --border-color: #e0e0e0;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-    --border-radius: 8px;
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+    --border-radius: 10px;
+}
+
+footer {
+    background: #2A1C22;
+    color: var(--text-color);
 }
 
 /* Reset and Base Styles */
@@ -29,7 +37,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: var(--text-dark);
-    background: linear-gradient(to bottom, #eae8ff, #d0cefd);
+    background: #f3f4f6;
 }
 
 /* Page Header */
@@ -37,7 +45,6 @@ body {
     text-align: center;
     margin-bottom: 2rem;
     padding: 2rem 1rem 1.5rem;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(79, 70, 229, 0.02) 100%);
     border-radius: var(--border-radius);
 }
 
@@ -55,24 +62,24 @@ body {
 
 /* Card Styles */
 .card {
-    background: #bbb5f8;
+    background: var(--bg-white);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
     margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 
 .card-header {
     background: var(--primary-color);
     border-bottom: 1px solid var(--border-color);
-    border-left: 4px solid var(--primary-color);
     padding: 1.25rem 1.5rem;
 }
 
 .card-header h2 {
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--bg-white) !important;
+    color: #ffffff !important;
     margin: 0;
 }
 
@@ -100,17 +107,18 @@ body {
     font-size: 0.9375rem;
     line-height: 1.5;
     color: var(--text-dark);
-    background-color: #dfddff;
+    background-color: #f9fafb;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .form-control:focus,
 .form-select:focus {
     border-color: var(--primary-color) !important;
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(237, 164, 0, 0.2) !important;
+    background-color: #ffffff;
 }
 
 textarea.form-control {
@@ -122,7 +130,6 @@ textarea.form-control {
 .input-group {
     display: flex;
     align-items: stretch;
-    color: #aea8f7;
 }
 
 .input-group-text {
@@ -132,7 +139,7 @@ textarea.form-control {
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--text-dark);
-    background-color: var(--bg-light);
+    background-color: #f3f4f6;
     border: 1px solid var(--border-color);
     border-right: 0;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
@@ -168,7 +175,7 @@ textarea.form-control {
 }
 
 .budget-item {
-    background: #dfddff;
+    background: #f9fafb;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: 1rem;
@@ -206,7 +213,7 @@ textarea.form-control {
 
 /* Day Cards */
 .day-card {
-    background: #dfddff;
+    background: #f9fafb;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     margin-bottom: 1rem;
@@ -214,7 +221,7 @@ textarea.form-control {
 }
 
 .day-card-header {
-    background: #dfddff;
+    background: #f9fafb;
     border-bottom: 1px solid var(--border-color);
     padding: 0.75rem 1rem;
 }
@@ -222,63 +229,71 @@ textarea.form-control {
 .day-number {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--text-dark) !important;
+    color: var(--primary-color) !important;
     text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .day-card-body {
     padding: 1rem;
 }
-.info-section {
-    color: #000000;
+
+/* Info Section (Hero) */
+.info-section { 
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
+    color: var(--text-color);
 }
 
 /* Buttons */
 .btn {
     display: inline-flex;
-    color: #dfddff;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.1rem;
     font-size: 0.9375rem;
     font-weight: 500;
-    border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
     text-decoration: none;
+    border: none;
 }
 
+/* Primary Button - match new style .btn-primary */
 .btn.btn-primary,
 button.btn-primary {
-    background-color: #6c63f2 !important;
-    color: var(--text-dark) !important;
-    border-color: var(--primary-color) !important;
+    background: #ffffff !important;
+    color: #8c2383 !important;
+    border: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .btn.btn-primary:hover,
 button.btn-primary:hover {
-    background-color: var(--primary-hover) !important;
-    border-color: var(--primary-hover) !important;
+    background: #fef3c7 !important;
+    color: #d48c2f !important;
 }
 
+/* Large button */
 .btn-lg {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
 }
 
+/* Outline secondary button – similar to new .btn-secondary */
 .btn-secondary-outline {
-    background-color: #dfddff;
-    color: var(--text-medium);
-    border: 2px dashed var(--border-color);
+    background-color: #ffffff;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
 }
 
 .btn-secondary-outline:hover {
-    background-color: #dfddff;
-    border-color: var(--secondary-color);
+    background-color: var(--primary-color);
+    color: #ffffff;
 }
 
+/* Text button */
 .btn.btn-text,
 button.btn-text {
     background: transparent !important;
@@ -289,9 +304,10 @@ button.btn-text {
 
 .btn.btn-text:hover,
 button.btn-text:hover {
-    background-color: rgba(79, 70, 229, 0.1) !important;
+    background-color: rgba(237, 164, 0, 0.1) !important;
 }
 
+/* Icon-only buttons */
 .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -308,14 +324,14 @@ button.btn-text:hover {
 }
 
 .btn-icon:hover {
-    background-color: var(--bg-light);
+    background-color: #f3f4f6;
     color: var(--text-dark);
 }
 
 .remove-break-btn:hover,
 .remove-budget-btn:hover {
     background-color: var(--danger-color) !important;
-    color: #dfddff !important;
+    color: #ffffff !important;
 }
 
 /* Form Actions */
@@ -329,14 +345,14 @@ button.btn-text:hover {
     color: var(--text-light);
 }
 
-/* AI Itinerary Section - Similar to Mood Results */
+/* AI Itinerary Section - Header on other pages */
 .itinerary-header {
     background: #f8f9fa;
     border-left: 4px solid var(--primary-color);
     padding: 1.5rem;
     margin-bottom: 2rem;
     margin-top: 2rem;
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius);
 }
 
 .itinerary-header h2 {
@@ -373,26 +389,26 @@ button.btn-text:hover {
     margin-bottom: 2rem;
 }
 
-/* Day Cards - Similar to Activity Cards */
+/* Day Itinerary Cards (for generated results page) */
 .day-itinerary-card {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     padding: 0;
     margin-bottom: 2rem;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 }
 
 .day-itinerary-card:hover {
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    box-shadow: 0 4px 14px rgba(145, 67, 138, 0.18);
     border-color: var(--primary-color);
     transform: translateY(-2px);
 }
 
 .day-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
     color: white;
     padding: 1.25rem 1.5rem;
     display: flex;
@@ -487,7 +503,7 @@ button.btn-text:hover {
 }
 
 .activity-item:hover {
-    background-color: #f9fafb;
+    background-color: #fafafa;
 }
 
 .activity-time {
@@ -524,7 +540,7 @@ button.btn-text:hover {
 }
 
 .reviews-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    background: var(--primary-color);
     border: none;
     color: white;
     padding: 0.55rem 1.3rem;
@@ -537,7 +553,7 @@ button.btn-text:hover {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     cursor: pointer;
-    box-shadow: 0 0.65rem 1.3rem rgba(91, 82, 212, 0.35);
+    box-shadow: 0 0.65rem 1.3rem rgba(145, 67, 138, 0.35);
     transition: opacity 0.3s ease, transform 0.2s ease;
 }
 
@@ -548,7 +564,7 @@ button.btn-text:hover {
 }
 
 .reviews-btn:focus-visible {
-    outline: 3px solid rgba(91, 82, 212, 0.45);
+    outline: 3px solid rgba(145, 67, 138, 0.45);
     outline-offset: 2px;
 }
 
@@ -602,44 +618,7 @@ button.btn-text:hover {
     font-size: 0.85rem;
 }
 
-.activity-place-details {
-    margin-top: 0.75rem;
-    padding-top: 0.5rem;
-    border-top: 1px dashed rgba(79, 70, 229, 0.25);
-    font-size: 0.9rem;
-    color: var(--text-medium);
-}
-
-.activity-place-details .place-line {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.4rem;
-}
-
-.activity-place-details .place-line + .place-line {
-    margin-top: 0.35rem;
-}
-
-.activity-place-details i {
-    color: var(--primary-color);
-    margin-top: 0.1rem;
-}
-
-.info-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
-    background: #e0defc;
-    color: var(--primary-color);
-    font-size: 0.85rem;
-    cursor: help;
-    margin-left: 0.25rem;
-}
-
-/* Action Buttons - Similar to Mood Results */
+/* Action Buttons - Itinerary Actions */
 .itinerary-actions {
     display: flex;
     gap: 1rem;
@@ -650,7 +629,7 @@ button.btn-text:hover {
 }
 
 .btn-primary-custom {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #5b52d4 100%);
+    background: linear-gradient(135deg, var(--gradient-start-color) 0%, var(--gradient-end-color) 100%);
     border: none;
     color: white;
     padding: 0.75rem 2rem;
@@ -849,6 +828,3 @@ button.btn-text:hover {
     justify-content: center;
 }
 }
-
-
-
