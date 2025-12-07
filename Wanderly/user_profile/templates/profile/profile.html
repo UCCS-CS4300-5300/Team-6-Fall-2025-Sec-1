@@ -86,10 +86,10 @@
                   <p class="text-muted small mb-2">
                     Access Code: <span class="fw-semibold text-dark">{{ upcoming_trip.access_code }}</span>
                   </p>
-                  <a href="{% url 'itinerary:itinerary_detail' upcoming_trip.access_code %}" class="btn btn-primary w-100 mb-2">
+                  <a href="{% url 'itinerary:itinerary_detail' upcoming_trip.access_code %}" class="btn btn-profile w-100 mb-2">
                     View Itinerary
                   </a>
-                  <a href="{% url 'itinerary:itinerary' %}" class="btn btn-outline-primary w-100">
+                  <a href="{% url 'itinerary:itinerary' %}" class="btn btn-profile w-100">
                     Plan Another Trip
                   </a>
                 </div>
