@@ -75,7 +75,7 @@ jiter==0.12.0
     # via openai
 numpy==2.3.4
     # via -r requirements.in
-openai==2.8.1
+openai==2.9.0
     # via -r requirements.in
 packaging==25.0
     # via gunicorn
