@@ -48,8 +48,14 @@
               <div class="row align-items-center g-2 mb-2 stop-row">
                 <div class="col-12 col-md-9">
                   <label class="form-label medium mb-1 fw-bold">
-                    {% if forloop.first %}Origin{% elif forloop.last %}Destination{% else %}Stop {{ forloop.counter0
-                    }}{% endif %}
+                    {% if forloop.first %}
+                    Origin
+                    {% elif forloop.last %}
+                    Destination
+                    {% else %}
+                    Stop
+                    {{ forloop.counter0 }}
+                    {% endif %}
                   </label>
                   {{ f.address }}
                 </div>
