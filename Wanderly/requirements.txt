@@ -81,7 +81,7 @@ packaging==25.0
     # via gunicorn
 proto-plus==1.26.1
     # via google-api-core
-protobuf==6.33.1
+protobuf==6.33.2
     # via
     #   google-api-core
     #   googleapis-common-protos
