@@ -43,7 +43,7 @@
             </a>
           </li>
         {% endif %}
-        {% if request.path == '/' %}
+        {% if request.path == '/' or request.path == '/itinerary/list/' %}
           <li class="nav-item">
             <button 
               class="nav-link text-black border-0 bg-transparent"
