@@ -1,12 +1,12 @@
 colorama~=0.4.6
-Django~=5.2.9
+Django~=6.0.0
 dj-database-url~=3.0.1
 django-bootstrap5~=25.2
 djangorestframework~=3.16.1
 google-api-python-client~=2.187.0
 gunicorn~=23.0.0
 numpy~=2.3.3
-openai~=2.8.1
+openai~=2.9.0
 psycopg2-binary~=2.9.10
 python-dotenv~=1.1.1
 pytz~=2025.2
