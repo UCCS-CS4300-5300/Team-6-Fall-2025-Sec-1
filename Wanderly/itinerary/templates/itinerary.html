@@ -1,97 +1,92 @@
 {% load static places_auto %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Wanderly Itinerary Creation</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        {% places_js %}
-        <!-- bootstrap -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-        <link rel="stylesheet" href="{% static 'navbar.css' %}">
-        <link rel="stylesheet" href="{% static 'itinerary/styles.css' %}">
-    </head>
+<head>
+    <title>Wanderly Itinerary Creation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% places_js %}
+    <!-- bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <body>
-        {% include "navbar.html" %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'itinerary/styles.css' %}">
+</head>
 
-        <header class="info-section">
-            <div class="container py-5">
-                <div class="row align-items-center g-5">
-                    <div class="col-lg-8">
-                        <h1 class="display-5 fw-bold mb-3">AI Itinerary Generator</h1>
-                        <p class="lead mb-0">
-                            Enter the information below and Wanderly will generate an itinerary for you.
-                        </p>
-                    </div>
+<body>
+    {% include "navbar.html" %}
+
+    <header class="info-section">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3">AI Itinerary Generator</h1>
+                    <p class="lead mb-0">
+                        Enter the information below and Wanderly will generate an itinerary for you.
+                    </p>
                 </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="container my-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-9">
-                    <form id="itinerary-form" method="post" novalidate>
-                        {% csrf_token %}
-                        {% if messages %}
-                            <div class="mb-3">
-                                {% for message in messages %}
-                                    {% if 'itinerary' in message.tags %}
-                                        <div class="alert alert-{{ message.level_tag }}">{{ message }}</div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <form id="itinerary-form" method="post" novalidate>
+                    {% csrf_token %}
+                    {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                        {% if 'itinerary' in message.tags %}
+                        <div class="alert alert-{{ message.level_tag }}">{{ message }}</div>
                         {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
-                        {% if form.errors %}
-                        <div class="alert alert-danger" role="alert">
-                            <p class="fw-semibold mb-2">Please correct the following and try again:</p>
-                            <ul class="mb-0">
-                                {% for field in form %}
-                                    {% for error in field.errors %}
-                                        <li>
-                                            {% if field.label %}<strong>{{ field.label }}:</strong>{% endif %}
-                                            {{ error }}
-                                        </li>
-                                    {% endfor %}
-                                {% endfor %}
-                                {% for error in form.non_field_errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
+                    {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <p class="fw-semibold mb-2">Please correct the following and try again:</p>
+                        <ul class="mb-0">
+                            {% for field in form %}
+                            {% for error in field.errors %}
+                            <li>
+                                {% if field.label %}<strong>{{ field.label }}:</strong>{% endif %}
+                                {{ error }}
+                            </li>
+                            {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Trip Overview -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Trip Overview</h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-trip-overview" aria-expanded="true"
+                                aria-controls="section-trip-overview">
+                                <span class="visually-hidden">Toggle Trip Overview</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
                         </div>
-                        {% endif %}
-                        
-                        <!-- Trip Overview -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Trip Overview</h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-trip-overview" aria-expanded="true" aria-controls="section-trip-overview">
-                                    <span class="visually-hidden">Toggle Trip Overview</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-trip-overview">
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-8">
-                                        <label class="form-label" for="id_destination">Where are you traveling to?</label>
-                                        <input
-                                            type="text"
-                                            id="id_destination"
-                                            name="destination"
-                                            class="form-control js-places"
-                                            placeholder="Enter a city or location"
-                                            data-places="1"
-                                            data-types="geocode"
-                                            data-country="us"
-                                            data-place-id-target="#id_place_id"
-                                            data-lat-target="#id_lat"
-                                            data-lng-target="#id_lng"
-                                            required
-                                        />
+                        <div class="collapse show section-collapse" id="section-trip-overview">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label" for="id_destination">Where are you traveling
+                                            to?</label>
+                                        <input type="text" id="id_destination" name="destination"
+                                            class="form-control js-places" placeholder="Enter a city or location"
+                                            data-places="1" data-types="geocode" data-country="us"
+                                            data-place-id-target="#id_place_id" data-lat-target="#id_lat"
+                                            data-lng-target="#id_lng" required />
                                         <input type="hidden" id="id_place_id" name="place_id">
                                         <input type="hidden" id="id_lat" name="latitude">
                                         <input type="hidden" id="id_lng" name="longitude">
@@ -110,117 +105,130 @@
                                 <div class="row g-3 mt-3">
                                     <div class="col-md-6">
                                         <label class="form-label" for="trip_start_date">Trip Start</label>
-                                        <input type="text" class="form-control" id="trip_start_date" name="start_date" required autocomplete="off">
+                                        <input type="text" class="form-control" id="trip_start_date" name="start_date"
+                                            required autocomplete="off">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="trip_end_date">Trip End</label>
-                                        <input type="text" class="form-control" id="trip_end_date" name="end_date" required autocomplete="off">
+                                        <input type="text" class="form-control" id="trip_end_date" name="end_date"
+                                            required autocomplete="off">
                                     </div>
                                 </div>
-                                    <div class="row g-3 mt-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="party_adults">Adults</label>
-                                            <input type="number" class="form-control" id="party_adults" name="party_adults" min="1" value="1" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="party_children">Children</label>
-                                            <input type="number" class="form-control" id="party_children" name="party_children" min="0" value="0">
-                                        </div>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="party_adults">Adults</label>
+                                        <input type="number" class="form-control" id="party_adults" name="party_adults"
+                                            min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="party_children">Children</label>
+                                        <input type="number" class="form-control" id="party_children"
+                                            name="party_children" min="0" value="0">
                                     </div>
                                 </div>
-                                <small class="text-muted d-block mt-2">
-                                    We will leave a buffer before arrival and at least one hour before departure when generating activities.
-                                </small>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                We will leave a buffer before arrival and at least one hour before departure when
+                                generating activities.
+                            </small>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="num_days" name="num_days" value="1">
+
+                    <!-- Flight Details -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Flight Details <span class="text-muted">(Optional)</span></h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-flight-details" aria-expanded="true"
+                                aria-controls="section-flight-details">
+                                <span class="visually-hidden">Toggle Flight Details</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show section-collapse" id="section-flight-details">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label" for="arrival_flight_number">Arrival Flight Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                        <input type="text" class="form-control" id="arrival_flight_number"
+                                            name="arrival_flight_number" placeholder="e.g., DL123" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="arrival_datetime">Arrival Flight</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-airplane"></i></span>
+                                            <input type="text" class="form-control flatpickr-datetime"
+                                                id="arrival_datetime" name="arrival_datetime"
+                                                placeholder="Select arrival date & time" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="arrival_airport">Arrival Airport</label>
+                                        <input type="text" class="form-control" id="arrival_airport"
+                                            name="arrival_airport" placeholder="e.g., JFK">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="arrival_airline">Arrival Airline</label>
+                                        <input type="text" class="form-control" id="arrival_airline"
+                                            name="arrival_airline" placeholder="e.g., Delta Air Lines">
+                                    </div>
+                                </div>
+                                <div class="mb-3 mt-4">
+                                    <label class="form-label" for="departure_flight_number">Departure Flight
+                                        Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                        <input type="text" class="form-control" id="departure_flight_number"
+                                            name="departure_flight_number" placeholder="e.g., AA456" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="departure_datetime">Departure Flight</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-airplane-fill"></i></span>
+                                            <input type="text" class="form-control flatpickr-datetime"
+                                                id="departure_datetime" name="departure_datetime"
+                                                placeholder="Select departure date & time" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="departure_airport">Departure Airport</label>
+                                        <input type="text" class="form-control" id="departure_airport"
+                                            name="departure_airport" placeholder="e.g., LAX">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="departure_airline">Departure Airline</label>
+                                        <input type="text" class="form-control" id="departure_airline"
+                                            name="departure_airline" placeholder="e.g., Southwest">
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <input type="hidden" id="num_days" name="num_days" value="1">
-
-                        <!-- Flight Details -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Flight Details <span class="text-muted">(Optional)</span></h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-flight-details" aria-expanded="true" aria-controls="section-flight-details">
-                                    <span class="visually-hidden">Toggle Flight Details</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-flight-details">
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label class="form-label" for="arrival_flight_number">Arrival Flight Number</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                                            <input type="text" class="form-control" id="arrival_flight_number" name="arrival_flight_number" placeholder="e.g., DL123" autocomplete="off">
-                                        </div>
-                                    </div>
-                                    <div class="row g-3 mt-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="arrival_datetime">Arrival Flight</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-airplane"></i></span>
-                                                <input type="text" class="form-control flatpickr-datetime" id="arrival_datetime" name="arrival_datetime" placeholder="Select arrival date & time" autocomplete="off">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label" for="arrival_airport">Arrival Airport</label>
-                                            <input type="text" class="form-control" id="arrival_airport" name="arrival_airport" placeholder="e.g., JFK">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label" for="arrival_airline">Arrival Airline</label>
-                                            <input type="text" class="form-control" id="arrival_airline" name="arrival_airline" placeholder="e.g., Delta Air Lines">
-                                        </div>
-                                    </div>
-                                    <div class="mb-3 mt-4">
-                                        <label class="form-label" for="departure_flight_number">Departure Flight Number</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                                            <input type="text" class="form-control" id="departure_flight_number" name="departure_flight_number" placeholder="e.g., AA456" autocomplete="off">
-                                        </div>
-                                    </div>
-                                    <div class="row g-3 mt-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="departure_datetime">Departure Flight</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-airplane-fill"></i></span>
-                                                <input type="text" class="form-control flatpickr-datetime" id="departure_datetime" name="departure_datetime" placeholder="Select departure date & time" autocomplete="off">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label" for="departure_airport">Departure Airport</label>
-                                            <input type="text" class="form-control" id="departure_airport" name="departure_airport" placeholder="e.g., LAX">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label" for="departure_airline">Departure Airline</label>
-                                            <input type="text" class="form-control" id="departure_airline" name="departure_airline" placeholder="e.g., Southwest">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Hotel Plans -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Hotel Plans <span class="text-muted fs-6">(Optional)</span></h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-hotel-plans" aria-expanded="true"
+                                aria-controls="section-hotel-plans">
+                                <span class="visually-hidden">Toggle Hotel Plans</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
                         </div>
-
-                        <!-- Hotel Plans -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Hotel Plans <span class="text-muted fs-6">(Optional)</span></h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-hotel-plans" aria-expanded="true" aria-controls="section-hotel-plans">
-                                    <span class="visually-hidden">Toggle Hotel Plans</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-hotel-plans">
-                                <div class="card-body">
-                                    <label class="form-label" for="hotel_lookup">Hotel name or address</label>
-                                    <input
-                                        type="text"
-                                    id="hotel_lookup"
-                                    name="hotel_address"
-                                    class="form-control js-places"
-                                    placeholder="Start typing the hotel name or street address"
-                                    data-places="1"
-                                    data-types="establishment"
-                                    data-place-id-target="#id_hotel_place_id"
-                                />
+                        <div class="collapse show section-collapse" id="section-hotel-plans">
+                            <div class="card-body">
+                                <label class="form-label" for="hotel_lookup">Hotel name or address</label>
+                                <input type="text" id="hotel_lookup" name="hotel_address" class="form-control js-places"
+                                    placeholder="Start typing the hotel name or street address" data-places="1"
+                                    data-types="establishment" data-place-id-target="#id_hotel_place_id" />
                                 <small class="text-muted d-block mt-1">
                                     Powered by Google.
                                 </small>
@@ -231,64 +239,92 @@
                                         <label class="form-label" for="hotel_check_in">Check-in</label>
                                         <div class="input-group hotel-datetime">
                                             <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
-                                            <input type="text" class="form-control flatpickr-datetime" id="hotel_check_in" name="hotel_check_in" placeholder="Select date & time" autocomplete="off">
+                                            <input type="text" class="form-control flatpickr-datetime"
+                                                id="hotel_check_in" name="hotel_check_in"
+                                                placeholder="Select date & time" autocomplete="off">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="hotel_check_out">Check-out</label>
                                         <div class="input-group hotel-datetime">
                                             <span class="input-group-text"><i class="bi bi-calendar2-week"></i></span>
-                                            <input type="text" class="form-control flatpickr-datetime" id="hotel_check_out" name="hotel_check_out" placeholder="Select date & time" autocomplete="off">
+                                            <input type="text" class="form-control flatpickr-datetime"
+                                                id="hotel_check_out" name="hotel_check_out"
+                                                placeholder="Select date & time" autocomplete="off">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-check mt-4">
-                                    <input class="form-check-input" type="checkbox" id="auto_suggest_hotel" name="auto_suggest_hotel">
-                                    <label class="form-check-label" for="auto_suggest_hotel">
-                                        Ask Wanderly to recommend a hotel within your budget and party size.
-                                    </label>
-                                    <small class="text-muted d-block">Ignored when you fill in hotel details above.</small>
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="auto_suggest_hotel"
+                                            name="auto_suggest_hotel">
+                                        <label class="form-check-label" for="auto_suggest_hotel">
+                                            Ask Wanderly to recommend a hotel within your budget and party size.
+                                        </label>
+                                        <small class="text-muted d-block">Ignored when you fill in hotel details
+                                            above.</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Daily Rhythm & Preferences -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Daily Rhythm & Preferences</h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-daily-rhythm" aria-expanded="true"
+                                aria-controls="section-daily-rhythm">
+                                <span class="visually-hidden">Toggle Daily Rhythm & Preferences</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
                         </div>
-                        
-                        <!-- Daily Rhythm & Preferences -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Daily Rhythm & Preferences</h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-daily-rhythm" aria-expanded="true" aria-controls="section-daily-rhythm">
-                                    <span class="visually-hidden">Toggle Daily Rhythm & Preferences</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-daily-rhythm">
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
+                        <div class="collapse show section-collapse" id="section-daily-rhythm">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
                                         <label for="wake_up_time" class="form-label">Typical Wake Time</label>
                                         <div class="input-group time-only-group">
                                             <span class="input-group-text"><i class="bi bi-alarm"></i></span>
-                                            <input type="text" class="form-control time-picker-input" id="wake_up_time" name="wake_up_time" placeholder="Select wake time" autocomplete="off" required>
+                                            <input type="text" class="form-control time-picker-input" id="wake_up_time"
+                                                name="wake_up_time" placeholder="Select wake time" autocomplete="off"
+                                                required>
                                         </div>
                                         <div class="quick-time-buttons mt-2 d-flex gap-2 flex-wrap">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#wake_up_time" data-time="06:30">6:30a</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#wake_up_time" data-time="07:00">7:00a</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#wake_up_time" data-time="07:30">7:30a</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#wake_up_time" data-time="08:00">8:00a</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#wake_up_time" data-time="06:30">6:30a</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#wake_up_time" data-time="07:00">7:00a</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#wake_up_time" data-time="07:30">7:30a</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#wake_up_time" data-time="08:00">8:00a</button>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="bed_time" class="form-label">Typical Bed Time</label>
                                         <div class="input-group time-only-group">
                                             <span class="input-group-text"><i class="bi bi-moon-stars"></i></span>
-                                            <input type="text" class="form-control time-picker-input" id="bed_time" name="bed_time" placeholder="Select bed time" autocomplete="off" required>
+                                            <input type="text" class="form-control time-picker-input" id="bed_time"
+                                                name="bed_time" placeholder="Select bed time" autocomplete="off"
+                                                required>
                                         </div>
                                         <div class="quick-time-buttons mt-2 d-flex gap-2 flex-wrap">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#bed_time" data-time="21:30">9:30p</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#bed_time" data-time="22:00">10:00p</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#bed_time" data-time="22:30">10:30p</button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn" data-target="#bed_time" data-time="23:00">11:00p</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#bed_time" data-time="21:30">9:30p</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#bed_time" data-time="22:00">10:00p</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#bed_time" data-time="22:30">10:30p</button>
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm quick-time-btn"
+                                                data-target="#bed_time" data-time="23:00">11:00p</button>
                                         </div>
                                     </div>
                                 </div>
@@ -305,15 +341,19 @@
                                         <label class="form-label d-block">Meals to include</label>
                                         <div class="d-flex gap-4 flex-wrap">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="include_breakfast" name="include_breakfast" checked>
-                                                <label class="form-check-label" for="include_breakfast">Breakfast</label>
+                                                <input class="form-check-input" type="checkbox" id="include_breakfast"
+                                                    name="include_breakfast" checked>
+                                                <label class="form-check-label"
+                                                    for="include_breakfast">Breakfast</label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="include_lunch" name="include_lunch" checked>
+                                                <input class="form-check-input" type="checkbox" id="include_lunch"
+                                                    name="include_lunch" checked>
                                                 <label class="form-check-label" for="include_lunch">Lunch</label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="include_dinner" name="include_dinner" checked>
+                                                <input class="form-check-input" type="checkbox" id="include_dinner"
+                                                    name="include_dinner" checked>
                                                 <label class="form-check-label" for="include_dinner">Dinner</label>
                                             </div>
                                         </div>
@@ -322,52 +362,64 @@
                                 <div class="row g-3 mt-3">
                                     <div class="col-md-6">
                                         <label class="form-label" for="dietary_notes">
-                                            Dietary preferences &amp; allergies <span class="text-muted">(Optional)</span>
-                                            <span class="info-badge" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="List allergies, dietary needs, or preferences so we suggest suitable restaurants.">
+                                            Dietary preferences &amp; allergies <span
+                                                class="text-muted">(Optional)</span>
+                                            <span class="info-badge" tabindex="0" data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="List allergies, dietary needs, or preferences so we suggest suitable restaurants.">
                                                 <i class="bi bi-info-circle"></i>
                                             </span>
                                         </label>
-                                        <textarea class="form-control" id="dietary_notes" name="dietary_notes" rows="2" placeholder="Vegetarian, gluten-free, etc."></textarea>
+                                        <textarea class="form-control" id="dietary_notes" name="dietary_notes" rows="2"
+                                            placeholder="Vegetarian, gluten-free, etc."></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="mobility_notes">
                                             Mobility or accessibility notes <span class="text-muted">(Optional)</span>
-                                            <span class="info-badge" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="Share stroller needs, step-free routes, or other accessibility considerations.">
+                                            <span class="info-badge" tabindex="0" data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="Share stroller needs, step-free routes, or other accessibility considerations.">
                                                 <i class="bi bi-info-circle"></i>
                                             </span>
                                         </label>
-                                        <textarea class="form-control" id="mobility_notes" name="mobility_notes" rows="2" placeholder="Stroller, accessible routes, limited walking, etc."></textarea>
+                                        <textarea class="form-control" id="mobility_notes" name="mobility_notes"
+                                            rows="2"
+                                            placeholder="Stroller, accessible routes, limited walking, etc."></textarea>
                                     </div>
                                 </div>
-                                
-                                </div>
+
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Budget -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Budget</h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-budget" aria-expanded="true" aria-controls="section-budget">
-                                    <span class="visually-hidden">Toggle Budget</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-budget">
-                                <div class="card-body">
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-12">
-                                            <label class="form-label" for="overall_budget_max">Total Budget</label>
+                    <!-- Budget -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Budget</h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-budget" aria-expanded="true"
+                                aria-controls="section-budget">
+                                <span class="visually-hidden">Toggle Budget</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show section-collapse" id="section-budget">
+                            <div class="card-body">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="overall_budget_max">Total Budget</label>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" id="overall_budget_max" name="overall_budget_max" min="0" step="50" placeholder="0.00">
+                                            <input type="number" class="form-control" id="overall_budget_max"
+                                                name="overall_budget_max" min="0" step="50" placeholder="0.00">
                                         </div>
-                                        <small class="text-muted" id="budget-hint">Updates automatically as you add categories. Adjust the total if needed.</small>
+                                        <small class="text-muted" id="budget-hint">Updates automatically as you add
+                                            categories. Adjust the total if needed.</small>
                                     </div>
                                 </div>
                                 <div id="budget-items-container" class="budget-items">
                                 </div>
-                                
+
                                 <button type="button" class="btn btn-secondary-outline w-100" id="add-budget-item-btn">
                                     <i class="bi bi-plus-lg"></i>
                                     <span>Add Budget Category</span>
@@ -376,305 +428,308 @@
                         </div>
                     </div>
 
-                        <!-- Days Section -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h2 class="mb-0">Daily Plans</h2>
-                                <button class="btn btn-sm btn-outline-light collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#section-daily-plans" aria-expanded="true" aria-controls="section-daily-plans">
-                                    <span class="visually-hidden">Toggle Daily Plans</span>
-                                    <i class="bi bi-chevron-up"></i>
-                                </button>
-                            </div>
-                            <div class="collapse show section-collapse" id="section-daily-plans">
-                                <div class="card-body">
-                                    <p class="text-muted">We’ll generate a card for each day between your start and end dates.</p>
-                                    <div id="days-container">
-                                        <!-- Day cards will be generated here -->
-                                    </div>
+                    <!-- Days Section -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Daily Plans</h2>
+                            <button class="btn btn-sm btn-outline-light collapse-toggle" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#section-daily-plans" aria-expanded="true"
+                                aria-controls="section-daily-plans">
+                                <span class="visually-hidden">Toggle Daily Plans</span>
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show section-collapse" id="section-daily-plans">
+                            <div class="card-body">
+                                <p class="text-muted">We’ll generate a card for each day between your start and end
+                                    dates.</p>
+                                <div id="days-container">
+                                    <!-- Day cards will be generated here -->
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Create Itinerary
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Create Itinerary
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
 
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Enable Bootstrap tooltips on info badges.
-                const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                tooltipTriggerList.forEach((tooltipTriggerEl) => {
-                    new bootstrap.Tooltip(tooltipTriggerEl);
-                });
-                const itineraryForm = document.getElementById('itinerary-form');
-                const wakeInput = document.getElementById('wake_up_time');
-                const bedInput = document.getElementById('bed_time');
-                const startDateInput = document.getElementById('trip_start_date');
-                const endDateInput = document.getElementById('trip_end_date');
-                const daysStartInput = startDateInput;
-                const daysEndInput = endDateInput;
-                const daysContainer = document.getElementById('days-container');
-                const numDaysInput = document.getElementById('num_days');
-                const hotelLookupInput = document.getElementById('hotel_lookup');
-                const autoSuggestHotelCheckbox = document.getElementById('auto_suggest_hotel');
-                const timePickerDefaults = {
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: 'H:i',
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Enable Bootstrap tooltips on info badges.
+            const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach((tooltipTriggerEl) => {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            const itineraryForm = document.getElementById('itinerary-form');
+            const wakeInput = document.getElementById('wake_up_time');
+            const bedInput = document.getElementById('bed_time');
+            const startDateInput = document.getElementById('trip_start_date');
+            const endDateInput = document.getElementById('trip_end_date');
+            const daysStartInput = startDateInput;
+            const daysEndInput = endDateInput;
+            const daysContainer = document.getElementById('days-container');
+            const numDaysInput = document.getElementById('num_days');
+            const hotelLookupInput = document.getElementById('hotel_lookup');
+            const autoSuggestHotelCheckbox = document.getElementById('auto_suggest_hotel');
+            const timePickerDefaults = {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: 'H:i',
+                altInput: true,
+                altFormat: 'h:i K',
+                allowInput: true,
+                minuteIncrement: 15,
+            };
+
+            function initTimePickerInput(element, extraConfig = {}) {
+                if (!window.flatpickr || !element) {
+                    return null;
+                }
+                if (element._flatpickr) {
+                    return element._flatpickr;
+                }
+                return flatpickr(element, { ...timePickerDefaults, ...extraConfig });
+            }
+
+            function initSingleDatePicker(element, defaultValue) {
+                if (!window.flatpickr || !element) {
+                    return null;
+                }
+                const picker = flatpickr(element, {
                     altInput: true,
-                    altFormat: 'h:i K',
+                    altFormat: 'M j, Y',
+                    dateFormat: 'Y-m-d',
+                    allowInput: true,
+                });
+                if (defaultValue) {
+                    picker.setDate(defaultValue, false);
+                }
+                return picker;
+            }
+
+            const pickerRefs = {
+                tripStart: null,
+                tripEnd: null,
+                arrival: null,
+                departure: null,
+                hotelCheckIn: null,
+                hotelCheckOut: null,
+            };
+
+            function syncTripDependents() { }
+
+            if (window.flatpickr) {
+                pickerRefs.tripStart = flatpickr('#trip_start_date', {
+                    altInput: true,
+                    altFormat: 'M j, Y',
+                    dateFormat: 'Y-m-d',
+                    allowInput: true,
+                    minDate: 'today',
+                    onChange: (selectedDates, dateStr) => {
+                        if (pickerRefs.tripEnd) {
+                            pickerRefs.tripEnd.set('minDate', dateStr || null);
+                            const currentEnd = daysEndInput.value;
+                            if (dateStr && currentEnd && currentEnd < dateStr) {
+                                pickerRefs.tripEnd.clear();
+                                daysEndInput.dispatchEvent(new Event('change'));
+                            }
+                        }
+                        daysStartInput.dispatchEvent(new Event('change'));
+                        syncTripDependents();
+                    },
+                });
+
+                pickerRefs.tripEnd = flatpickr('#trip_end_date', {
+                    altInput: true,
+                    altFormat: 'M j, Y',
+                    dateFormat: 'Y-m-d',
+                    allowInput: true,
+                    onChange: () => {
+                        daysEndInput.dispatchEvent(new Event('change'));
+                        syncTripDependents();
+                    },
+                });
+
+                const dateTimeOptions = {
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    altInput: true,
+                    altFormat: 'M j, Y h:i K',
                     allowInput: true,
                     minuteIncrement: 15,
                 };
 
-                function initTimePickerInput(element, extraConfig = {}) {
-                    if (!window.flatpickr || !element) {
-                        return null;
-                    }
-                    if (element._flatpickr) {
-                        return element._flatpickr;
-                    }
-                    return flatpickr(element, { ...timePickerDefaults, ...extraConfig });
+                initTimePickerInput(wakeInput, {
+                    defaultHour: 7,
+                    defaultMinute: 0,
+                });
+                initTimePickerInput(bedInput, {
+                    defaultHour: 22,
+                    defaultMinute: 0,
+                });
+                pickerRefs.arrival = flatpickr('#arrival_datetime', {
+                    ...dateTimeOptions,
+                });
+                pickerRefs.departure = flatpickr('#departure_datetime', {
+                    ...dateTimeOptions,
+                });
+
+                pickerRefs.hotelCheckIn = flatpickr('#hotel_check_in', {
+                    ...dateTimeOptions,
+                    defaultHour: 15,
+                    defaultMinute: 0,
+                });
+
+                pickerRefs.hotelCheckOut = flatpickr('#hotel_check_out', {
+                    ...dateTimeOptions,
+                    defaultHour: 11,
+                    defaultMinute: 0,
+                });
+
+                // Apply any pre-filled dates to the dependent pickers
+                if (pickerRefs.tripStart && pickerRefs.tripEnd && daysStartInput.value) {
+                    pickerRefs.tripEnd.set('minDate', daysStartInput.value);
                 }
+                syncTripDependents();
+            }
 
-                function initSingleDatePicker(element, defaultValue) {
-                    if (!window.flatpickr || !element) {
-                        return null;
-                    }
-                    const picker = flatpickr(element, {
-                        altInput: true,
-                        altFormat: 'M j, Y',
-                        dateFormat: 'Y-m-d',
-                        allowInput: true,
-                    });
-                    if (defaultValue) {
-                        picker.setDate(defaultValue, false);
-                    }
-                    return picker;
+            function minutesBetween(start, end) {
+                if (!start || !end) {
+                    return null;
                 }
-
-                const pickerRefs = {
-                    tripStart: null,
-                    tripEnd: null,
-                    arrival: null,
-                    departure: null,
-                    hotelCheckIn: null,
-                    hotelCheckOut: null,
-                };
-
-                function syncTripDependents() {}
-
-                if (window.flatpickr) {
-                    pickerRefs.tripStart = flatpickr('#trip_start_date', {
-                        altInput: true,
-                        altFormat: 'M j, Y',
-                        dateFormat: 'Y-m-d',
-                        allowInput: true,
-                        minDate: 'today',
-                        onChange: (selectedDates, dateStr) => {
-                            if (pickerRefs.tripEnd) {
-                                pickerRefs.tripEnd.set('minDate', dateStr || null);
-                                const currentEnd = daysEndInput.value;
-                                if (dateStr && currentEnd && currentEnd < dateStr) {
-                                    pickerRefs.tripEnd.clear();
-                                    daysEndInput.dispatchEvent(new Event('change'));
-                                }
-                            }
-                            daysStartInput.dispatchEvent(new Event('change'));
-                            syncTripDependents();
-                        },
-                    });
-
-                    pickerRefs.tripEnd = flatpickr('#trip_end_date', {
-                        altInput: true,
-                        altFormat: 'M j, Y',
-                        dateFormat: 'Y-m-d',
-                        allowInput: true,
-                        onChange: () => {
-                            daysEndInput.dispatchEvent(new Event('change'));
-                            syncTripDependents();
-                        },
-                    });
-
-                    const dateTimeOptions = {
-                        enableTime: true,
-                        dateFormat: 'Y-m-d H:i',
-                        altInput: true,
-                        altFormat: 'M j, Y h:i K',
-                        allowInput: true,
-                        minuteIncrement: 15,
-                    };
-
-                    initTimePickerInput(wakeInput, {
-                        defaultHour: 7,
-                        defaultMinute: 0,
-                    });
-                    initTimePickerInput(bedInput, {
-                        defaultHour: 22,
-                        defaultMinute: 0,
-                    });
-                    pickerRefs.arrival = flatpickr('#arrival_datetime', {
-                        ...dateTimeOptions,
-                    });
-                    pickerRefs.departure = flatpickr('#departure_datetime', {
-                        ...dateTimeOptions,
-                    });
-
-                    pickerRefs.hotelCheckIn = flatpickr('#hotel_check_in', {
-                        ...dateTimeOptions,
-                        defaultHour: 15,
-                        defaultMinute: 0,
-                    });
-
-                    pickerRefs.hotelCheckOut = flatpickr('#hotel_check_out', {
-                        ...dateTimeOptions,
-                        defaultHour: 11,
-                        defaultMinute: 0,
-                    });
-
-                    // Apply any pre-filled dates to the dependent pickers
-                    if (pickerRefs.tripStart && pickerRefs.tripEnd && daysStartInput.value) {
-                        pickerRefs.tripEnd.set('minDate', daysStartInput.value);
-                    }
-                    syncTripDependents();
+                const [sh, sm] = start.split(':').map(Number);
+                const [eh, em] = end.split(':').map(Number);
+                let startMinutes = sh * 60 + sm;
+                let endMinutes = eh * 60 + em;
+                if (Number.isNaN(startMinutes) || Number.isNaN(endMinutes)) {
+                    return null;
                 }
-                
-                function minutesBetween(start, end) {
-                    if (!start || !end) {
-                        return null;
-                    }
-                    const [sh, sm] = start.split(':').map(Number);
-                    const [eh, em] = end.split(':').map(Number);
-                    let startMinutes = sh * 60 + sm;
-                    let endMinutes = eh * 60 + em;
-                    if (Number.isNaN(startMinutes) || Number.isNaN(endMinutes)) {
-                        return null;
-                    }
-                    if (endMinutes <= startMinutes) {
-                        endMinutes += 24 * 60;
-                    }
-                    return endMinutes - startMinutes;
+                if (endMinutes <= startMinutes) {
+                    endMinutes += 24 * 60;
                 }
+                return endMinutes - startMinutes;
+            }
 
-                function formatAwakeWindow(minutes) {
-                    if (minutes === null) {
-                        return '';
-                    }
-                    const hours = Math.floor(minutes / 60);
-                    const mins = minutes % 60;
-                    if (mins === 0) {
-                        return `${hours} hour${hours === 1 ? '' : 's'} awake`;
-                    }
-                    return `${hours}h ${mins}m awake`;
+            function formatAwakeWindow(minutes) {
+                if (minutes === null) {
+                    return '';
                 }
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                if (mins === 0) {
+                    return `${hours} hour${hours === 1 ? '' : 's'} awake`;
+                }
+                return `${hours}h ${mins}m awake`;
+            }
 
-                function updateSuggestHotelState() {
-                    if (!autoSuggestHotelCheckbox) {
-                        return;
-                    }
-                    const hasHotel = hotelLookupInput && hotelLookupInput.value.trim().length > 0;
-                    autoSuggestHotelCheckbox.disabled = Boolean(hasHotel);
-                    if (hasHotel) {
-                        autoSuggestHotelCheckbox.checked = false;
-                    }
+            function updateSuggestHotelState() {
+                if (!autoSuggestHotelCheckbox) {
+                    return;
                 }
-                if (hotelLookupInput) {
-                    hotelLookupInput.addEventListener('input', updateSuggestHotelState);
-                    updateSuggestHotelState();
+                const hasHotel = hotelLookupInput && hotelLookupInput.value.trim().length > 0;
+                autoSuggestHotelCheckbox.disabled = Boolean(hasHotel);
+                if (hasHotel) {
+                    autoSuggestHotelCheckbox.checked = false;
                 }
+            }
+            if (hotelLookupInput) {
+                hotelLookupInput.addEventListener('input', updateSuggestHotelState);
+                updateSuggestHotelState();
+            }
 
-                function updateDaySummary(dayIndex) {
-                    const summaryEl = document.querySelector(`[data-day-summary="${dayIndex}"]`);
-                    if (!summaryEl) {
-                        return;
+            function updateDaySummary(dayIndex) {
+                const summaryEl = document.querySelector(`[data-day-summary="${dayIndex}"]`);
+                if (!summaryEl) {
+                    return;
+                }
+                const dayWake = document.querySelector(`input[name="day_${dayIndex}_wake_override"]`);
+                const dayBed = document.querySelector(`input[name="day_${dayIndex}_bed_override"]`);
+                const wakeVal = dayWake && dayWake.value ? dayWake.value : wakeInput.value;
+                const bedVal = dayBed && dayBed.value ? dayBed.value : bedInput.value;
+                const minutes = minutesBetween(wakeVal, bedVal);
+                if (minutes === null) {
+                    summaryEl.textContent = 'Awaiting wake/bed times...';
+                } else {
+                    summaryEl.textContent = formatAwakeWindow(minutes);
+                }
+            }
+
+            function attachDayOverrideHandlers(dayCard, dayIndex) {
+                const wakeOverride = dayCard.querySelector('.day-wake-override');
+                const bedOverride = dayCard.querySelector('.day-bed-override');
+                if (wakeOverride) {
+                    wakeOverride.addEventListener('change', () => updateDaySummary(dayIndex));
+                }
+                if (bedOverride) {
+                    bedOverride.addEventListener('change', () => updateDaySummary(dayIndex));
+                }
+            }
+
+            function updateAllDaySummaries() {
+                document.querySelectorAll('[data-day-summary]').forEach((el) => {
+                    const dayIndex = el.getAttribute('data-day-summary');
+                    updateDaySummary(dayIndex);
+                });
+            }
+
+            // Budget Planning functionality
+            const budgetContainer = document.getElementById('budget-items-container');
+            const addBudgetBtn = document.getElementById('add-budget-item-btn');
+            const budgetMaxInput = document.getElementById('overall_budget_max');
+            const budgetHint = document.getElementById('budget-hint');
+
+            const budgetCategories = [
+                'Accommodation',
+                'Transportation',
+                'Food & Dining',
+                'Activities',
+                'Shopping',
+                'Other'
+            ];
+
+            function calculateBudgetTotal() {
+                let total = 0;
+                budgetContainer.querySelectorAll('input[name="budget_amount[]"]').forEach((input) => {
+                    const value = parseFloat(input.value);
+                    if (!Number.isNaN(value)) {
+                        total += value;
                     }
-                    const dayWake = document.querySelector(`input[name="day_${dayIndex}_wake_override"]`);
-                    const dayBed = document.querySelector(`input[name="day_${dayIndex}_bed_override"]`);
-                    const wakeVal = dayWake && dayWake.value ? dayWake.value : wakeInput.value;
-                    const bedVal = dayBed && dayBed.value ? dayBed.value : bedInput.value;
-                    const minutes = minutesBetween(wakeVal, bedVal);
-                    if (minutes === null) {
-                        summaryEl.textContent = 'Awaiting wake/bed times...';
-                    } else {
-                        summaryEl.textContent = formatAwakeWindow(minutes);
+                });
+                return total;
+            }
+
+            function updateBudgetHint() {
+                if (!budgetHint && !budgetMaxInput) {
+                    return;
+                }
+                const total = calculateBudgetTotal();
+                if (budgetHint) {
+                    budgetHint.textContent = `Current planned spend: $${total.toFixed(2)}. Adjust the total if needed.`;
+                }
+                if (budgetMaxInput) {
+                    const current = parseFloat(budgetMaxInput.value);
+                    if (Number.isNaN(current) || current < total) {
+                        budgetMaxInput.value = total.toFixed(2);
                     }
                 }
+            }
 
-                function attachDayOverrideHandlers(dayCard, dayIndex) {
-                    const wakeOverride = dayCard.querySelector('.day-wake-override');
-                    const bedOverride = dayCard.querySelector('.day-bed-override');
-                    if (wakeOverride) {
-                        wakeOverride.addEventListener('change', () => updateDaySummary(dayIndex));
-                    }
-                    if (bedOverride) {
-                        bedOverride.addEventListener('change', () => updateDaySummary(dayIndex));
-                    }
-                }
-
-                function updateAllDaySummaries() {
-                    document.querySelectorAll('[data-day-summary]').forEach((el) => {
-                        const dayIndex = el.getAttribute('data-day-summary');
-                        updateDaySummary(dayIndex);
-                    });
-                }
-
-                // Budget Planning functionality
-                const budgetContainer = document.getElementById('budget-items-container');
-                const addBudgetBtn = document.getElementById('add-budget-item-btn');
-                const budgetMaxInput = document.getElementById('overall_budget_max');
-                const budgetHint = document.getElementById('budget-hint');
-                
-                const budgetCategories = [
-                    'Accommodation',
-                    'Transportation',
-                    'Food & Dining',
-                    'Activities',
-                    'Shopping',
-                    'Other'
-                ];
-                
-                function calculateBudgetTotal() {
-                    let total = 0;
-                    budgetContainer.querySelectorAll('input[name="budget_amount[]"]').forEach((input) => {
-                        const value = parseFloat(input.value);
-                        if (!Number.isNaN(value)) {
-                            total += value;
-                        }
-                    });
-                    return total;
-                }
-
-                function updateBudgetHint() {
-                    if (!budgetHint && !budgetMaxInput) {
-                        return;
-                    }
-                    const total = calculateBudgetTotal();
-                    if (budgetHint) {
-                        budgetHint.textContent = `Current planned spend: $${total.toFixed(2)}. Adjust the total if needed.`;
-                    }
-                    if (budgetMaxInput) {
-                        const current = parseFloat(budgetMaxInput.value);
-                        if (Number.isNaN(current) || current < total) {
-                            budgetMaxInput.value = total.toFixed(2);
-                        }
-                    }
-                }
-
-                function createBudgetItem() {
-                    const budgetItem = document.createElement('div');
-                    budgetItem.className = 'budget-item';
-                    budgetItem.innerHTML = `
+            function createBudgetItem() {
+                const budgetItem = document.createElement('div');
+                budgetItem.className = 'budget-item';
+                budgetItem.innerHTML = `
                         <div class="budget-item-content">
                             <div class="budget-item-header">
                                 <select class="form-select budget-category-select" name="budget_category[]">
@@ -696,83 +751,83 @@
                             </div>
                         </div>
                     `;
-                    
-                    budgetContainer.appendChild(budgetItem);
-                    
-                    // Toggle custom category visibility
-                    const categorySelect = budgetItem.querySelector('.budget-category-select');
-                    const customCategoryInput = budgetItem.querySelector('.custom-category-input');
-                    const customCategoryWrapper = budgetItem.querySelector('.custom-category-wrapper');
-                    
-                    function toggleCustomCategory() {
-                        if (categorySelect.value === 'Other') {
-                            customCategoryWrapper.style.display = 'block';
-                            customCategoryInput.required = true;
-                        } else {
-                            customCategoryWrapper.style.display = 'none';
-                            customCategoryInput.required = false;
-                            customCategoryInput.value = '';
-                        }
+
+                budgetContainer.appendChild(budgetItem);
+
+                // Toggle custom category visibility
+                const categorySelect = budgetItem.querySelector('.budget-category-select');
+                const customCategoryInput = budgetItem.querySelector('.custom-category-input');
+                const customCategoryWrapper = budgetItem.querySelector('.custom-category-wrapper');
+
+                function toggleCustomCategory() {
+                    if (categorySelect.value === 'Other') {
+                        customCategoryWrapper.style.display = 'block';
+                        customCategoryInput.required = true;
+                    } else {
+                        customCategoryWrapper.style.display = 'none';
+                        customCategoryInput.required = false;
+                        customCategoryInput.value = '';
                     }
-                    categorySelect.addEventListener('change', toggleCustomCategory);
-                    budgetItem.querySelector('input[name="budget_amount[]"]').addEventListener('input', updateBudgetHint);
-                    toggleCustomCategory();
+                }
+                categorySelect.addEventListener('change', toggleCustomCategory);
+                budgetItem.querySelector('input[name="budget_amount[]"]').addEventListener('input', updateBudgetHint);
+                toggleCustomCategory();
+                updateBudgetHint();
+            }
+
+            addBudgetBtn.addEventListener('click', createBudgetItem);
+
+            // Remove budget item
+            budgetContainer.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-budget-btn')) {
+                    const item = e.target.closest('.budget-item');
+                    item.remove();
                     updateBudgetHint();
                 }
-                
-                addBudgetBtn.addEventListener('click', createBudgetItem);
-                
-                // Remove budget item
-                budgetContainer.addEventListener('click', function(e) {
-                    if (e.target.closest('.remove-budget-btn')) {
-                        const item = e.target.closest('.budget-item');
-                        item.remove();
-                        updateBudgetHint();
-                    }
-                });
-                budgetContainer.addEventListener('input', (event) => {
-                    if (event.target.matches('input[name="budget_amount[]"]')) {
-                        updateBudgetHint();
-                    }
-                });
-
-                const DAY_MS = 86400000;
-
-                function computeDayContext() {
-                    const startValue = daysStartInput.value;
-                    const endValue = daysEndInput.value;
-                    if (!startValue || !endValue) {
-                        numDaysInput.value = 0;
-                        return { count: 0, baseDate: null };
-                    }
-                    const startDate = new Date(`${startValue}T00:00:00`);
-                    const endDate = new Date(`${endValue}T00:00:00`);
-                    if (Number.isNaN(startDate.valueOf()) || Number.isNaN(endDate.valueOf()) || startDate > endDate) {
-                        numDaysInput.value = 0;
-                        return { count: 0, baseDate: null };
-                    }
-                    const span = Math.floor((endDate - startDate) / DAY_MS) + 1;
-                    const clamped = Math.min(30, Math.max(span, 1));
-                    numDaysInput.value = clamped;
-                    return { count: clamped, baseDate: startDate };
+            });
+            budgetContainer.addEventListener('input', (event) => {
+                if (event.target.matches('input[name="budget_amount[]"]')) {
+                    updateBudgetHint();
                 }
+            });
 
-                function generateDays() {
-                    const { count, baseDate } = computeDayContext();
-                    daysContainer.innerHTML = '';
+            const DAY_MS = 86400000;
 
-                    for (let i = 0; i < count; i += 1) {
-                        const dayNumber = i + 1;
-                        const currentDate = baseDate ? new Date(baseDate.getTime() + (i * DAY_MS)) : null;
-                        const dateValue = currentDate ? currentDate.toISOString().slice(0, 10) : '';
-                        const readableLabel = currentDate
-                            ? currentDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-                            : '';
+            function computeDayContext() {
+                const startValue = daysStartInput.value;
+                const endValue = daysEndInput.value;
+                if (!startValue || !endValue) {
+                    numDaysInput.value = 0;
+                    return { count: 0, baseDate: null };
+                }
+                const startDate = new Date(`${startValue}T00:00:00`);
+                const endDate = new Date(`${endValue}T00:00:00`);
+                if (Number.isNaN(startDate.valueOf()) || Number.isNaN(endDate.valueOf()) || startDate > endDate) {
+                    numDaysInput.value = 0;
+                    return { count: 0, baseDate: null };
+                }
+                const span = Math.floor((endDate - startDate) / DAY_MS) + 1;
+                const clamped = Math.min(30, Math.max(span, 1));
+                numDaysInput.value = clamped;
+                return { count: clamped, baseDate: startDate };
+            }
 
-                        const collapseId = `daySettings${dayNumber}`;
-                        const dayCard = document.createElement('div');
-                        dayCard.className = 'day-card';
-                        dayCard.innerHTML = `
+            function generateDays() {
+                const { count, baseDate } = computeDayContext();
+                daysContainer.innerHTML = '';
+
+                for (let i = 0; i < count; i += 1) {
+                    const dayNumber = i + 1;
+                    const currentDate = baseDate ? new Date(baseDate.getTime() + (i * DAY_MS)) : null;
+                    const dateValue = currentDate ? currentDate.toISOString().slice(0, 10) : '';
+                    const readableLabel = currentDate
+                        ? currentDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+                        : '';
+
+                    const collapseId = `daySettings${dayNumber}`;
+                    const dayCard = document.createElement('div');
+                    dayCard.className = 'day-card';
+                    dayCard.innerHTML = `
                             <div class="day-card-header">
                                 <span class="day-number">Day ${dayNumber}${readableLabel ? ` - ${readableLabel}` : ''}</span>
                             </div>
@@ -823,114 +878,113 @@
                                 </div>
                             </div>
                         `;
-                        daysContainer.appendChild(dayCard);
-                        dayCard.querySelectorAll('input.time-picker-input').forEach((input) => initTimePickerInput(input));
-                        const dayDateInput = dayCard.querySelector(`input[name="day_${dayNumber}_date"]`);
-                        initSingleDatePicker(dayDateInput, dateValue);
-                        attachDayOverrideHandlers(dayCard, dayNumber);
-                        updateDaySummary(dayNumber);
-                    }
+                    daysContainer.appendChild(dayCard);
+                    dayCard.querySelectorAll('input.time-picker-input').forEach((input) => initTimePickerInput(input));
+                    const dayDateInput = dayCard.querySelector(`input[name="day_${dayNumber}_date"]`);
+                    initSingleDatePicker(dayDateInput, dateValue);
+                    attachDayOverrideHandlers(dayCard, dayNumber);
+                    updateDaySummary(dayNumber);
                 }
+            }
 
-                generateDays();
-                daysStartInput.addEventListener('change', generateDays);
-                daysEndInput.addEventListener('change', generateDays);
-                wakeInput.addEventListener('change', () => updateAllDaySummaries());
-                bedInput.addEventListener('change', () => updateAllDaySummaries());
-                updateBudgetHint();
+            generateDays();
+            daysStartInput.addEventListener('change', generateDays);
+            daysEndInput.addEventListener('change', generateDays);
+            wakeInput.addEventListener('change', () => updateAllDaySummaries());
+            bedInput.addEventListener('change', () => updateAllDaySummaries());
+            updateBudgetHint();
 
-                // Form submission validation
-                const form = document.querySelector('form[method="post"]');
-                
-                if (form) {
-                    form.addEventListener('submit', function(e) {
-                        console.log('Form submission triggered');
+            // Form submission validation
+            const form = document.querySelector('form[method="post"]');
 
-                        function normalizeCoordinateInput(inputId, decimals = 6) {
-                            const inputEl = document.getElementById(inputId);
-                            if (!inputEl || !inputEl.value) {
-                                return;
-                            }
-                            const parsed = Number(inputEl.value);
-                            if (Number.isFinite(parsed)) {
-                                inputEl.value = parsed.toFixed(decimals);
-                            }
-                        }
-                        normalizeCoordinateInput('id_lat');
-                        normalizeCoordinateInput('id_lng');
-                        
-                        // Check if hidden fields have values
-                        const placeId = document.getElementById('id_place_id').value;
-                        const lat = document.getElementById('id_lat').value;
-                        const lng = document.getElementById('id_lng').value;
-                        
-                        console.log('Place ID:', placeId);
-                        console.log('Latitude:', lat);
-                        console.log('Longitude:', lng);
-                        
-                        // Check for validation errors
-                        const invalidFields = form.querySelectorAll(':invalid');
-                        if (invalidFields.length > 0) {
-                            console.log('Invalid fields:', invalidFields);
-                            invalidFields.forEach(field => {
-                                console.log('- Invalid field:', field.name || field.id, field.validationMessage);
-                            });
-                        }
-                        
-                        // If location field is empty, prevent submission
-                        const locationInput = document.getElementById('id_destination');
-                        if (!locationInput.value.trim()) {
-                            e.preventDefault();
-                            alert('Please enter a location');
-                            return false;
-                        }
-                        
-                        // If hidden fields are empty, warn user
-                        if (!placeId || !lat || !lng) {
-                            console.warn('Warning: Location coordinates not captured. Make sure to select from dropdown.');
-                        }
-                    });
-                }
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    console.log('Form submission triggered');
 
-                function updateSectionToggle(targetId, isOpen) {
-                    const toggleBtn = document.querySelector(`[data-bs-target="#${targetId}"]`);
-                    if (!toggleBtn) {
-                        return;
-                    }
-                    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                    const icon = toggleBtn.querySelector('i');
-                    if (icon) {
-                        icon.classList.toggle('bi-chevron-up', isOpen);
-                        icon.classList.toggle('bi-chevron-down', !isOpen);
-                    }
-                }
-
-                document.querySelectorAll('.section-collapse').forEach((collapseEl) => {
-                    collapseEl.addEventListener('shown.bs.collapse', () => updateSectionToggle(collapseEl.id, true));
-                    collapseEl.addEventListener('hidden.bs.collapse', () => updateSectionToggle(collapseEl.id, false));
-                });
-
-                document.querySelectorAll('.quick-time-btn').forEach((btn) => {
-                    const targetSelector = btn.getAttribute('data-target');
-                    const timeValue = btn.getAttribute('data-time');
-                    btn.addEventListener('click', () => {
-                        if (!targetSelector || !timeValue) {
+                    function normalizeCoordinateInput(inputId, decimals = 6) {
+                        const inputEl = document.getElementById(inputId);
+                        if (!inputEl || !inputEl.value) {
                             return;
                         }
-                        const input = document.querySelector(targetSelector);
-                        if (input && input._flatpickr) {
-                            input._flatpickr.setDate(timeValue, true, 'H:i');
-                        } else if (input) {
-                            input.value = timeValue;
-                            input.dispatchEvent(new Event('input', { bubbles: true }));
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        const parsed = Number(inputEl.value);
+                        if (Number.isFinite(parsed)) {
+                            inputEl.value = parsed.toFixed(decimals);
                         }
-                    });
-                });
+                    }
+                    normalizeCoordinateInput('id_lat');
+                    normalizeCoordinateInput('id_lng');
 
+                    // Check if hidden fields have values
+                    const placeId = document.getElementById('id_place_id').value;
+                    const lat = document.getElementById('id_lat').value;
+                    const lng = document.getElementById('id_lng').value;
+
+                    console.log('Place ID:', placeId);
+                    console.log('Latitude:', lat);
+                    console.log('Longitude:', lng);
+
+                    // Check for validation errors
+                    const invalidFields = form.querySelectorAll(':invalid');
+                    if (invalidFields.length > 0) {
+                        console.log('Invalid fields:', invalidFields);
+                        invalidFields.forEach(field => {
+                            console.log('- Invalid field:', field.name || field.id, field.validationMessage);
+                        });
+                    }
+
+                    // If location field is empty, prevent submission
+                    const locationInput = document.getElementById('id_destination');
+                    if (!locationInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Please enter a location');
+                        return false;
+                    }
+
+                    // If hidden fields are empty, warn user
+                    if (!placeId || !lat || !lng) {
+                        console.warn('Warning: Location coordinates not captured. Make sure to select from dropdown.');
+                    }
+                });
+            }
+
+            function updateSectionToggle(targetId, isOpen) {
+                const toggleBtn = document.querySelector(`[data-bs-target="#${targetId}"]`);
+                if (!toggleBtn) {
+                    return;
+                }
+                toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('bi-chevron-up', isOpen);
+                    icon.classList.toggle('bi-chevron-down', !isOpen);
+                }
+            }
+
+            document.querySelectorAll('.section-collapse').forEach((collapseEl) => {
+                collapseEl.addEventListener('shown.bs.collapse', () => updateSectionToggle(collapseEl.id, true));
+                collapseEl.addEventListener('hidden.bs.collapse', () => updateSectionToggle(collapseEl.id, false));
             });
-        </script>
-        
-        
-    </body>
+
+            document.querySelectorAll('.quick-time-btn').forEach((btn) => {
+                const targetSelector = btn.getAttribute('data-target');
+                const timeValue = btn.getAttribute('data-time');
+                btn.addEventListener('click', () => {
+                    if (!targetSelector || !timeValue) {
+                        return;
+                    }
+                    const input = document.querySelector(targetSelector);
+                    if (input && input._flatpickr) {
+                        input._flatpickr.setDate(timeValue, true, 'H:i');
+                    } else if (input) {
+                        input.value = timeValue;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+
 </html>
