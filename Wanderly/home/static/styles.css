@@ -125,13 +125,13 @@ footer {
 
 #carousel .carousel-item {
     position: relative;
-    min-height: 220px;
+    height: 36rem;
 }
 
 #carousel .carousel-item img {
     width: 100%;
     height: auto;
-    max-height: 360px;
+    max-height: 40rem;
     object-fit: cover;
     object-position: center;
     display: block;
@@ -139,7 +139,7 @@ footer {
 
 @media (max-width: 576px) {
     #carousel .carousel-item img {
-        max-height: 240px;
+        max-height: 20rem;
     }
 
     .carousel-inner img {
