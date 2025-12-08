@@ -1,0 +1,17 @@
+.access-code-modal {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #91438a 100%);
+}
+
+.access-code-button {
+    background: var(--primary-color);
+}
+
+.access-code-button:hover {
+    background: #ebbf5e;
+}
+
+.access-code-modal .modal-header,
+.access-code-modal .modal-body,
+.access-code-modal .modal-footer {
+    background: transparent;
+}
