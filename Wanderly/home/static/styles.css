@@ -1,15 +1,39 @@
 :root {
-    --bs-primary: #667eea;
-    --bs-border-radius: 1rem;
+    --primary-color: #eda400;
+    --border-radius: 1rem;
+    --gradient-start-color: #eda400;
+    --gradient-end-color: #91438a;
+    --soft-gradient-start-color: #e8b33f;
+    --soft-gradient-end-color: #8f5189;
+    --text-color: #faf6ed;
 }
 
 h1 {
-    font-size: 10rem;
+    font-size: clamp(2.5rem, 6vw + 1rem, 4.5rem);
 }
 
 footer {
     background: #2A1C22;
     color: #faf6ed;
+}
+
+@media (max-width: 576px) {
+    footer .container {
+        text-align: center;
+    }
+
+    footer .row {
+        gap: 0.5rem;
+    }
+
+    .section-header {
+        font-size: 1.4rem;
+    }
+
+    .search-container,
+    .discover-container {
+        padding-inline: 1rem;
+    }
 }
 
 .search-container {
@@ -45,6 +69,35 @@ footer {
     padding: 8px 25px;
 }
 
+@media (max-width: 576px) {
+    .search-container {
+        width: 100%;
+        margin-top: 1.5rem;
+    }
+
+    /* Let the input + button stack instead of overlapping */
+    #searchForm .search-container {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input {
+        border-radius: 999px;
+        padding-left: 1rem;
+    }
+
+    .search-btn {
+        position: static;
+        transform: none;
+        width: 100%;
+        border-radius: 999px;
+        padding: 0.75rem 1rem;
+    }
+}
+
+
 .btn-primary {
     background: linear-gradient(135deg, #eda400 0%, #91438a 100%);
     border: none;
@@ -52,36 +105,147 @@ footer {
     font-weight: 500;
 }
 
+.btn-secondary {
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: var(--soft-gradient-start-color);
+}
+
+#carousel {
+    max-width: 100%;
+}
+
+#carousel .carousel-inner {
+    position: relative;
+}
+
+#carousel .carousel-item {
+    position: relative;
+    min-height: 220px;
+}
+
+#carousel .carousel-item img {
+    width: 100%;
+    height: auto;
+    max-height: 360px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+@media (max-width: 576px) {
+    #carousel .carousel-item img {
+        max-height: 240px;
+    }
+
+    .carousel-inner img {
+        height: 16rem;
+    }
+
+    .carousel-caption {
+        width: 90%;
+        bottom: 10px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .discover-container {
+        margin: 1.5rem 0 3rem;
+        padding: 0 1rem;
+    }
+}
+
+.carousel-button {
+    color: var(--primary-color);
+}
+
 .carousel-container {
     margin: 0 auto;
+    color: var(--primary-color);
 }
 
 .carousel-caption {
-    color: black;
-    background: white;
-    width: 50%;
+    position: absolute;
     left: 50%;
+    bottom: 1rem;
     transform: translateX(-50%);
-    bottom: 50px;
+    width: 90%;
+    max-width: 500px;
+
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+
+    border-radius: 0.5rem;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 2;
+}
+
+.carousel-caption h5 {
+    margin-bottom: 0.25rem;
+    font-size: 1.05rem;
+}
+
+.carousel-caption p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+/* Slightly smaller on narrow phones */
+@media (max-width: 576px) {
+    .carousel-caption {
+        bottom: 0.5rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .carousel-caption h5 {
+        font-size: 0.95rem;
+    }
+
+    .carousel-caption p {
+        font-size: 0.8rem;
+    }
 }
 
 .carousel-inner img {
-    height: 33rem;
+    width: 100%;
+    height: auto;
+    max-height: 33rem;
     object-fit: cover;
     object-position: center;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
-.card.rounded {
+.rounded-card {
     border-radius: 1rem;
 }
 
 .card-body {
-    background: linear-gradient(135deg, #e3bfe3 0%, #b9a3e3 100%);
+    background: linear-gradient(135deg, var(--soft-gradient-start-color) 0%, var(--soft-gradient-end-color) 100%);
+    color: var(--text-color);
     border-radius: 0 0 1rem 1rem;
 }
 
 .discover-container {
     margin: 1rem 0rem 5rem 0rem;
+}
+
+.navbar-toggler {
+    color: var(--primary-color);
+}
+
+.no-image-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
 }
 
 .place-img {
@@ -90,8 +254,23 @@ footer {
     object-fit: cover;
 }
 
-.website-button:hover {
-    background: linear-gradient(135deg, #da3068 0%, #3e149f 100%);
+@media (max-width: 576px) {
+    .place-img {
+        height: 180px;
+    }
+
+    #results .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-body {
+        padding: 0.75rem 1rem;
+    }
+}
+
+
+.image-container {
+    position: relative;
 }
 
 .image-container img {
@@ -100,18 +279,61 @@ footer {
   height: auto;
 }
 
+@media (max-width: 576px) {
+    .mountains-image {
+        max-height: 260px;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .overlay-text {
+        padding: 1rem;
+    }
+
+    .overlay-text h1 {
+        font-size: 2.1rem;
+    }
+
+    .overlay-text p {
+        font-size: 0.95rem;
+    }
+}
+
 .overlay-text {
     position: absolute;
-    top: 40%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    color: #fff; 
-    padding: 10px 20px; 
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
     text-align: center;
+    color: #fff;
+    background: linear-gradient(to bottom,rgba(0, 0, 0, 0.45),rgba(0, 0, 0, 0.35));
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+    box-sizing: border-box;
+}
+
+.overlay-text h1 {
+    font-size: clamp(2.2rem, 6vw + 1rem, 3.5rem);
+    margin-bottom: 0.5rem;
+}
+
+.overlay-text p {
+    font-size: 1rem;
+    margin-bottom: 0;
 }
 
 .access-code-modal {
-    background: linear-gradient(to bottom, #eae8ff, #d0cefd);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #91438a 100%);
+}
+
+.access-code-button {
+    background: var(--primary-color);
+}
+
+.access-code-button:hover {
+    background: #ebbf5e;
 }
 
 .access-code-modal .modal-header,

@@ -2,6 +2,7 @@
 {% load static places_auto %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Route Planner</title>
@@ -11,71 +12,74 @@
   <link rel="stylesheet" href="{% static 'navbar.css' %}">
 </head>
 
-<nav>
-  {% include "navbar.html" %}
-</nav>
-
 <body class="bg-light">
-  
-  <!-- Header -->
-  <header class="info-section">
-    <div class="container py-5">
-      <div class="row align-items-center g-5">
-        <div class="col-lg-8">
-          <h1 class="display-5 fw-bold mb-3">Multi-Stop Route Planner</h1>
-          <p class="lead mb-0">Enter an origin and destination, add stops, and we’ll compute the best route.</p>
+  <nav>
+    {% include "navbar.html" %}
+  </nav>
+
+  <main>
+    <!-- Header -->
+    <header class="info-section">
+      <div class="container py-5">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-3">Multi-Stop Route Planner</h1>
+            <p class="lead mb-0">Enter an origin and destination, add stops, and we’ll compute the best route.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Planner -->
-  <section class="container py-5">
-    <div class="card shadow-sm rounded-xxl">
-      <div class="card-body gradient rounded-xxl p-4">
+    <!-- Planner -->
+    <section class="container py-5">
+      <div class="card shadow-sm rounded-xxl">
+        <div class="card-body gradient rounded-xxl p-4">
 
-        {% if error %}
+          {% if error %}
           <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
+          {% endif %}
 
-        <form method="post" action="{% url 'google_routing:compute_route' %}" id="routeForm" class="mb-3">
-          {% csrf_token %}
-          <input type="hidden" name="n" id="nCount" value="{{ forms_list|length }}">
+          <form method="post" action="{% url 'google_routing:compute_route' %}" id="routeForm" class="mb-3">
+            {% csrf_token %}
+            <input type="hidden" name="n" id="nCount" value="{{ forms_list|length }}">
 
-          <div id="stopsContainer" class="mb-3">
-            {% for f in forms_list %}
+            <div id="stopsContainer" class="mb-3">
+              {% for f in forms_list %}
               <div class="row align-items-center g-2 mb-2 stop-row">
                 <div class="col-12 col-md-9">
                   <label class="form-label medium mb-1 fw-bold">
-                    {% if forloop.first %}Origin{% elif forloop.last %}Destination{% else %}Stop {{ forloop.counter0 }}{% endif %}
+                    {% if forloop.first %}Origin{% elif forloop.last %}Destination{% else %}Stop {{ forloop.counter0
+                    }}{% endif %}
                   </label>
                   {{ f.address }}
                 </div>
                 <div class="col-12 col-md-3 d-flex gap-2">
                   {% if not forloop.first and not forloop.last %}
-                    <button type="button" class="btn btn-outline-danger w-100 remove-stop" style="margin-top: 2rem;">Remove</button>
+                  <button type="button" class="btn btn-outline-danger w-100 remove-stop"
+                    style="margin-top: 2rem;">Remove</button>
                   {% else %}
-                    <p class="required" style="padding-top: 2.5rem;">**Required</p>
+                  <p class="required" style="padding-top: 2.5rem;">**Required</p>
                   {% endif %}
                 </div>
               </div>
-            {% endfor %}
-            <input type="hidden" id="id_place_id" name="place_id">
-            <input type="hidden" id="id_lat" name="lat">
-            <input type="hidden" id="id_lng" name="lng">
-          </div>
+              {% endfor %}
+              <input type="hidden" id="id_place_id" name="place_id">
+              <input type="hidden" id="id_lat" name="lat">
+              <input type="hidden" id="id_lng" name="lng">
+            </div>
 
-          <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-primary secondary-buttons"
-              href="{% url 'google_routing:route_demo' %}?n={{ forms_list|length|add:'1' }}">
-              + Add stop
-            </a>
-            <button type="submit" class="btn btn-primary">Compute route</button>
-           <a href="{% url 'google_routing:route_demo' %}" class="btn btn-outline-secondary secondary-buttons">Start over</a>
-          </div>
-        </form>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-primary secondary-buttons"
+                href="{% url 'google_routing:route_demo' %}?n={{ forms_list|length|add:'1' }}">
+                + Add stop
+              </a>
+              <button type="submit" class="btn btn-primary">Compute route</button>
+              <a href="{% url 'google_routing:route_demo' %}" class="btn btn-outline-secondary secondary-buttons">Start
+                over</a>
+            </div>
+          </form>
 
-        {% if result %}
+          {% if result %}
           <div class="border-top pt-3">
             <p class="mb-2">
               <strong>Distance:</strong>
@@ -99,14 +103,15 @@
             -->
 
             {% if result.static_map_src %}
-              <img id="map-img" class="shadow-sm" src="{{ result.static_map_src }}" alt="Route Map">
+            <img id="map-img" class="shadow-sm" src="{{ result.static_map_src }}" alt="Route Map">
             {% endif %}
           </div>
-        {% endif %}
+          {% endif %}
 
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- Footer -->
   <footer class="py-4 mt-5">
@@ -125,7 +130,7 @@
 
   <!-- Tiny JS for “Remove stop” (min 2 rows kept) + keeping hidden n in sync -->
   <script>
-    document.addEventListener('click', function(e){
+    document.addEventListener('click', function (e) {
       if (!e.target.classList.contains('remove-stop')) return;
       const rows = document.querySelectorAll('.stop-row');
       if (rows.length <= 2) return; // keep at least origin + destination
@@ -135,4 +140,5 @@
   </script>
   {% places_js %}
 </body>
+
 </html>

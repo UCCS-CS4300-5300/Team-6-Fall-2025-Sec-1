@@ -139,7 +139,7 @@
             if (!carouselInner || !indicatorsContainer) return;
 
             try {
-                const places = await text_search("Top Tourist Attractions in the United States");
+                const places = await text_search("Top Tourist Attractions in America");
 
                 carouselInner.innerHTML = "";
                 indicatorsContainer.innerHTML = "";
@@ -157,7 +157,7 @@
                         img.classList.add("d-block", "w-100");
 
                         const caption = document.createElement("div");
-                        caption.classList.add("carousel-caption", "d-none", "d-md-block");
+                        caption.classList.add("carousel-caption");
                         caption.innerHTML = `<h5>${place.displayName?.text}</h5><p>${place.formattedAddress || ""}</p>`;
 
                         carouselItem.appendChild(img);
@@ -166,6 +166,7 @@
 
                         const indicator = document.createElement("button");
                         indicator.type = "button";
+                        indicator.classList.add("carousel-button");
                         indicator.setAttribute("data-bs-target", "#carousel");
                         indicator.setAttribute("data-bs-slide-to", index);
                         if (index === 0) {
@@ -217,7 +218,7 @@
                     colDiv.classList.add("col-md-6", "col-lg-4"); // 2 cards on medium screens, 3 on large
 
                     const placeCard = document.createElement("div");
-                    placeCard.classList.add("card", "h-100", "shadow-sm", "rounded");
+                    placeCard.classList.add("card", "h-100", "shadow-sm", "rounded-card");
                     placeCard.innerHTML = `
                     <img
                         src="${place.photos[0]}" 
@@ -228,7 +229,7 @@
                     <div class="card-body">
                     <h5 class="card-title">${place.displayName?.text || "Unnamed Place"}</h5>
                     <p class="card-text">${place.formattedAddress || "No address available"}</p>
-                    ${place.websiteUri ? `<a href="${place.websiteUri}" class="website-button btn btn-outline-primary">Visit Website</a>` : ""}
+                    ${place.websiteUri ? `<a href="${place.websiteUri}" class="btn btn-secondary">Visit Website</a>` : ""}
                     </div>
                 `;
                     colDiv.appendChild(placeCard);
