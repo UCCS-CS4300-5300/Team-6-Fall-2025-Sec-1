@@ -94,7 +94,7 @@ pyasn1==0.6.1
     #   rsa
 pyasn1-modules==0.4.2
     # via google-auth
-pydantic==2.12.4
+pydantic==2.12.5
     # via openai
 pydantic-core==2.41.5
     # via pydantic
