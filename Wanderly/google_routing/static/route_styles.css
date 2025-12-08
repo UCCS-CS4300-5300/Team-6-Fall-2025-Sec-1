@@ -10,7 +10,7 @@ footer {
     bottom: 0;
     width: 100%;
     color: var(--text-color);
-    position: fixed;
+    position: relative;
 }  
 
 .info-section { 
