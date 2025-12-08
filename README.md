@@ -86,4 +86,7 @@ Make sure you have a project in GCP with billing enabled.
         * Places API (New)
         * Maps Static API
       * Click Create
-     
+
+## Acknowledgments
+This project used ChatGPT by OpenAI for debugging support, code explanations, and general development assistance.
+
