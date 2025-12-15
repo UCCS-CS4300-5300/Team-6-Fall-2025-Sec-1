@@ -9,4 +9,4 @@ coverage~=7.11
 pylint_django~=2.6.1
 pylint~=3.3
 bandit~=1.8
-pip-audit~=2.9
+pip-audit~=2.10
